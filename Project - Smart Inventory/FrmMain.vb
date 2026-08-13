@@ -15,4 +15,8 @@
         dashboard.Dock = DockStyle.Fill
         dashboard.Show()
     End Sub
+
+    Private Sub DashBoardToolStripMenuItem_Click(sender As Object, e As EventArgs) Handles DashBoardToolStripMenuItem.Click
+        ShowDashboard()
+    End Sub
 End Class

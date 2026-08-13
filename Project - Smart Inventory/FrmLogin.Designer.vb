@@ -39,9 +39,9 @@ Partial Class FrmLogin
         ' 
         Label2.AutoSize = True
         Label2.Font = New Font("Segoe UI", 9F, FontStyle.Regular, GraphicsUnit.Point, CByte(0))
-        Label2.Location = New Point(172, 199)
+        Label2.Location = New Point(150, 149)
         Label2.Name = "Label2"
-        Label2.Size = New Size(220, 20)
+        Label2.Size = New Size(176, 15)
         Label2.TabIndex = 1
         Label2.Text = "Sales & Business Analytics System"
         ' 
@@ -49,9 +49,9 @@ Partial Class FrmLogin
         ' 
         Label3.AutoSize = True
         Label3.Font = New Font("Segoe UI", 10.8F, FontStyle.Bold, GraphicsUnit.Point, CByte(0))
-        Label3.Location = New Point(50, 268)
+        Label3.Location = New Point(44, 201)
         Label3.Name = "Label3"
-        Label3.Size = New Size(100, 25)
+        Label3.Size = New Size(83, 20)
         Label3.TabIndex = 2
         Label3.Text = "UserName"
         ' 
@@ -59,37 +59,40 @@ Partial Class FrmLogin
         ' 
         Label4.AutoSize = True
         Label4.Font = New Font("Segoe UI", 10.8F, FontStyle.Bold, GraphicsUnit.Point, CByte(0))
-        Label4.Location = New Point(50, 381)
+        Label4.Location = New Point(44, 286)
         Label4.Name = "Label4"
-        Label4.Size = New Size(92, 25)
+        Label4.Size = New Size(76, 20)
         Label4.TabIndex = 3
         Label4.Text = "Password"
         ' 
         ' txtname
         ' 
         txtname.BorderStyle = BorderStyle.FixedSingle
-        txtname.Location = New Point(50, 318)
+        txtname.Location = New Point(44, 238)
+        txtname.Margin = New Padding(3, 2, 3, 2)
         txtname.Multiline = True
         txtname.Name = "txtname"
-        txtname.Size = New Size(404, 43)
+        txtname.Size = New Size(354, 33)
         txtname.TabIndex = 4
         ' 
         ' txtpass
         ' 
         txtpass.BorderStyle = BorderStyle.FixedSingle
-        txtpass.Location = New Point(50, 425)
+        txtpass.Location = New Point(44, 319)
+        txtpass.Margin = New Padding(3, 2, 3, 2)
         txtpass.Multiline = True
         txtpass.Name = "txtpass"
-        txtpass.Size = New Size(404, 43)
+        txtpass.Size = New Size(354, 33)
         txtpass.TabIndex = 5
         txtpass.UseSystemPasswordChar = True
         ' 
         ' btnlogin
         ' 
         btnlogin.Font = New Font("Segoe UI", 13.8F, FontStyle.Bold, GraphicsUnit.Point, CByte(0))
-        btnlogin.Location = New Point(186, 525)
+        btnlogin.Location = New Point(163, 394)
+        btnlogin.Margin = New Padding(3, 2, 3, 2)
         btnlogin.Name = "btnlogin"
-        btnlogin.Size = New Size(162, 70)
+        btnlogin.Size = New Size(142, 52)
         btnlogin.TabIndex = 6
         btnlogin.Text = "Login"
         btnlogin.UseVisualStyleBackColor = True
@@ -97,9 +100,10 @@ Partial Class FrmLogin
         ' btnExit
         ' 
         btnExit.Font = New Font("Segoe UI", 13.8F, FontStyle.Bold, GraphicsUnit.Point, CByte(0))
-        btnExit.Location = New Point(186, 625)
+        btnExit.Location = New Point(163, 469)
+        btnExit.Margin = New Padding(3, 2, 3, 2)
         btnExit.Name = "btnExit"
-        btnExit.Size = New Size(162, 69)
+        btnExit.Size = New Size(142, 52)
         btnExit.TabIndex = 7
         btnExit.Text = "EXIT"
         btnExit.UseVisualStyleBackColor = True
@@ -107,19 +111,20 @@ Partial Class FrmLogin
         ' PictureBox1
         ' 
         PictureBox1.Image = CType(resources.GetObject("PictureBox1.Image"), Image)
-        PictureBox1.Location = New Point(101, 12)
+        PictureBox1.Location = New Point(88, 9)
+        PictureBox1.Margin = New Padding(3, 2, 3, 2)
         PictureBox1.Name = "PictureBox1"
-        PictureBox1.Size = New Size(363, 253)
+        PictureBox1.Size = New Size(318, 190)
         PictureBox1.SizeMode = PictureBoxSizeMode.Zoom
         PictureBox1.TabIndex = 8
         PictureBox1.TabStop = False
         ' 
         ' FrmLogin
         ' 
-        AutoScaleDimensions = New SizeF(8F, 20F)
+        AutoScaleDimensions = New SizeF(7F, 15F)
         AutoScaleMode = AutoScaleMode.Font
         BackColor = Color.White
-        ClientSize = New Size(572, 717)
+        ClientSize = New Size(500, 538)
         Controls.Add(btnExit)
         Controls.Add(btnlogin)
         Controls.Add(txtpass)
@@ -128,7 +133,9 @@ Partial Class FrmLogin
         Controls.Add(Label3)
         Controls.Add(Label2)
         Controls.Add(PictureBox1)
+        Margin = New Padding(3, 2, 3, 2)
         Name = "FrmLogin"
+        StartPosition = FormStartPosition.CenterScreen
         Text = "FrmLogin"
         CType(PictureBox1, ComponentModel.ISupportInitialize).EndInit()
         ResumeLayout(False)
