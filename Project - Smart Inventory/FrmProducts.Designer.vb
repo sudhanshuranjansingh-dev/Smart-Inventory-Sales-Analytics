@@ -107,8 +107,9 @@ Partial Class FrmProducts
         ' 
         ' cmbCategory
         ' 
+        cmbCategory.AllowDrop = True
         cmbCategory.FormattingEnabled = True
-        cmbCategory.Location = New Point(183, 158)
+        cmbCategory.Location = New Point(190, 158)
         cmbCategory.Name = "cmbCategory"
         cmbCategory.Size = New Size(211, 23)
         cmbCategory.TabIndex = 6
@@ -116,7 +117,7 @@ Partial Class FrmProducts
         ' cmbSupplier
         ' 
         cmbSupplier.FormattingEnabled = True
-        cmbSupplier.Location = New Point(616, 158)
+        cmbSupplier.Location = New Point(623, 158)
         cmbSupplier.Name = "cmbSupplier"
         cmbSupplier.Size = New Size(211, 23)
         cmbSupplier.TabIndex = 8
@@ -169,7 +170,7 @@ Partial Class FrmProducts
         ' 
         ' txtStock
         ' 
-        txtStock.Location = New Point(190, 319)
+        txtStock.Location = New Point(190, 308)
         txtStock.Multiline = True
         txtStock.Name = "txtStock"
         txtStock.Size = New Size(211, 36)
@@ -245,17 +246,17 @@ Partial Class FrmProducts
         ' 
         ' TextBox3
         ' 
-        TextBox3.Location = New Point(183, 472)
+        TextBox3.Location = New Point(242, 472)
         TextBox3.Multiline = True
         TextBox3.Name = "TextBox3"
-        TextBox3.Size = New Size(243, 36)
+        TextBox3.Size = New Size(405, 36)
         TextBox3.TabIndex = 22
         ' 
         ' lblSearch
         ' 
         lblSearch.AutoSize = True
         lblSearch.Font = New Font("Segoe UI", 15.75F, FontStyle.Bold, GraphicsUnit.Point, CByte(0))
-        lblSearch.Location = New Point(58, 483)
+        lblSearch.Location = New Point(104, 472)
         lblSearch.Name = "lblSearch"
         lblSearch.Size = New Size(90, 30)
         lblSearch.TabIndex = 21

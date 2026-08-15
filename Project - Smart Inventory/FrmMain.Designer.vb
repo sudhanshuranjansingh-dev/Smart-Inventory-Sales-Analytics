@@ -72,28 +72,28 @@ Partial Class FrmMain
         ' 
         mnuProduct.Font = New Font("Segoe UI", 9.75F, FontStyle.Bold, GraphicsUnit.Point, CByte(0))
         mnuProduct.Name = "mnuProduct"
-        mnuProduct.Size = New Size(145, 22)
+        mnuProduct.Size = New Size(180, 22)
         mnuProduct.Text = "Products"
         ' 
         ' mnuCategories
         ' 
         mnuCategories.Font = New Font("Segoe UI", 9.75F, FontStyle.Bold, GraphicsUnit.Point, CByte(0))
         mnuCategories.Name = "mnuCategories"
-        mnuCategories.Size = New Size(145, 22)
+        mnuCategories.Size = New Size(180, 22)
         mnuCategories.Text = "Categories"
         ' 
         ' mnuSuppliers
         ' 
         mnuSuppliers.Font = New Font("Segoe UI", 9.75F, FontStyle.Bold, GraphicsUnit.Point, CByte(0))
         mnuSuppliers.Name = "mnuSuppliers"
-        mnuSuppliers.Size = New Size(145, 22)
+        mnuSuppliers.Size = New Size(180, 22)
         mnuSuppliers.Text = "Suppliers"
         ' 
         ' mnuStock
         ' 
         mnuStock.Font = New Font("Segoe UI", 9.75F, FontStyle.Bold, GraphicsUnit.Point, CByte(0))
         mnuStock.Name = "mnuStock"
-        mnuStock.Size = New Size(145, 22)
+        mnuStock.Size = New Size(180, 22)
         mnuStock.Text = "Stock"
         ' 
         ' TransactionsToolStripMenuItem

@@ -19,4 +19,14 @@
     Private Sub DashBoardToolStripMenuItem_Click(sender As Object, e As EventArgs) Handles DashBoardToolStripMenuItem.Click
         ShowDashboard()
     End Sub
+
+    Private Sub mnuProduct_Click(sender As Object, e As EventArgs) Handles mnuProduct.Click
+
+
+        Dim products As New FrmProducts()
+        products.MdiParent = Me
+        products.Dock = DockStyle.Fill
+        products.Show()
+
+    End Sub
 End Class

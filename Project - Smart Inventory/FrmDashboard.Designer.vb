@@ -50,7 +50,7 @@ Partial Class FrmDashboard
         PnlHeader.Dock = DockStyle.Top
         PnlHeader.Location = New Point(0, 0)
         PnlHeader.Name = "PnlHeader"
-        PnlHeader.Size = New Size(958, 100)
+        PnlHeader.Size = New Size(956, 100)
         PnlHeader.TabIndex = 0
         ' 
         ' lbltitle
@@ -183,7 +183,7 @@ Partial Class FrmDashboard
         ' 
         ' plotSales
         ' 
-        plotSales.Location = New Point(172, 304)
+        plotSales.Location = New Point(158, 289)
         plotSales.Name = "plotSales"
         plotSales.Size = New Size(600, 300)
         plotSales.TabIndex = 6
@@ -193,7 +193,7 @@ Partial Class FrmDashboard
         ' 
         AutoScaleDimensions = New SizeF(7F, 15F)
         AutoScaleMode = AutoScaleMode.Font
-        ClientSize = New Size(958, 692)
+        ClientSize = New Size(956, 635)
         Controls.Add(plotSales)
         Controls.Add(pnlStock)
         Controls.Add(pnlSales)
