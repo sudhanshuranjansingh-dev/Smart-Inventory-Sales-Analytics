@@ -68,6 +68,7 @@ Partial Class FrmLogin
         ' txtname
         ' 
         txtname.BorderStyle = BorderStyle.FixedSingle
+        txtname.Font = New Font("Segoe UI", 11.25F, FontStyle.Bold, GraphicsUnit.Point, CByte(0))
         txtname.Location = New Point(44, 238)
         txtname.Margin = New Padding(3, 2, 3, 2)
         txtname.Multiline = True
@@ -78,6 +79,7 @@ Partial Class FrmLogin
         ' txtpass
         ' 
         txtpass.BorderStyle = BorderStyle.FixedSingle
+        txtpass.Font = New Font("Segoe UI", 11.25F, FontStyle.Bold, GraphicsUnit.Point, CByte(0))
         txtpass.Location = New Point(44, 319)
         txtpass.Margin = New Padding(3, 2, 3, 2)
         txtpass.Multiline = True

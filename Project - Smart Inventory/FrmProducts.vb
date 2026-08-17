@@ -14,10 +14,7 @@ Public Class FrmProducts
 
                 con.Open()
 
-                Dim query As String =
-                "SELECT CategoryID, CategoryName " &
-                "FROM Categories " &
-                "ORDER BY CategoryName"
+                Dim query As String = "SELECT CategoryID, CategoryName " & "FROM Categories " & "ORDER BY CategoryName"
 
                 Using adapter As New MySqlDataAdapter(query, con)
 

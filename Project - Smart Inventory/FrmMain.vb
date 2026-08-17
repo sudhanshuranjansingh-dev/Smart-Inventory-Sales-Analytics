@@ -24,9 +24,45 @@
 
 
         Dim products As New FrmProducts()
-        products.MdiParent = Me
-        products.Dock = DockStyle.Fill
-        products.Show()
 
+        products.MdiParent = Me
+        products.WindowState = FormWindowState.Maximized
+        products.Show()
+    End Sub
+
+    Private Sub SystemToolStripMenuItem_Click(sender As Object, e As EventArgs) Handles SystemToolStripMenuItem.Click
+
+    End Sub
+
+    Private Sub mnuExit_Click(sender As Object, e As EventArgs) Handles mnuExit.Click
+        Dim result As DialogResult
+
+        result = MessageBox.Show("Are you sure you want to exit?", "Exit Application", MessageBoxButtons.YesNo,
+                              MessageBoxIcon.Question)
+
+        If result = DialogResult.Yes Then
+            Application.Exit()
+        End If
+    End Sub
+
+    Private Sub mnuLogout_Click(sender As Object, e As EventArgs) Handles mnuLogout.Click
+        Dim result As DialogResult
+
+        result = MessageBox.Show(
+            "Are you sure you want to logout?",
+            "Logout",
+            MessageBoxButtons.YesNo,
+            MessageBoxIcon.Question
+        )
+
+        If result = DialogResult.Yes Then
+
+            'Show Login Form
+            FrmLogin.Show()
+
+            'Close Main Form
+            Me.Close()
+
+        End If
     End Sub
 End Class
