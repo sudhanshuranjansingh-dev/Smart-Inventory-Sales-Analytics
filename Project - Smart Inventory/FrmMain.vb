@@ -65,4 +65,12 @@
 
         End If
     End Sub
+
+    Private Sub mnuCategories_Click(sender As Object, e As EventArgs) Handles mnuCategories.Click
+        Dim frm As New FrmCategories()
+
+        frm.MdiParent = Me
+        frm.Dock = DockStyle.Fill
+        frm.Show()
+    End Sub
 End Class

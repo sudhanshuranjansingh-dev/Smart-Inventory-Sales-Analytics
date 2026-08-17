@@ -52,152 +52,150 @@ Partial Class FrmMain
         MenuStrip1.Items.AddRange(New ToolStripItem() {DashBoardToolStripMenuItem, InventoryToolStripMenuItem, TransactionsToolStripMenuItem, AnalyticsToolStripMenuItem, ReportsToolStripMenuItem, SystemToolStripMenuItem})
         MenuStrip1.Location = New Point(0, 0)
         MenuStrip1.Name = "MenuStrip1"
-        MenuStrip1.Padding = New Padding(7, 3, 0, 3)
-        MenuStrip1.Size = New Size(1093, 42)
+        MenuStrip1.Size = New Size(956, 33)
         MenuStrip1.TabIndex = 0
         MenuStrip1.Text = "MenuStrip1"
         ' 
         ' DashBoardToolStripMenuItem
         ' 
         DashBoardToolStripMenuItem.Name = "DashBoardToolStripMenuItem"
-        DashBoardToolStripMenuItem.Size = New Size(152, 36)
+        DashBoardToolStripMenuItem.Size = New Size(121, 29)
         DashBoardToolStripMenuItem.Text = "DashBoard"
         ' 
         ' InventoryToolStripMenuItem
         ' 
         InventoryToolStripMenuItem.DropDownItems.AddRange(New ToolStripItem() {mnuProduct, mnuCategories, mnuSuppliers, mnuStock})
         InventoryToolStripMenuItem.Name = "InventoryToolStripMenuItem"
-        InventoryToolStripMenuItem.Size = New Size(140, 36)
+        InventoryToolStripMenuItem.Size = New Size(112, 29)
         InventoryToolStripMenuItem.Text = "Inventory"
         ' 
         ' mnuProduct
         ' 
         mnuProduct.Font = New Font("Segoe UI", 9.75F, FontStyle.Bold, GraphicsUnit.Point, CByte(0))
         mnuProduct.Name = "mnuProduct"
-        mnuProduct.Size = New Size(183, 28)
+        mnuProduct.Size = New Size(180, 22)
         mnuProduct.Text = "Products"
         ' 
         ' mnuCategories
         ' 
         mnuCategories.Font = New Font("Segoe UI", 9.75F, FontStyle.Bold, GraphicsUnit.Point, CByte(0))
         mnuCategories.Name = "mnuCategories"
-        mnuCategories.Size = New Size(183, 28)
+        mnuCategories.Size = New Size(180, 22)
         mnuCategories.Text = "Categories"
         ' 
         ' mnuSuppliers
         ' 
         mnuSuppliers.Font = New Font("Segoe UI", 9.75F, FontStyle.Bold, GraphicsUnit.Point, CByte(0))
         mnuSuppliers.Name = "mnuSuppliers"
-        mnuSuppliers.Size = New Size(183, 28)
+        mnuSuppliers.Size = New Size(180, 22)
         mnuSuppliers.Text = "Suppliers"
         ' 
         ' mnuStock
         ' 
         mnuStock.Font = New Font("Segoe UI", 9.75F, FontStyle.Bold, GraphicsUnit.Point, CByte(0))
         mnuStock.Name = "mnuStock"
-        mnuStock.Size = New Size(183, 28)
+        mnuStock.Size = New Size(180, 22)
         mnuStock.Text = "Stock"
         ' 
         ' TransactionsToolStripMenuItem
         ' 
         TransactionsToolStripMenuItem.DropDownItems.AddRange(New ToolStripItem() {mnuPurchases, mnuNewSale, mnuSalesHistory})
         TransactionsToolStripMenuItem.Name = "TransactionsToolStripMenuItem"
-        TransactionsToolStripMenuItem.Size = New Size(171, 36)
+        TransactionsToolStripMenuItem.Size = New Size(135, 29)
         TransactionsToolStripMenuItem.Text = "Transactions"
         ' 
         ' mnuPurchases
         ' 
         mnuPurchases.Font = New Font("Segoe UI", 9.75F, FontStyle.Bold, GraphicsUnit.Point, CByte(0))
         mnuPurchases.Name = "mnuPurchases"
-        mnuPurchases.Size = New Size(202, 28)
+        mnuPurchases.Size = New Size(161, 22)
         mnuPurchases.Text = "Purchases"
         ' 
         ' mnuNewSale
         ' 
         mnuNewSale.Font = New Font("Segoe UI", 9.75F, FontStyle.Bold, GraphicsUnit.Point, CByte(0))
         mnuNewSale.Name = "mnuNewSale"
-        mnuNewSale.Size = New Size(202, 28)
+        mnuNewSale.Size = New Size(161, 22)
         mnuNewSale.Text = "New Sale"
         ' 
         ' mnuSalesHistory
         ' 
         mnuSalesHistory.Font = New Font("Segoe UI", 9.75F, FontStyle.Bold, GraphicsUnit.Point, CByte(0))
         mnuSalesHistory.Name = "mnuSalesHistory"
-        mnuSalesHistory.Size = New Size(202, 28)
+        mnuSalesHistory.Size = New Size(161, 22)
         mnuSalesHistory.Text = "Sales History"
         ' 
         ' AnalyticsToolStripMenuItem
         ' 
         AnalyticsToolStripMenuItem.DropDownItems.AddRange(New ToolStripItem() {mnuSalesAnalytics, mnuProductAnalytics})
         AnalyticsToolStripMenuItem.Name = "AnalyticsToolStripMenuItem"
-        AnalyticsToolStripMenuItem.Size = New Size(132, 36)
+        AnalyticsToolStripMenuItem.Size = New Size(103, 29)
         AnalyticsToolStripMenuItem.Text = "Analytics"
         ' 
         ' mnuSalesAnalytics
         ' 
         mnuSalesAnalytics.Font = New Font("Segoe UI", 9.75F, FontStyle.Bold, GraphicsUnit.Point, CByte(0))
         mnuSalesAnalytics.Name = "mnuSalesAnalytics"
-        mnuSalesAnalytics.Size = New Size(238, 28)
+        mnuSalesAnalytics.Size = New Size(188, 22)
         mnuSalesAnalytics.Text = "Sales Analytics"
         ' 
         ' mnuProductAnalytics
         ' 
         mnuProductAnalytics.Font = New Font("Segoe UI", 9.75F, FontStyle.Bold, GraphicsUnit.Point, CByte(0))
         mnuProductAnalytics.Name = "mnuProductAnalytics"
-        mnuProductAnalytics.Size = New Size(238, 28)
+        mnuProductAnalytics.Size = New Size(188, 22)
         mnuProductAnalytics.Text = "Product Analytics"
         ' 
         ' ReportsToolStripMenuItem
         ' 
         ReportsToolStripMenuItem.DropDownItems.AddRange(New ToolStripItem() {mnuSalesReport, mnuInventoryReport})
         ReportsToolStripMenuItem.Name = "ReportsToolStripMenuItem"
-        ReportsToolStripMenuItem.Size = New Size(117, 36)
+        ReportsToolStripMenuItem.Size = New Size(94, 29)
         ReportsToolStripMenuItem.Text = "Reports"
         ' 
         ' mnuSalesReport
         ' 
         mnuSalesReport.Font = New Font("Segoe UI", 9.75F, FontStyle.Bold, GraphicsUnit.Point, CByte(0))
         mnuSalesReport.Name = "mnuSalesReport"
-        mnuSalesReport.Size = New Size(235, 28)
+        mnuSalesReport.Size = New Size(185, 22)
         mnuSalesReport.Text = "Sales Report"
         ' 
         ' mnuInventoryReport
         ' 
         mnuInventoryReport.Font = New Font("Segoe UI", 9.75F, FontStyle.Bold, GraphicsUnit.Point, CByte(0))
         mnuInventoryReport.Name = "mnuInventoryReport"
-        mnuInventoryReport.Size = New Size(235, 28)
+        mnuInventoryReport.Size = New Size(185, 22)
         mnuInventoryReport.Text = "Inventory Report"
         ' 
         ' SystemToolStripMenuItem
         ' 
         SystemToolStripMenuItem.DropDownItems.AddRange(New ToolStripItem() {mnuLogout, mnuExit})
         SystemToolStripMenuItem.Name = "SystemToolStripMenuItem"
-        SystemToolStripMenuItem.Size = New Size(108, 36)
+        SystemToolStripMenuItem.Size = New Size(87, 29)
         SystemToolStripMenuItem.Text = "System"
         ' 
         ' mnuLogout
         ' 
         mnuLogout.Font = New Font("Segoe UI", 9.75F, FontStyle.Bold, GraphicsUnit.Point, CByte(0))
         mnuLogout.Name = "mnuLogout"
-        mnuLogout.Size = New Size(155, 28)
+        mnuLogout.Size = New Size(124, 22)
         mnuLogout.Text = "Logout"
         ' 
         ' mnuExit
         ' 
         mnuExit.Font = New Font("Segoe UI", 9.75F, FontStyle.Bold, GraphicsUnit.Point, CByte(0))
         mnuExit.Name = "mnuExit"
-        mnuExit.Size = New Size(155, 28)
+        mnuExit.Size = New Size(124, 22)
         mnuExit.Text = "Exit"
         ' 
         ' FrmMain
         ' 
-        AutoScaleDimensions = New SizeF(8F, 20F)
+        AutoScaleDimensions = New SizeF(7F, 15F)
         AutoScaleMode = AutoScaleMode.Font
-        ClientSize = New Size(1093, 905)
+        ClientSize = New Size(956, 679)
         Controls.Add(MenuStrip1)
         IsMdiContainer = True
         MainMenuStrip = MenuStrip1
-        Margin = New Padding(3, 4, 3, 4)
         Name = "FrmMain"
         StartPosition = FormStartPosition.CenterScreen
         Text = "FrmMain"
