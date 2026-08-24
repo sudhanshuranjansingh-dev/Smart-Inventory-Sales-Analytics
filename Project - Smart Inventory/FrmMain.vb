@@ -73,4 +73,29 @@
         frm.Dock = DockStyle.Fill
         frm.Show()
     End Sub
+
+    Private Sub mnuSuppliers_Click(sender As Object, e As EventArgs) Handles mnuSuppliers.Click
+        Dim frm As New FrmSuppliers()
+
+        frm.MdiParent = Me
+        frm.Dock = DockStyle.Fill
+        frm.Show()
+
+    End Sub
+
+    Private Sub mnuStock_Click(sender As Object, e As EventArgs) Handles mnuStock.Click
+        Dim frm As New Stock()
+
+        frm.MdiParent = Me
+        frm.Dock = DockStyle.Fill
+        frm.Show()
+    End Sub
+
+    Private Sub mnuPurchases_Click(sender As Object, e As EventArgs) Handles mnuPurchases.Click
+        Dim frm As New FrmPurchases()
+
+        frm.MdiParent = Me
+        frm.Dock = DockStyle.Fill
+        frm.Show()
+    End Sub
 End Class
