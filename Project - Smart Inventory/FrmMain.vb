@@ -98,4 +98,20 @@
         frm.Dock = DockStyle.Fill
         frm.Show()
     End Sub
+
+    Private Sub mnuNewSale_Click(sender As Object, e As EventArgs) Handles mnuNewSale.Click
+        Dim frm As New FrmSales()
+
+        frm.MdiParent = Me
+        frm.Dock = DockStyle.Fill
+        frm.Show()
+    End Sub
+
+    Private Sub mnuSalesHistory_Click(sender As Object, e As EventArgs) Handles mnuSalesHistory.Click
+        Dim frm As New FrmSalesHistory()
+
+        frm.MdiParent = Me
+        frm.Dock = DockStyle.Fill
+        frm.Show()
+    End Sub
 End Class

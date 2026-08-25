@@ -28,7 +28,7 @@ Partial Class FrmDashboard
         lblTotalProducts = New Label()
         lblProductTitle = New Label()
         pnlLowStock = New Panel()
-        lblLowStock = New Label()
+        lblLowStockItems = New Label()
         lblLowStockTitle = New Label()
         pnlSales = New Panel()
         lblTotalSales = New Label()
@@ -36,7 +36,7 @@ Partial Class FrmDashboard
         pnlStock = New Panel()
         lblTotalStock = New Label()
         lblStockTitle = New Label()
-        plotSales = New ScottPlot.WinForms.TransparentSKControl()
+        plotSales = New ScottPlot.WinForms.FormsPlot()
         PnlHeader.SuspendLayout()
         pnlProducts.SuspendLayout()
         pnlLowStock.SuspendLayout()
@@ -49,18 +49,17 @@ Partial Class FrmDashboard
         PnlHeader.Controls.Add(lbltitle)
         PnlHeader.Dock = DockStyle.Top
         PnlHeader.Location = New Point(0, 0)
-        PnlHeader.Margin = New Padding(3, 4, 3, 4)
         PnlHeader.Name = "PnlHeader"
-        PnlHeader.Size = New Size(1093, 133)
+        PnlHeader.Size = New Size(956, 100)
         PnlHeader.TabIndex = 0
         ' 
         ' lbltitle
         ' 
         lbltitle.AutoSize = True
         lbltitle.Font = New Font("Segoe UI", 20.25F, FontStyle.Bold, GraphicsUnit.Point, CByte(0))
-        lbltitle.Location = New Point(250, 44)
+        lbltitle.Location = New Point(219, 33)
         lbltitle.Name = "lbltitle"
-        lbltitle.Size = New Size(463, 46)
+        lbltitle.Size = New Size(375, 37)
         lbltitle.TabIndex = 0
         lbltitle.Text = "Smart Inventory Dashboard"
         ' 
@@ -69,19 +68,18 @@ Partial Class FrmDashboard
         pnlProducts.Controls.Add(lblTotalProducts)
         pnlProducts.Controls.Add(lblProductTitle)
         pnlProducts.Font = New Font("Segoe UI", 9.75F, FontStyle.Bold, GraphicsUnit.Point, CByte(0))
-        pnlProducts.Location = New Point(18, 155)
-        pnlProducts.Margin = New Padding(3, 4, 3, 4)
+        pnlProducts.Location = New Point(16, 116)
         pnlProducts.Name = "pnlProducts"
-        pnlProducts.Size = New Size(220, 140)
+        pnlProducts.Size = New Size(192, 105)
         pnlProducts.TabIndex = 1
         ' 
         ' lblTotalProducts
         ' 
         lblTotalProducts.AutoSize = True
         lblTotalProducts.Font = New Font("Segoe UI", 12F, FontStyle.Bold, GraphicsUnit.Point, CByte(0))
-        lblTotalProducts.Location = New Point(95, 76)
+        lblTotalProducts.Location = New Point(83, 57)
         lblTotalProducts.Name = "lblTotalProducts"
-        lblTotalProducts.Size = New Size(24, 28)
+        lblTotalProducts.Size = New Size(19, 21)
         lblTotalProducts.TabIndex = 1
         lblTotalProducts.Text = "0"
         ' 
@@ -89,40 +87,39 @@ Partial Class FrmDashboard
         ' 
         lblProductTitle.AutoSize = True
         lblProductTitle.Font = New Font("Segoe UI", 12F, FontStyle.Bold, GraphicsUnit.Point, CByte(0))
-        lblProductTitle.Location = New Point(18, 8)
+        lblProductTitle.Location = New Point(16, 6)
         lblProductTitle.Name = "lblProductTitle"
-        lblProductTitle.Size = New Size(182, 28)
+        lblProductTitle.Size = New Size(144, 21)
         lblProductTitle.TabIndex = 0
         lblProductTitle.Text = "TOTAL PRODUCTS"
         ' 
         ' pnlLowStock
         ' 
-        pnlLowStock.Controls.Add(lblLowStock)
+        pnlLowStock.Controls.Add(lblLowStockItems)
         pnlLowStock.Controls.Add(lblLowStockTitle)
         pnlLowStock.Font = New Font("Segoe UI", 9.75F, FontStyle.Bold, GraphicsUnit.Point, CByte(0))
-        pnlLowStock.Location = New Point(837, 155)
-        pnlLowStock.Margin = New Padding(3, 4, 3, 4)
+        pnlLowStock.Location = New Point(732, 116)
         pnlLowStock.Name = "pnlLowStock"
-        pnlLowStock.Size = New Size(220, 140)
+        pnlLowStock.Size = New Size(192, 105)
         pnlLowStock.TabIndex = 4
         ' 
-        ' lblLowStock
+        ' lblLowStockItems
         ' 
-        lblLowStock.AutoSize = True
-        lblLowStock.Font = New Font("Segoe UI", 12F, FontStyle.Bold, GraphicsUnit.Point, CByte(0))
-        lblLowStock.Location = New Point(81, 76)
-        lblLowStock.Name = "lblLowStock"
-        lblLowStock.Size = New Size(24, 28)
-        lblLowStock.TabIndex = 1
-        lblLowStock.Text = "0"
+        lblLowStockItems.AutoSize = True
+        lblLowStockItems.Font = New Font("Segoe UI", 12F, FontStyle.Bold, GraphicsUnit.Point, CByte(0))
+        lblLowStockItems.Location = New Point(71, 57)
+        lblLowStockItems.Name = "lblLowStockItems"
+        lblLowStockItems.Size = New Size(19, 21)
+        lblLowStockItems.TabIndex = 1
+        lblLowStockItems.Text = "0"
         ' 
         ' lblLowStockTitle
         ' 
         lblLowStockTitle.AutoSize = True
         lblLowStockTitle.Font = New Font("Segoe UI", 12F, FontStyle.Bold, GraphicsUnit.Point, CByte(0))
-        lblLowStockTitle.Location = New Point(24, 16)
+        lblLowStockTitle.Location = New Point(21, 12)
         lblLowStockTitle.Name = "lblLowStockTitle"
-        lblLowStockTitle.Size = New Size(190, 28)
+        lblLowStockTitle.Size = New Size(150, 21)
         lblLowStockTitle.TabIndex = 0
         lblLowStockTitle.Text = "LOW STOCK ITEMS"
         ' 
@@ -131,19 +128,18 @@ Partial Class FrmDashboard
         pnlSales.Controls.Add(lblTotalSales)
         pnlSales.Controls.Add(lblSalesTitle)
         pnlSales.Font = New Font("Segoe UI", 9.75F, FontStyle.Bold, GraphicsUnit.Point, CByte(0))
-        pnlSales.Location = New Point(281, 155)
-        pnlSales.Margin = New Padding(3, 4, 3, 4)
+        pnlSales.Location = New Point(246, 116)
         pnlSales.Name = "pnlSales"
-        pnlSales.Size = New Size(220, 140)
+        pnlSales.Size = New Size(192, 105)
         pnlSales.TabIndex = 5
         ' 
         ' lblTotalSales
         ' 
         lblTotalSales.AutoSize = True
         lblTotalSales.Font = New Font("Segoe UI", 12F, FontStyle.Bold, GraphicsUnit.Point, CByte(0))
-        lblTotalSales.Location = New Point(68, 76)
+        lblTotalSales.Location = New Point(60, 57)
         lblTotalSales.Name = "lblTotalSales"
-        lblTotalSales.Size = New Size(65, 28)
+        lblTotalSales.Size = New Size(50, 21)
         lblTotalSales.TabIndex = 1
         lblTotalSales.Text = "$0.00"
         ' 
@@ -151,9 +147,9 @@ Partial Class FrmDashboard
         ' 
         lblSalesTitle.AutoSize = True
         lblSalesTitle.Font = New Font("Segoe UI", 12F, FontStyle.Bold, GraphicsUnit.Point, CByte(0))
-        lblSalesTitle.Location = New Point(46, 13)
+        lblSalesTitle.Location = New Point(40, 10)
         lblSalesTitle.Name = "lblSalesTitle"
-        lblSalesTitle.Size = New Size(135, 28)
+        lblSalesTitle.Size = New Size(106, 21)
         lblSalesTitle.TabIndex = 0
         lblSalesTitle.Text = "TOTAL SALES"
         ' 
@@ -162,19 +158,18 @@ Partial Class FrmDashboard
         pnlStock.Controls.Add(lblTotalStock)
         pnlStock.Controls.Add(lblStockTitle)
         pnlStock.Font = New Font("Segoe UI", 9.75F, FontStyle.Bold, GraphicsUnit.Point, CByte(0))
-        pnlStock.Location = New Point(546, 155)
-        pnlStock.Margin = New Padding(3, 4, 3, 4)
+        pnlStock.Location = New Point(478, 116)
         pnlStock.Name = "pnlStock"
-        pnlStock.Size = New Size(220, 140)
+        pnlStock.Size = New Size(192, 105)
         pnlStock.TabIndex = 2
         ' 
         ' lblTotalStock
         ' 
         lblTotalStock.AutoSize = True
         lblTotalStock.Font = New Font("Segoe UI", 12F, FontStyle.Bold, GraphicsUnit.Point, CByte(0))
-        lblTotalStock.Location = New Point(79, 76)
+        lblTotalStock.Location = New Point(69, 57)
         lblTotalStock.Name = "lblTotalStock"
-        lblTotalStock.Size = New Size(24, 28)
+        lblTotalStock.Size = New Size(19, 21)
         lblTotalStock.TabIndex = 1
         lblTotalStock.Text = "0"
         ' 
@@ -182,35 +177,31 @@ Partial Class FrmDashboard
         ' 
         lblStockTitle.AutoSize = True
         lblStockTitle.Font = New Font("Segoe UI", 12F, FontStyle.Bold, GraphicsUnit.Point, CByte(0))
-        lblStockTitle.Location = New Point(40, 16)
+        lblStockTitle.Location = New Point(35, 12)
         lblStockTitle.Name = "lblStockTitle"
-        lblStockTitle.Size = New Size(140, 28)
+        lblStockTitle.Size = New Size(109, 21)
         lblStockTitle.TabIndex = 0
         lblStockTitle.Text = "TOTAL STOCK"
         ' 
         ' plotSales
         ' 
-        plotSales.Anchor = AnchorStyles.Top Or AnchorStyles.Left Or AnchorStyles.Right
-        plotSales.Location = New Point(56, 424)
-        plotSales.Margin = New Padding(3, 4, 3, 4)
+        plotSales.Location = New Point(47, 274)
         plotSales.Name = "plotSales"
-        plotSales.Size = New Size(984, 446)
+        plotSales.Size = New Size(866, 340)
         plotSales.TabIndex = 6
-        plotSales.Text = "TransparentskControl1"
         ' 
         ' FrmDashboard
         ' 
-        AutoScaleDimensions = New SizeF(8F, 20F)
+        AutoScaleDimensions = New SizeF(7F, 15F)
         AutoScaleMode = AutoScaleMode.Font
         AutoSize = True
-        ClientSize = New Size(1093, 905)
+        ClientSize = New Size(956, 679)
         Controls.Add(plotSales)
         Controls.Add(pnlStock)
         Controls.Add(pnlSales)
         Controls.Add(pnlLowStock)
         Controls.Add(pnlProducts)
         Controls.Add(PnlHeader)
-        Margin = New Padding(3, 4, 3, 4)
         Name = "FrmDashboard"
         StartPosition = FormStartPosition.CenterScreen
         Text = "Dashboard"
@@ -240,6 +231,6 @@ Partial Class FrmDashboard
     Friend WithEvents lblTotalStock As Label
     Friend WithEvents lblStockTitle As Label
     Friend WithEvents lblLowStockTitle As Label
-    Friend WithEvents lblLowStock As Label
-    Friend WithEvents plotSales As ScottPlot.WinForms.TransparentSKControl
+    Friend WithEvents lblLowStockItems As Label
+    Friend WithEvents plotSales As ScottPlot.WinForms.FormsPlot
 End Class
