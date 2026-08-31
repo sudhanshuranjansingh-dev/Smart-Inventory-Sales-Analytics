@@ -198,7 +198,7 @@ Partial Class FrmMain
         Font = New Font("Segoe UI", 15.75F, FontStyle.Bold, GraphicsUnit.Point, CByte(0))
         IsMdiContainer = True
         MainMenuStrip = MenuStrip1
-        Margin = New Padding(6, 6, 6, 6)
+        Margin = New Padding(6)
         Name = "FrmMain"
         StartPosition = FormStartPosition.CenterScreen
         Text = "FrmMain"

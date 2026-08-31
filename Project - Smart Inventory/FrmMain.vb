@@ -3,7 +3,7 @@
         ShowDashboard()
     End Sub
 
-    Private Sub ShowDashboard()
+    Private Sub ShowDashboard()1
 
         For Each frm As Form In Me.MdiChildren
             frm.Close()
@@ -109,6 +109,14 @@
 
     Private Sub mnuSalesHistory_Click(sender As Object, e As EventArgs) Handles mnuSalesHistory.Click
         Dim frm As New FrmSalesHistory()
+
+        frm.MdiParent = Me
+        frm.Dock = DockStyle.Fill
+        frm.Show()
+    End Sub
+
+    Private Sub mnuSalesAnalytics_Click(sender As Object, e As EventArgs) Handles mnuSalesAnalytics.Click
+        Dim frm As New SalesAnalytics()
 
         frm.MdiParent = Me
         frm.Dock = DockStyle.Fill
