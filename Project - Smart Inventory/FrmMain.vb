@@ -3,7 +3,7 @@
         ShowDashboard()
     End Sub
 
-    Private Sub ShowDashboard()1
+    Private Sub ShowDashboard()
 
         For Each frm As Form In Me.MdiChildren
             frm.Close()
@@ -49,11 +49,7 @@
         Dim result As DialogResult
 
         result = MessageBox.Show(
-            "Are you sure you want to logout?",
-            "Logout",
-            MessageBoxButtons.YesNo,
-            MessageBoxIcon.Question
-        )
+            "Are you sure you want to logout?", "Logout", MessageBoxButtons.YesNo, MessageBoxIcon.Question)
 
         If result = DialogResult.Yes Then
 
@@ -117,6 +113,14 @@
 
     Private Sub mnuSalesAnalytics_Click(sender As Object, e As EventArgs) Handles mnuSalesAnalytics.Click
         Dim frm As New SalesAnalytics()
+
+        frm.MdiParent = Me
+        frm.Dock = DockStyle.Fill
+        frm.Show()
+    End Sub
+
+    Private Sub mnuProductAnalytics_Click(sender As Object, e As EventArgs) Handles mnuProductAnalytics.Click
+        Dim frm As New FrmProductAnalysis()
 
         frm.MdiParent = Me
         frm.Dock = DockStyle.Fill
