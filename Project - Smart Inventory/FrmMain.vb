@@ -126,4 +126,20 @@
         frm.Dock = DockStyle.Fill
         frm.Show()
     End Sub
+
+    Private Sub mnuSalesReport_Click(sender As Object, e As EventArgs) Handles mnuSalesReport.Click
+        Dim frm As New FrmReports()
+
+        frm.MdiParent = Me
+        frm.Dock = DockStyle.Fill
+        frm.Show()
+    End Sub
+
+    Private Sub mnuInventoryReport_Click(sender As Object, e As EventArgs) Handles mnuInventoryReport.Click
+        Dim frm As New FrmInventory()
+
+        frm.MdiParent = Me
+        frm.Dock = DockStyle.Fill
+        frm.Show()
+    End Sub
 End Class
