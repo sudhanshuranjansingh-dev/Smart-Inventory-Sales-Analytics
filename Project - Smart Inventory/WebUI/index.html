@@ -1,0 +1,253 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <title>Smart Inventory</title>
+
+    <link rel="stylesheet"
+          href="main.css">
+
+</head>
+
+<body>
+
+    <div class="app">
+
+        <!-- ================= SIDEBAR ================= -->
+
+        <aside class="sidebar">
+
+            <div class="brand">
+
+                <div class="brand-logo">
+                    📦
+                </div>
+
+                <div>
+                    <div class="brand-name">
+                        Smart
+                    </div>
+
+                    <div class="brand-subtitle">
+                        INVENTORY
+                    </div>
+                </div>
+
+            </div>
+
+
+            <!-- Navigation -->
+
+            <nav class="navigation">
+
+                <div class="section-title">
+                    MAIN
+                </div>
+
+                <button class="nav-item active"
+                        onclick="navigate('dashboard')">
+
+                    <span>⌂</span>
+                    <label>Dashboard</label>
+
+                </button>
+
+
+                <div class="section-title">
+                    INVENTORY
+                </div>
+
+                <button class="nav-item"
+                        onclick="navigate('products')">
+
+                    <span>▣</span>
+                    <label>Products</label>
+
+                </button>
+
+                <button class="nav-item"
+                        onclick="navigate('categories')">
+
+                    <span>▦</span>
+                    <label>Categories</label>
+
+                </button>
+
+                <button class="nav-item"
+                        onclick="navigate('suppliers')">
+
+                    <span>♙</span>
+                    <label>Suppliers</label>
+
+                </button>
+
+
+                <div class="section-title">
+                    TRANSACTIONS
+                </div>
+
+                <button class="nav-item"
+                        onclick="navigate('purchases')">
+
+                    <span>🛒</span>
+                    <label>Purchases</label>
+
+                </button>
+
+                <button class="nav-item"
+                        onclick="navigate('sales')">
+
+                    <span>₹</span>
+                    <label>Sales</label>
+
+                </button>
+
+                <button class="nav-item"
+                        onclick="navigate('sales-history')">
+
+                    <span>☷</span>
+                    <label>Sales History</label>
+
+                </button>
+
+
+                <div class="section-title">
+                    ANALYTICS
+                </div>
+
+                <button class="nav-item"
+                        onclick="navigate('inventory')">
+
+                    <span>▤</span>
+                    <label>Inventory</label>
+
+                </button>
+
+                <button class="nav-item"
+                        onclick="navigate('product-analysis')">
+
+                    <span>◈</span>
+                    <label>Product Analysis</label>
+
+                </button>
+
+                <button class="nav-item"
+                        onclick="navigate('sales-analytics')">
+
+                    <span>◉</span>
+                    <label>Sales Analytics</label>
+
+                </button>
+
+
+                <div class="section-title">
+                    REPORTING
+                </div>
+
+                <button class="nav-item"
+                        onclick="navigate('reports')">
+
+                    <span>▤</span>
+                    <label>Reports</label>
+
+                </button>
+
+            </nav>
+
+
+            <!-- Bottom -->
+
+            <div class="sidebar-bottom">
+
+                <button class="nav-item"
+                        onclick="logout()">
+
+                    <span>↪</span>
+                    <label>Logout</label>
+
+                </button>
+
+            </div>
+
+        </aside>
+
+
+        <!-- ================= MAIN ================= -->
+
+        <main class="main">
+
+            <!-- Topbar -->
+
+            <header class="topbar">
+
+                <div class="page-heading">
+
+                    <h1 id="page-title">
+                        Dashboard
+                    </h1>
+
+                    <p id="page-subtitle">
+                        Overview of your inventory and sales
+                    </p>
+
+                </div>
+
+
+                <div class="topbar-right">
+
+                    <button class="notification">
+                        🔔
+                    </button>
+
+
+                    <div class="user">
+
+                        <div class="avatar">
+                            A
+                        </div>
+
+                        <div class="user-details">
+
+                            <strong id="username">
+                                Admin
+                            </strong>
+
+                            <small>
+                                Administrator
+                            </small>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </header>
+
+
+            <!-- Content -->
+
+            <section class="content">
+
+                <iframe id="page-frame"
+                        src="dashboard.html">
+                </iframe>
+
+            </section>
+
+        </main>
+
+    </div>
+
+
+    <script src="main.js"></script>
+
+</body>
+
+</html>

@@ -37,11 +37,13 @@ Partial Class FrmDashboard
         lblTotalStock = New Label()
         lblStockTitle = New Label()
         plotSales = New ScottPlot.WinForms.FormsPlot()
+        WebViewDashboard = New Microsoft.Web.WebView2.WinForms.WebView2()
         PnlHeader.SuspendLayout()
         pnlProducts.SuspendLayout()
         pnlLowStock.SuspendLayout()
         pnlSales.SuspendLayout()
         pnlStock.SuspendLayout()
+        CType(WebViewDashboard, ComponentModel.ISupportInitialize).BeginInit()
         SuspendLayout()
         ' 
         ' PnlHeader
@@ -190,18 +192,33 @@ Partial Class FrmDashboard
         plotSales.Size = New Size(866, 340)
         plotSales.TabIndex = 6
         ' 
+        ' WebViewDashboard
+        ' 
+        WebViewDashboard.AllowExternalDrop = True
+        WebViewDashboard.CreationProperties = Nothing
+        WebViewDashboard.DefaultBackgroundColor = Color.White
+        WebViewDashboard.Dock = DockStyle.Fill
+        WebViewDashboard.Location = New Point(0, 100)
+        WebViewDashboard.Margin = New Padding(3, 2, 3, 2)
+        WebViewDashboard.Name = "WebViewDashboard"
+        WebViewDashboard.Size = New Size(956, 579)
+        WebViewDashboard.TabIndex = 7
+        WebViewDashboard.ZoomFactor = 1R
+        ' 
         ' FrmDashboard
         ' 
         AutoScaleDimensions = New SizeF(7F, 15F)
         AutoScaleMode = AutoScaleMode.Font
         AutoSize = True
         ClientSize = New Size(956, 679)
+        Controls.Add(WebViewDashboard)
         Controls.Add(plotSales)
         Controls.Add(pnlStock)
         Controls.Add(pnlSales)
         Controls.Add(pnlLowStock)
         Controls.Add(pnlProducts)
         Controls.Add(PnlHeader)
+        Font = New Font("Segoe UI", 9F, FontStyle.Bold, GraphicsUnit.Point, CByte(0))
         Name = "FrmDashboard"
         StartPosition = FormStartPosition.CenterScreen
         Text = "Dashboard"
@@ -215,6 +232,7 @@ Partial Class FrmDashboard
         pnlSales.PerformLayout()
         pnlStock.ResumeLayout(False)
         pnlStock.PerformLayout()
+        CType(WebViewDashboard, ComponentModel.ISupportInitialize).EndInit()
         ResumeLayout(False)
     End Sub
 
@@ -233,4 +251,5 @@ Partial Class FrmDashboard
     Friend WithEvents lblLowStockTitle As Label
     Friend WithEvents lblLowStockItems As Label
     Friend WithEvents plotSales As ScottPlot.WinForms.FormsPlot
+    Friend WithEvents WebViewDashboard As Microsoft.Web.WebView2.WinForms.WebView2
 End Class

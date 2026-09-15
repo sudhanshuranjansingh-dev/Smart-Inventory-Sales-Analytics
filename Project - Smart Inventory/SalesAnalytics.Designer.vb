@@ -46,9 +46,9 @@ Partial Class SalesAnalytics
         ' 
         lblTitle.AutoSize = True
         lblTitle.Font = New Font("Segoe UI", 21.75F, FontStyle.Bold, GraphicsUnit.Point, CByte(0))
-        lblTitle.Location = New Point(337, 9)
+        lblTitle.Location = New Point(385, 12)
         lblTitle.Name = "lblTitle"
-        lblTitle.Size = New Size(262, 40)
+        lblTitle.Size = New Size(337, 50)
         lblTitle.TabIndex = 0
         lblTitle.Text = "SALES ANALYTICS"
         ' 
@@ -56,9 +56,9 @@ Partial Class SalesAnalytics
         ' 
         lblTotalSales.AutoSize = True
         lblTotalSales.Font = New Font("Segoe UI", 15.75F, FontStyle.Bold, GraphicsUnit.Point, CByte(0))
-        lblTotalSales.Location = New Point(74, 202)
+        lblTotalSales.Location = New Point(85, 269)
         lblTotalSales.Name = "lblTotalSales"
-        lblTotalSales.Size = New Size(116, 30)
+        lblTotalSales.Size = New Size(154, 37)
         lblTotalSales.TabIndex = 1
         lblTotalSales.Text = "Total Sales"
         ' 
@@ -66,9 +66,9 @@ Partial Class SalesAnalytics
         ' 
         lblTotalOrders.AutoSize = True
         lblTotalOrders.Font = New Font("Segoe UI", 15.75F, FontStyle.Bold, GraphicsUnit.Point, CByte(0))
-        lblTotalOrders.Location = New Point(385, 202)
+        lblTotalOrders.Location = New Point(440, 269)
         lblTotalOrders.Name = "lblTotalOrders"
-        lblTotalOrders.Size = New Size(132, 30)
+        lblTotalOrders.Size = New Size(175, 37)
         lblTotalOrders.TabIndex = 2
         lblTotalOrders.Text = "Total Orders"
         ' 
@@ -76,9 +76,9 @@ Partial Class SalesAnalytics
         ' 
         lblAverageOrders.AutoSize = True
         lblAverageOrders.Font = New Font("Segoe UI", 15.75F, FontStyle.Bold, GraphicsUnit.Point, CByte(0))
-        lblAverageOrders.Location = New Point(706, 202)
+        lblAverageOrders.Location = New Point(807, 269)
         lblAverageOrders.Name = "lblAverageOrders"
-        lblAverageOrders.Size = New Size(164, 30)
+        lblAverageOrders.Size = New Size(216, 37)
         lblAverageOrders.TabIndex = 3
         lblAverageOrders.Text = "Average Orders"
         ' 
@@ -86,9 +86,9 @@ Partial Class SalesAnalytics
         ' 
         lblFrom.AutoSize = True
         lblFrom.Font = New Font("Segoe UI", 15.75F, FontStyle.Bold, GraphicsUnit.Point, CByte(0))
-        lblFrom.Location = New Point(12, 88)
+        lblFrom.Location = New Point(14, 117)
         lblFrom.Name = "lblFrom"
-        lblFrom.Size = New Size(76, 30)
+        lblFrom.Size = New Size(98, 37)
         lblFrom.TabIndex = 4
         lblFrom.Text = "From :"
         ' 
@@ -96,52 +96,56 @@ Partial Class SalesAnalytics
         ' 
         lblTo.AutoSize = True
         lblTo.Font = New Font("Segoe UI", 15.75F, FontStyle.Bold, GraphicsUnit.Point, CByte(0))
-        lblTo.Location = New Point(367, 87)
+        lblTo.Location = New Point(419, 116)
         lblTo.Name = "lblTo"
-        lblTo.Size = New Size(48, 30)
+        lblTo.Size = New Size(62, 37)
         lblTo.TabIndex = 5
         lblTo.Text = "To :"
         ' 
         ' dtpFromDate
         ' 
         dtpFromDate.Font = New Font("Segoe UI", 12F, FontStyle.Bold, GraphicsUnit.Point, CByte(0))
-        dtpFromDate.Location = New Point(106, 88)
+        dtpFromDate.Location = New Point(121, 117)
+        dtpFromDate.Margin = New Padding(3, 4, 3, 4)
         dtpFromDate.Name = "dtpFromDate"
-        dtpFromDate.Size = New Size(226, 29)
+        dtpFromDate.Size = New Size(258, 34)
         dtpFromDate.TabIndex = 6
         ' 
         ' dtpToDate
         ' 
         dtpToDate.Font = New Font("Segoe UI", 12F, FontStyle.Bold, GraphicsUnit.Point, CByte(0))
-        dtpToDate.Location = New Point(441, 87)
+        dtpToDate.Location = New Point(504, 116)
+        dtpToDate.Margin = New Padding(3, 4, 3, 4)
         dtpToDate.Name = "dtpToDate"
-        dtpToDate.Size = New Size(237, 29)
+        dtpToDate.Size = New Size(270, 34)
         dtpToDate.TabIndex = 7
         ' 
         ' btnRefresh
         ' 
         btnRefresh.Font = New Font("Segoe UI", 12F, FontStyle.Bold, GraphicsUnit.Point, CByte(0))
-        btnRefresh.Location = New Point(736, 87)
+        btnRefresh.Location = New Point(841, 116)
+        btnRefresh.Margin = New Padding(3, 4, 3, 4)
         btnRefresh.Name = "btnRefresh"
-        btnRefresh.Size = New Size(173, 30)
+        btnRefresh.Size = New Size(198, 40)
         btnRefresh.TabIndex = 8
         btnRefresh.Text = "REFRESH"
         btnRefresh.UseVisualStyleBackColor = True
         ' 
         ' plotSales
         ' 
-        plotSales.Location = New Point(32, 312)
+        plotSales.Location = New Point(37, 416)
+        plotSales.Margin = New Padding(3, 4, 3, 4)
         plotSales.Name = "plotSales"
-        plotSales.Size = New Size(903, 184)
+        plotSales.Size = New Size(1032, 245)
         plotSales.TabIndex = 9
         ' 
         ' lblCategory
         ' 
         lblCategory.AutoSize = True
         lblCategory.Font = New Font("Segoe UI", 15.75F, FontStyle.Bold, GraphicsUnit.Point, CByte(0))
-        lblCategory.Location = New Point(21, 139)
+        lblCategory.Location = New Point(24, 185)
         lblCategory.Name = "lblCategory"
-        lblCategory.Size = New Size(114, 30)
+        lblCategory.Size = New Size(150, 37)
         lblCategory.TabIndex = 11
         lblCategory.Text = "Category :"
         ' 
@@ -149,58 +153,65 @@ Partial Class SalesAnalytics
         ' 
         cmbCategory.Font = New Font("Segoe UI", 12F, FontStyle.Bold, GraphicsUnit.Point, CByte(0))
         cmbCategory.FormattingEnabled = True
-        cmbCategory.Location = New Point(150, 146)
+        cmbCategory.Location = New Point(171, 195)
+        cmbCategory.Margin = New Padding(3, 4, 3, 4)
         cmbCategory.Name = "cmbCategory"
-        cmbCategory.Size = New Size(253, 29)
+        cmbCategory.Size = New Size(289, 36)
         cmbCategory.TabIndex = 12
         ' 
         ' pnlTotalSales
         ' 
         pnlTotalSales.Font = New Font("Segoe UI", 12F, FontStyle.Bold, GraphicsUnit.Point, CByte(0))
-        pnlTotalSales.Location = New Point(32, 247)
+        pnlTotalSales.Location = New Point(37, 329)
+        pnlTotalSales.Margin = New Padding(3, 4, 3, 4)
         pnlTotalSales.Name = "pnlTotalSales"
-        pnlTotalSales.Size = New Size(228, 45)
+        pnlTotalSales.Size = New Size(261, 60)
         pnlTotalSales.TabIndex = 13
         ' 
         ' pnlTotalOrders
         ' 
         pnlTotalOrders.Font = New Font("Segoe UI", 12F, FontStyle.Bold, GraphicsUnit.Point, CByte(0))
-        pnlTotalOrders.Location = New Point(358, 247)
+        pnlTotalOrders.Location = New Point(409, 329)
+        pnlTotalOrders.Margin = New Padding(3, 4, 3, 4)
         pnlTotalOrders.Name = "pnlTotalOrders"
-        pnlTotalOrders.Size = New Size(228, 45)
+        pnlTotalOrders.Size = New Size(261, 60)
         pnlTotalOrders.TabIndex = 14
         ' 
         ' pnlAverageOrder
         ' 
         pnlAverageOrder.Font = New Font("Segoe UI", 12F, FontStyle.Bold, GraphicsUnit.Point, CByte(0))
-        pnlAverageOrder.Location = New Point(681, 247)
+        pnlAverageOrder.Location = New Point(778, 329)
+        pnlAverageOrder.Margin = New Padding(3, 4, 3, 4)
         pnlAverageOrder.Name = "pnlAverageOrder"
-        pnlAverageOrder.Size = New Size(228, 45)
+        pnlAverageOrder.Size = New Size(261, 60)
         pnlAverageOrder.TabIndex = 15
         ' 
         ' dgvPaymentSales
         ' 
         dgvPaymentSales.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize
-        dgvPaymentSales.Location = New Point(206, 502)
+        dgvPaymentSales.Location = New Point(235, 669)
+        dgvPaymentSales.Margin = New Padding(3, 4, 3, 4)
         dgvPaymentSales.Name = "dgvPaymentSales"
-        dgvPaymentSales.Size = New Size(431, 174)
+        dgvPaymentSales.RowHeadersWidth = 51
+        dgvPaymentSales.Size = New Size(493, 232)
         dgvPaymentSales.TabIndex = 16
         ' 
         ' btnExportReport
         ' 
         btnExportReport.Font = New Font("Segoe UI", 12F, FontStyle.Bold, GraphicsUnit.Point, CByte(0))
-        btnExportReport.Location = New Point(691, 544)
+        btnExportReport.Location = New Point(790, 725)
+        btnExportReport.Margin = New Padding(3, 4, 3, 4)
         btnExportReport.Name = "btnExportReport"
-        btnExportReport.Size = New Size(208, 49)
+        btnExportReport.Size = New Size(238, 65)
         btnExportReport.TabIndex = 17
         btnExportReport.Text = "EXPORT REPORT"
         btnExportReport.UseVisualStyleBackColor = True
         ' 
         ' SalesAnalytics
         ' 
-        AutoScaleDimensions = New SizeF(7F, 15F)
+        AutoScaleDimensions = New SizeF(8F, 20F)
         AutoScaleMode = AutoScaleMode.Font
-        ClientSize = New Size(956, 679)
+        ClientSize = New Size(1093, 905)
         Controls.Add(btnExportReport)
         Controls.Add(dgvPaymentSales)
         Controls.Add(pnlAverageOrder)
@@ -218,6 +229,7 @@ Partial Class SalesAnalytics
         Controls.Add(lblTotalOrders)
         Controls.Add(lblTotalSales)
         Controls.Add(lblTitle)
+        Margin = New Padding(3, 4, 3, 4)
         Name = "SalesAnalytics"
         Text = "SalesAnalytics"
         CType(dgvPaymentSales, ComponentModel.ISupportInitialize).EndInit()

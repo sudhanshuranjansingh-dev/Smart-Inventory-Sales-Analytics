@@ -1,0 +1,447 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <!-- =====================================================
+         BASIC CONFIGURATION
+         ===================================================== -->
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <meta name="description"
+          content="Smart Inventory and Sales Management Dashboard">
+
+    <title>Smart Inventory | Dashboard</title>
+
+
+    <!-- =====================================================
+         CSS
+         ===================================================== -->
+
+    <link rel="stylesheet"
+          href="dashboard.css">
+
+
+    <!-- =====================================================
+         CHART.JS
+         ===================================================== -->
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+</head>
+
+
+<body>
+
+    <!-- =====================================================
+         MAIN DASHBOARD
+         ===================================================== -->
+
+    <main class="dashboard">
+
+
+        <!-- =================================================
+             HEADER
+             ================================================= -->
+
+        <header class="header">
+
+            <div class="header-content">
+
+                <span class="dashboard-label">
+                    MANAGEMENT SYSTEM
+                </span>
+
+                <h1>
+                    Smart Inventory
+                </h1>
+
+                <p>
+                    Inventory &amp; Sales Management Dashboard
+                </p>
+
+            </div>
+
+
+            <!-- Refresh Button -->
+
+            <button type="button"
+                    id="refreshBtn"
+                    class="refresh-btn"
+                    title="Refresh Dashboard"
+                    aria-label="Refresh Dashboard">
+
+                <span class="refresh-icon">
+                    ↻
+                </span>
+
+                <span>
+                    Refresh
+                </span>
+
+            </button>
+
+        </header>
+
+
+
+        <!-- =================================================
+             SUMMARY CARDS
+             ================================================= -->
+
+        <section class="cards"
+                 aria-label="Inventory Summary">
+
+
+            <!-- Total Products -->
+
+            <article class="card">
+
+                <div class="card-icon">
+                    📦
+                </div>
+
+                <div class="card-content">
+
+                    <h2>
+                        Total Products
+                    </h2>
+
+                    <p id="totalProducts"
+                       class="card-value">
+                        0
+                    </p>
+
+                    <span class="card-description">
+                        Products in inventory
+                    </span>
+
+                </div>
+
+            </article>
+
+
+
+            <!-- Total Sales -->
+
+            <article class="card">
+
+                <div class="card-icon">
+                    💰
+                </div>
+
+                <div class="card-content">
+
+                    <h2>
+                        Total Sales
+                    </h2>
+
+                    <p id="totalSales"
+                       class="card-value">
+                        ₹0.00
+                    </p>
+
+                    <span class="card-description">
+                        Completed sales
+                    </span>
+
+                </div>
+
+            </article>
+
+
+
+            <!-- Low Stock -->
+
+            <article class="card">
+
+                <div class="card-icon">
+                    ⚠️
+                </div>
+
+                <div class="card-content">
+
+                    <h2>
+                        Low Stock
+                    </h2>
+
+                    <p id="lowStock"
+                       class="card-value">
+                        0
+                    </p>
+
+                    <span class="card-description">
+                        Items need attention
+                    </span>
+
+                </div>
+
+            </article>
+
+
+
+            <!-- Total Units -->
+
+            <article class="card">
+
+                <div class="card-icon">
+                    📊
+                </div>
+
+                <div class="card-content">
+
+                    <h2>
+                        Total Units
+                    </h2>
+
+                    <p id="totalUnits"
+                       class="card-value">
+                        0
+                    </p>
+
+                    <span class="card-description">
+                        Units currently available
+                    </span>
+
+                </div>
+
+            </article>
+
+        </section>
+
+
+
+        <!-- =================================================
+             MONTHLY SALES
+             ================================================= -->
+
+        <section class="sales-section"
+                 aria-label="Monthly Sales Analytics">
+
+            <div class="section-header">
+
+                <div>
+
+                    <span class="section-label">
+                        SALES ANALYTICS
+                    </span>
+
+                    <h2>
+                        Monthly Sales
+                    </h2>
+
+                    <p>
+                        Sales performance for the current year
+                    </p>
+
+                </div>
+
+            </div>
+
+
+            <div class="sales-chart">
+
+                <canvas id="salesChart"
+                        aria-label="Monthly Sales Chart">
+                </canvas>
+
+            </div>
+
+        </section>
+
+
+
+        <!-- =================================================
+             INVENTORY OVERVIEW
+             ================================================= -->
+
+        <section class="inventory-section"
+                 aria-label="Inventory Overview">
+
+
+            <div class="section-header">
+
+                <div>
+
+                    <span class="section-label">
+                        INVENTORY STATUS
+                    </span>
+
+                    <h2>
+                        Inventory Overview
+                    </h2>
+
+                    <p>
+                        Current stock status
+                    </p>
+
+                </div>
+
+            </div>
+
+
+
+            <!-- =================================================
+                 INVENTORY STATUS CARDS
+                 ================================================= -->
+
+            <div class="inventory-status">
+
+
+                <!-- In Stock -->
+
+                <article class="status-box">
+
+                    <div class="status-icon">
+                        🟢
+                    </div>
+
+                    <div class="status-content">
+
+                        <h3>
+                            In Stock
+                        </h3>
+
+                        <p id="inStock">
+                            0
+                        </p>
+
+                        <span>
+                            Items available
+                        </span>
+
+                    </div>
+
+                </article>
+
+
+
+                <!-- Low Stock -->
+
+                <article class="status-box">
+
+                    <div class="status-icon">
+                        🟡
+                    </div>
+
+                    <div class="status-content">
+
+                        <h3>
+                            Low Stock
+                        </h3>
+
+                        <p id="lowStockItems">
+                            0
+                        </p>
+
+                        <span>
+                            Items running low
+                        </span>
+
+                    </div>
+
+                </article>
+
+
+
+                <!-- Out Of Stock -->
+
+                <article class="status-box">
+
+                    <div class="status-icon">
+                        🔴
+                    </div>
+
+                    <div class="status-content">
+
+                        <h3>
+                            Out of Stock
+                        </h3>
+
+                        <p id="outOfStock">
+                            0
+                        </p>
+
+                        <span>
+                            Items unavailable
+                        </span>
+
+                    </div>
+
+                </article>
+
+            </div>
+
+
+
+            <!-- =================================================
+                 INVENTORY STATUS CHART
+                 ================================================= -->
+
+            <div class="inventory-chart-container">
+
+                <div class="inventory-chart-header">
+
+                    <span class="section-label">
+                        STOCK DISTRIBUTION
+                    </span>
+
+                    <h3>
+                        Inventory Status
+                    </h3>
+
+                    <p>
+                        Distribution of products by current stock level
+                    </p>
+
+                </div>
+
+
+                <div class="inventory-chart">
+
+                    <canvas id="inventoryChart"
+                            aria-label="Inventory Status Chart">
+                    </canvas>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+
+        <!-- =================================================
+             FOOTER
+             ================================================= -->
+
+        <footer class="dashboard-footer">
+
+            <p>
+                Smart Inventory &copy; 2026
+            </p>
+
+            <p>
+                Inventory Management System
+            </p>
+
+        </footer>
+
+
+    </main>
+
+
+
+    <!-- =====================================================
+         JAVASCRIPT
+         ===================================================== -->
+
+    <script src="dashboard.js"></script>
+
+</body>
+
+</html>
