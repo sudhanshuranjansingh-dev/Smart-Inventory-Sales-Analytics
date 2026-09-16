@@ -186,3 +186,46 @@ function logout() {
     }
 
 }
+/* =========================================================
+   RECEIVE MESSAGES FROM IFRAME
+   ========================================================= */
+
+window.addEventListener("message", function (event) {
+
+    const data = event.data;
+
+
+    console.log(
+        "Message received from iframe:",
+        data
+    );
+
+
+    if (
+        data &&
+        data.action === "loadSalesAnalytics"
+    ) {
+
+        /* -----------------------------------------
+           Forward message to VB.NET
+           ----------------------------------------- */
+
+        if (
+            window.chrome &&
+            window.chrome.webview
+        ) {
+
+            window.chrome.webview.postMessage(data);
+
+        }
+        else {
+
+            console.error(
+                "WebView2 is not available."
+            );
+
+        }
+
+    }
+
+});

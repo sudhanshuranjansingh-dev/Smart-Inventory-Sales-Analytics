@@ -20,6 +20,9 @@
     <None Remove="WebUI\products.css" />
     <None Remove="WebUI\products.html" />
     <None Remove="WebUI\products.js" />
+    <None Remove="WebUI\sales-analytics.css" />
+    <None Remove="WebUI\sales-analytics.html" />
+    <None Remove="WebUI\sales-analytics.js" />
   </ItemGroup>
 
   <ItemGroup>
@@ -48,6 +51,15 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="WebUI\products.js">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="WebUI\sales-analytics.css">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="WebUI\sales-analytics.html">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="WebUI\sales-analytics.js">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>

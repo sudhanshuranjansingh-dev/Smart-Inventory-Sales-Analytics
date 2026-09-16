@@ -174,6 +174,9 @@ Public Class FrmMain
 
                         DeleteProduct(root)
 
+                    Case "loadSalesAnalytics"
+                        LoadSalesAnalyticsToWeb(root)
+
 
                     Case Else
 
@@ -1193,6 +1196,461 @@ Public Class FrmMain
         Return reader(columnName).ToString()
 
     End Function
+
+    Private Sub LoadSalesAnalyticsToWeb(root As JsonElement)
+
+        Try
+
+            '=========================================================
+            ' GET DATE RANGE FROM WEB
+            '=========================================================
+
+            Dim fromDate As Date = Date.Today.AddDays(-30)
+            Dim toDate As Date = Date.Today
+
+            Dim fromDateElement As JsonElement
+            Dim toDateElement As JsonElement
+
+            If root.TryGetProperty("fromDate", fromDateElement) Then
+
+                Dim tempFrom As Date
+
+                If Date.TryParse(
+                    fromDateElement.GetString(),
+                    tempFrom
+                ) Then
+
+                    fromDate = tempFrom
+
+                End If
+
+            End If
+
+
+            If root.TryGetProperty("toDate", toDateElement) Then
+
+                Dim tempTo As Date
+
+                If Date.TryParse(
+                    toDateElement.GetString(),
+                    tempTo
+                ) Then
+
+                    toDate = tempTo
+
+                End If
+
+            End If
+
+
+            '=========================================================
+            ' DATABASE
+            '=========================================================
+
+            Using conn As MySqlConnection =
+                DBConnection.GetConnection()
+
+                conn.Open()
+
+
+                '=====================================================
+                ' TOTAL SALES + ORDERS + AVERAGE
+                '=====================================================
+
+                Dim totalSales As Decimal = 0
+                Dim totalOrders As Integer = 0
+                Dim averageSale As Decimal = 0
+
+
+                Dim totalQuery As String =
+                    "SELECT " &
+                    "COUNT(*) AS TotalOrders, " &
+                    "COALESCE(SUM(TotalAmount), 0) AS TotalSales, " &
+                    "COALESCE(AVG(TotalAmount), 0) AS AverageSale " &
+                    "FROM Sales " &
+                    "WHERE SaleDate >= @FromDate " &
+                    "AND SaleDate < @ToDate"
+
+
+                Using cmd As New MySqlCommand(
+                    totalQuery,
+                    conn
+                )
+
+                    cmd.Parameters.AddWithValue(
+                        "@FromDate",
+                        fromDate.Date
+                    )
+
+                    cmd.Parameters.AddWithValue(
+                        "@ToDate",
+                        toDate.Date.AddDays(1)
+                    )
+
+
+                    Using reader As MySqlDataReader =
+                        cmd.ExecuteReader()
+
+                        If reader.Read() Then
+
+                            totalOrders =
+                                Convert.ToInt32(
+                                    reader("TotalOrders")
+                                )
+
+                            totalSales =
+                                Convert.ToDecimal(
+                                    reader("TotalSales")
+                                )
+
+                            averageSale =
+                                Convert.ToDecimal(
+                                    reader("AverageSale")
+                                )
+
+                        End If
+
+                    End Using
+
+                End Using
+
+
+                '=====================================================
+                ' DAILY SALES
+                '=====================================================
+
+                Dim dailySales As New List(Of Object)
+
+
+                Dim dailyQuery As String =
+                    "SELECT " &
+                    "DATE(SaleDate) AS SaleDay, " &
+                    "SUM(TotalAmount) AS Amount " &
+                    "FROM Sales " &
+                    "WHERE SaleDate >= @FromDate " &
+                    "AND SaleDate < @ToDate " &
+                    "GROUP BY DATE(SaleDate) " &
+                    "ORDER BY DATE(SaleDate)"
+
+
+                Using cmd As New MySqlCommand(
+                    dailyQuery,
+                    conn
+                )
+
+                    cmd.Parameters.AddWithValue(
+                        "@FromDate",
+                        fromDate.Date
+                    )
+
+                    cmd.Parameters.AddWithValue(
+                        "@ToDate",
+                        toDate.Date.AddDays(1)
+                    )
+
+
+                    Using reader As MySqlDataReader =
+                        cmd.ExecuteReader()
+
+                        While reader.Read()
+
+                            Dim item As New Dictionary(Of String, Object)
+
+                            item.Add(
+                                "date",
+                                Convert.ToDateTime(
+                                    reader("SaleDay")
+                                ).ToString("yyyy-MM-dd")
+                            )
+
+                            item.Add(
+                                "amount",
+                                Convert.ToDecimal(
+                                    reader("Amount")
+                                )
+                            )
+
+                            dailySales.Add(item)
+
+                        End While
+
+                    End Using
+
+                End Using
+
+
+                '=====================================================
+                ' MONTHLY SALES
+                '=====================================================
+
+                Dim monthlySales As New List(Of Object)
+
+
+                Dim monthlyQuery As String =
+                    "SELECT " &
+                    "DATE_FORMAT(SaleDate, '%Y-%m') AS SaleMonth, " &
+                    "SUM(TotalAmount) AS Amount " &
+                    "FROM Sales " &
+                    "WHERE SaleDate >= @FromDate " &
+                    "AND SaleDate < @ToDate " &
+                    "GROUP BY DATE_FORMAT(SaleDate, '%Y-%m') " &
+                    "ORDER BY SaleMonth"
+
+
+                Using cmd As New MySqlCommand(
+                    monthlyQuery,
+                    conn
+                )
+
+                    cmd.Parameters.AddWithValue(
+                        "@FromDate",
+                        fromDate.Date
+                    )
+
+                    cmd.Parameters.AddWithValue(
+                        "@ToDate",
+                        toDate.Date.AddDays(1)
+                    )
+
+
+                    Using reader As MySqlDataReader =
+                        cmd.ExecuteReader()
+
+                        While reader.Read()
+
+                            Dim item As New Dictionary(Of String, Object)
+
+                            item.Add(
+                                "month",
+                                reader("SaleMonth").ToString()
+                            )
+
+                            item.Add(
+                                "amount",
+                                Convert.ToDecimal(
+                                    reader("Amount")
+                                )
+                            )
+
+                            monthlySales.Add(item)
+
+                        End While
+
+                    End Using
+
+                End Using
+
+
+                '=====================================================
+                ' PAYMENT METHOD
+                '=====================================================
+
+                Dim paymentSales As New List(Of Object)
+
+
+                Dim paymentQuery As String =
+                    "SELECT " &
+                    "PaymentMethod, " &
+                    "SUM(TotalAmount) AS Amount " &
+                    "FROM Sales " &
+                    "WHERE SaleDate >= @FromDate " &
+                    "AND SaleDate < @ToDate " &
+                    "GROUP BY PaymentMethod " &
+                    "ORDER BY PaymentMethod"
+
+
+                Using cmd As New MySqlCommand(
+                    paymentQuery,
+                    conn
+                )
+
+                    cmd.Parameters.AddWithValue(
+                        "@FromDate",
+                        fromDate.Date
+                    )
+
+                    cmd.Parameters.AddWithValue(
+                        "@ToDate",
+                        toDate.Date.AddDays(1)
+                    )
+
+
+                    Using reader As MySqlDataReader =
+                        cmd.ExecuteReader()
+
+                        While reader.Read()
+
+                            Dim item As New Dictionary(Of String, Object)
+
+                            item.Add(
+                                "method",
+                                reader("PaymentMethod").ToString()
+                            )
+
+                            item.Add(
+                                "amount",
+                                Convert.ToDecimal(
+                                    reader("Amount")
+                                )
+                            )
+
+                            paymentSales.Add(item)
+
+                        End While
+
+                    End Using
+
+                End Using
+
+
+                '=====================================================
+                ' STATUS
+                '=====================================================
+
+                Dim statusSales As New List(Of Object)
+
+
+                Dim statusQuery As String =
+                    "SELECT " &
+                    "Status, " &
+                    "COUNT(*) AS Orders, " &
+                    "SUM(TotalAmount) AS Amount " &
+                    "FROM Sales " &
+                    "WHERE SaleDate >= @FromDate " &
+                    "AND SaleDate < @ToDate " &
+                    "GROUP BY Status " &
+                    "ORDER BY Status"
+
+
+                Using cmd As New MySqlCommand(
+                    statusQuery,
+                    conn
+                )
+
+                    cmd.Parameters.AddWithValue(
+                        "@FromDate",
+                        fromDate.Date
+                    )
+
+                    cmd.Parameters.AddWithValue(
+                        "@ToDate",
+                        toDate.Date.AddDays(1)
+                    )
+
+
+                    Using reader As MySqlDataReader =
+                        cmd.ExecuteReader()
+
+                        While reader.Read()
+
+                            Dim item As New Dictionary(Of String, Object)
+
+                            item.Add(
+                                "status",
+                                reader("Status").ToString()
+                            )
+
+                            item.Add(
+                                "orders",
+                                Convert.ToInt32(
+                                    reader("Orders")
+                                )
+                            )
+
+                            item.Add(
+                                "amount",
+                                Convert.ToDecimal(
+                                    reader("Amount")
+                                )
+                            )
+
+                            statusSales.Add(item)
+
+                        End While
+
+                    End Using
+
+                End Using
+
+
+                '=====================================================
+                ' SEND DATA TO WEB UI
+                '=====================================================
+
+                Dim result As New Dictionary(Of String, Object)
+
+                result.Add(
+                    "action",
+                    "salesAnalyticsData"
+                )
+
+                result.Add(
+                    "totalSales",
+                    totalSales
+                )
+
+                result.Add(
+                    "totalOrders",
+                    totalOrders
+                )
+
+                result.Add(
+                    "averageSale",
+                    averageSale
+                )
+
+                result.Add(
+                    "dailySales",
+                    dailySales
+                )
+
+                result.Add(
+                    "monthlySales",
+                    monthlySales
+                )
+
+                result.Add(
+                    "paymentSales",
+                    paymentSales
+                )
+
+                result.Add(
+                    "statusSales",
+                    statusSales
+                )
+
+                result.Add(
+                    "fromDate",
+                    fromDate.ToString("yyyy-MM-dd")
+                )
+
+                result.Add(
+                    "toDate",
+                    toDate.ToString("yyyy-MM-dd")
+                )
+
+
+                SendToWeb(result)
+
+
+            End Using
+
+
+        Catch ex As Exception
+
+            MessageBox.Show(
+                "Sales Analytics Error:" &
+                Environment.NewLine &
+                ex.Message,
+                "Sales Analytics",
+                MessageBoxButtons.OK,
+                MessageBoxIcon.Error
+            )
+
+        End Try
+
+    End Sub
+
 
 
 End Class

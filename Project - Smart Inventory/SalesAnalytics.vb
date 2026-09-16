@@ -1,119 +1,107 @@
-﻿Imports MySql.Data.MySqlClient
+﻿Imports Microsoft.Web.WebView2.Core
+Imports Microsoft.Web.WebView2.WinForms
+Imports MySql.Data.MySqlClient
+Imports System.IO
+Imports System.Text.Json
+Imports System.Globalization
 
 Public Class SalesAnalytics
 
-    '========================================================
-    ' FORM LOAD
-    '========================================================
+    Public Sub New()
 
-    Private Sub SalesAnalytics_Load(
+        InitializeComponent()
+
+        AddHandler Me.Load, AddressOf SalesAnalytics_Load_Test
+
+    End Sub
+
+    Private Sub SalesAnalytics_Load_Test(
+    sender As Object,
+    e As EventArgs
+)
+
+        MessageBox.Show("SalesAnalytics form is loading!")
+
+    End Sub
+
+    Private webView As WebView2
+    Private initialLoadDone As Boolean = False
+
+    '=========================================================
+    ' FORM LOAD
+    '=========================================================
+    Private Async Sub SalesAnalytics_Load(
         sender As Object,
         e As EventArgs
     ) Handles MyBase.Load
 
-        ' Default date range
-        dtpFromDate.Value = New DateTime(
-            DateTime.Now.Year,
-            DateTime.Now.Month,
-            1
-        )
-
-        dtpToDate.Value = DateTime.Now
-
-        ' Load analytics
-        LoadAnalytics()
-
-    End Sub
-
-
-    '========================================================
-    ' LOAD ALL ANALYTICS
-    '========================================================
-
-    Private Sub LoadAnalytics()
-
-        If dtpFromDate.Value.Date > dtpToDate.Value.Date Then
-
-            MessageBox.Show(
-                "From Date cannot be greater than To Date.",
-                "Invalid Date",
-                MessageBoxButtons.OK,
-                MessageBoxIcon.Warning
-            )
-
-            Return
-
-        End If
-
-        LoadTotalSales()
-
-        LoadTotalOrders()
-
-        LoadAverageOrder()
-
-        LoadMonthlySales()
-
-    End Sub
-
-
-    '========================================================
-    ' TOTAL SALES
-    '========================================================
-
-    Private Sub LoadTotalSales()
-
         Try
+            MessageBox.Show("SalesAnalytics_Load is running!")
+            Me.Text = "Sales Analytics"
+            Me.WindowState = FormWindowState.Maximized
 
-            Using con As MySqlConnection =
-                DBConnection.GetConnection()
+            '-------------------------------------------------
+            ' CREATE WEBVIEW2
+            '-------------------------------------------------
+            webView = New WebView2()
 
-                con.Open()
+            webView.Dock = DockStyle.Fill
 
-                Dim query As String =
-                    "SELECT COALESCE(SUM(TotalAmount), 0) " &
-                    "FROM Sales " &
-                    "WHERE SaleDate >= @FromDate " &
-                    "AND SaleDate < DATE_ADD(@ToDate, INTERVAL 1 DAY) " &
-                    "AND Status = 'Completed'"
+            Me.Controls.Add(webView)
 
-                Using cmd As New MySqlCommand(query, con)
+            '-------------------------------------------------
+            ' INITIALIZE WEBVIEW2
+            '-------------------------------------------------
+            Await webView.EnsureCoreWebView2Async(Nothing)
 
-                    cmd.Parameters.AddWithValue(
-                        "@FromDate",
-                        dtpFromDate.Value.Date
-                    )
+            '-------------------------------------------------
+            ' EVENTS
+            '-------------------------------------------------
+            AddHandler webView.CoreWebView2.WebMessageReceived,
+                AddressOf WebView_MessageReceived
 
-                    cmd.Parameters.AddWithValue(
-                        "@ToDate",
-                        dtpToDate.Value.Date
-                    )
+            AddHandler webView.CoreWebView2.NavigationCompleted,
+                AddressOf WebView_NavigationCompleted
 
-                    Dim result As Object =
-                        cmd.ExecuteScalar()
+            '-------------------------------------------------
+            ' HTML PATH
+            '-------------------------------------------------
+            Dim htmlPath As String =
+                Path.Combine(
+                    Application.StartupPath,
+                    "WebUI",
+                    "sales-analytics.html"
+                )
 
-                    Dim totalSales As Decimal = 0D
+            If Not File.Exists(htmlPath) Then
 
-                    If result IsNot Nothing AndAlso
-                       result IsNot DBNull.Value Then
+                MessageBox.Show(
+                    "Sales Analytics HTML file not found:" &
+                    Environment.NewLine &
+                    htmlPath,
+                    "File Not Found",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Error
+                )
 
-                        totalSales = Convert.ToDecimal(result)
+                Return
 
-                    End If
+            End If
 
-                    lblTotalSales.Text =
-                        "₹" & totalSales.ToString("N2")
-
-                End Using
-
-            End Using
+            '-------------------------------------------------
+            ' LOAD HTML
+            '-------------------------------------------------
+            webView.CoreWebView2.Navigate(
+                New Uri(htmlPath).AbsoluteUri
+            )
 
         Catch ex As Exception
 
             MessageBox.Show(
-                "Error loading total sales:" &
-                vbCrLf &
+                "Sales Analytics Load Error:" &
+                Environment.NewLine &
                 ex.Message,
-                "Database Error",
+                "Error",
                 MessageBoxButtons.OK,
                 MessageBoxIcon.Error
             )
@@ -123,275 +111,458 @@ Public Class SalesAnalytics
     End Sub
 
 
-    '========================================================
-    ' TOTAL ORDERS
-    '========================================================
+    '=========================================================
+    ' WEBVIEW NAVIGATION COMPLETED
+    '=========================================================
+    Private Async Sub WebView_NavigationCompleted(
+        sender As Object,
+        e As CoreWebView2NavigationCompletedEventArgs
+    )
 
-    Private Sub LoadTotalOrders()
+        If initialLoadDone Then Return
+
+        initialLoadDone = True
 
         Try
 
-            Using con As MySqlConnection =
+            Dim fromDate As Date =
+                Date.Today.AddDays(-30)
+
+            Dim toDate As Date =
+                Date.Today
+
+            Await LoadSalesAnalytics(
+                fromDate,
+                toDate
+            )
+
+        Catch ex As Exception
+
+            MessageBox.Show(
+                "Initial Sales Analytics Error:" &
+                Environment.NewLine &
+                ex.Message,
+                "Error",
+                MessageBoxButtons.OK,
+                MessageBoxIcon.Error
+            )
+
+        End Try
+
+    End Sub
+
+
+    '=========================================================
+    ' RECEIVE MESSAGE FROM JAVASCRIPT
+    '=========================================================
+    Private Async Sub WebView_MessageReceived(
+        sender As Object,
+        e As CoreWebView2WebMessageReceivedEventArgs
+    )
+
+        Try
+
+            Dim json As String =
+                e.WebMessageAsJson
+
+            Using document As JsonDocument =
+                JsonDocument.Parse(json)
+
+                Dim root As JsonElement =
+                    document.RootElement
+
+                Dim actionElement As JsonElement
+
+                If Not root.TryGetProperty(
+                    "action",
+                    actionElement
+                ) Then
+                    Return
+                End If
+
+                Dim action As String =
+                    actionElement.GetString()
+
+                If action = "loadSalesAnalytics" Then
+
+                    Dim fromDate As Date =
+                        Date.ParseExact(
+                            root.GetProperty("fromDate").GetString(),
+                            "yyyy-MM-dd",
+                            CultureInfo.InvariantCulture
+                        )
+
+                    Dim toDate As Date =
+                        Date.ParseExact(
+                            root.GetProperty("toDate").GetString(),
+                            "yyyy-MM-dd",
+                            CultureInfo.InvariantCulture
+                        )
+
+                    Await LoadSalesAnalytics(
+                        fromDate,
+                        toDate
+                    )
+
+                End If
+
+            End Using
+
+        Catch ex As Exception
+
+            MessageBox.Show(
+                "WebView Message Error:" &
+                Environment.NewLine &
+                ex.Message,
+                "Error",
+                MessageBoxButtons.OK,
+                MessageBoxIcon.Error
+            )
+
+        End Try
+
+    End Sub
+
+
+    '=========================================================
+    ' LOAD SALES ANALYTICS
+    '=========================================================
+    Private Async Function LoadSalesAnalytics(
+        fromDate As Date,
+        toDate As Date
+    ) As Task
+
+        Try
+
+            Dim totalSales As Decimal = 0D
+            Dim totalOrders As Integer = 0
+            Dim averageSale As Decimal = 0D
+
+            Dim dailySales As New List(Of Dictionary(Of String, Object))
+            Dim monthlySales As New List(Of Dictionary(Of String, Object))
+            Dim paymentMethods As New List(Of Dictionary(Of String, Object))
+            Dim statusData As New List(Of Dictionary(Of String, Object))
+
+            Using conn As MySqlConnection =
                 DBConnection.GetConnection()
 
-                con.Open()
+                Await conn.OpenAsync()
 
-                Dim query As String =
+                '-------------------------------------------------
+                ' TEST - DATABASE CONNECTION
+                '-------------------------------------------------
+                MessageBox.Show(
+                    "Database connected!" &
+                    Environment.NewLine &
+                    "From: " & fromDate.ToString("yyyy-MM-dd") &
+                    Environment.NewLine &
+                    "To: " & toDate.ToString("yyyy-MM-dd"),
+                    "Sales Analytics Test"
+                )
+
+                Dim sqlToDate As Date =
+                    toDate.Date.AddDays(1)
+
+
+                '=================================================
+                ' TOTAL SALES
+                '=================================================
+                Using cmd As New MySqlCommand(
+                    "SELECT COALESCE(SUM(TotalAmount),0) " &
+                    "FROM Sales " &
+                    "WHERE SaleDate >= @FromDate " &
+                    "AND SaleDate < @ToDate",
+                    conn
+                )
+
+                    cmd.Parameters.AddWithValue(
+                        "@FromDate",
+                        fromDate.Date
+                    )
+
+                    cmd.Parameters.AddWithValue(
+                        "@ToDate",
+                        sqlToDate
+                    )
+
+                    totalSales =
+                        Convert.ToDecimal(
+                            Await cmd.ExecuteScalarAsync()
+                        )
+
+                End Using
+
+
+                '=================================================
+                ' TOTAL ORDERS
+                '=================================================
+                Using cmd As New MySqlCommand(
                     "SELECT COUNT(*) " &
                     "FROM Sales " &
                     "WHERE SaleDate >= @FromDate " &
-                    "AND SaleDate < DATE_ADD(@ToDate, INTERVAL 1 DAY) " &
-                    "AND Status = 'Completed'"
-
-                Using cmd As New MySqlCommand(query, con)
+                    "AND SaleDate < @ToDate",
+                    conn
+                )
 
                     cmd.Parameters.AddWithValue(
                         "@FromDate",
-                        dtpFromDate.Value.Date
+                        fromDate.Date
                     )
 
                     cmd.Parameters.AddWithValue(
                         "@ToDate",
-                        dtpToDate.Value.Date
+                        sqlToDate
                     )
 
-                    Dim result As Object =
-                        cmd.ExecuteScalar()
-
-                    Dim totalOrders As Integer = 0
-
-                    If result IsNot Nothing AndAlso
-                       result IsNot DBNull.Value Then
-
-                        totalOrders =
-                            Convert.ToInt32(result)
-
-                    End If
-
-                    lblTotalOrders.Text =
-                        totalOrders.ToString()
+                    totalOrders =
+                        Convert.ToInt32(
+                            Await cmd.ExecuteScalarAsync()
+                        )
 
                 End Using
 
-            End Using
 
-        Catch ex As Exception
-
-            MessageBox.Show(
-                "Error loading total orders:" &
-                vbCrLf &
-                ex.Message,
-                "Database Error",
-                MessageBoxButtons.OK,
-                MessageBoxIcon.Error
-            )
-
-        End Try
-
-    End Sub
-
-
-    '========================================================
-    ' AVERAGE ORDER
-    '========================================================
-
-    Private Sub LoadAverageOrder()
-
-        Try
-
-            Using con As MySqlConnection =
-                DBConnection.GetConnection()
-
-                con.Open()
-
-                Dim query As String =
-                    "SELECT COALESCE(AVG(TotalAmount), 0) " &
+                '=================================================
+                ' AVERAGE SALE
+                '=================================================
+                Using cmd As New MySqlCommand(
+                    "SELECT COALESCE(AVG(TotalAmount),0) " &
                     "FROM Sales " &
                     "WHERE SaleDate >= @FromDate " &
-                    "AND SaleDate < DATE_ADD(@ToDate, INTERVAL 1 DAY) " &
-                    "AND Status = 'Completed'"
-
-                Using cmd As New MySqlCommand(query, con)
+                    "AND SaleDate < @ToDate",
+                    conn
+                )
 
                     cmd.Parameters.AddWithValue(
                         "@FromDate",
-                        dtpFromDate.Value.Date
+                        fromDate.Date
                     )
 
                     cmd.Parameters.AddWithValue(
                         "@ToDate",
-                        dtpToDate.Value.Date
+                        sqlToDate
                     )
 
-                    Dim result As Object =
-                        cmd.ExecuteScalar()
-
-                    Dim averageOrder As Decimal = 0D
-
-                    If result IsNot Nothing AndAlso
-                       result IsNot DBNull.Value Then
-
-                        averageOrder =
-                            Convert.ToDecimal(result)
-
-                    End If
-
-                    pnlAverageOrder.Text =
-                        "₹" & averageOrder.ToString("N2")
+                    averageSale =
+                        Convert.ToDecimal(
+                            Await cmd.ExecuteScalarAsync()
+                        )
 
                 End Using
 
-            End Using
 
-        Catch ex As Exception
-
-            MessageBox.Show(
-                "Error loading average order:" &
-                vbCrLf &
-                ex.Message,
-                "Database Error",
-                MessageBoxButtons.OK,
-                MessageBoxIcon.Error
-            )
-
-        End Try
-
-    End Sub
-
-
-
-    ' MONTHLY SALES GRAPH
-
-
-    Private Sub LoadMonthlySales()
-
-        Try
-
-            Using con As MySqlConnection =
-                DBConnection.GetConnection()
-
-                con.Open()
-
-                Dim query As String =
-                    "SELECT " &
-                    "MONTH(SaleDate) AS SaleMonth, " &
-                    "SUM(TotalAmount) AS MonthlySales " &
+                '=================================================
+                ' DAILY SALES
+                '=================================================
+                Using cmd As New MySqlCommand(
+                    "SELECT DATE(SaleDate) AS SaleDay, " &
+                    "SUM(TotalAmount) AS DailySales " &
                     "FROM Sales " &
                     "WHERE SaleDate >= @FromDate " &
-                    "AND SaleDate < DATE_ADD(@ToDate, INTERVAL 1 DAY) " &
-                    "AND Status = 'Completed' " &
-                    "GROUP BY MONTH(SaleDate) " &
-                    "ORDER BY MONTH(SaleDate)"
-
-                Using cmd As New MySqlCommand(query, con)
+                    "AND SaleDate < @ToDate " &
+                    "GROUP BY DATE(SaleDate) " &
+                    "ORDER BY DATE(SaleDate)",
+                    conn
+                )
 
                     cmd.Parameters.AddWithValue(
                         "@FromDate",
-                        dtpFromDate.Value.Date
+                        fromDate.Date
                     )
 
                     cmd.Parameters.AddWithValue(
                         "@ToDate",
-                        dtpToDate.Value.Date
+                        sqlToDate
                     )
 
-                    Using reader As MySqlDataReader =
-                        cmd.ExecuteReader()
+                    Using reader =
+                        Await cmd.ExecuteReaderAsync()
 
-                        Dim values As New List(Of Double)
-                        Dim labels As New List(Of String)
-                        Dim positions As New List(Of Double)
+                        While Await reader.ReadAsync()
 
-                        Dim position As Double = 0
+                            Dim dailyItem As New Dictionary(Of String, Object)
 
-                        While reader.Read()
-
-                            Dim monthNumber As Integer =
-                                Convert.ToInt32(
-                                    reader("SaleMonth")
-                                )
-
-                            Dim salesAmount As Double =
-                                Convert.ToDouble(
-                                    reader("MonthlySales")
-                                )
-
-                            values.Add(salesAmount)
-
-                            labels.Add(
-                                New DateTime(
-                                    2000,
-                                    monthNumber,
-                                    1
-                                ).ToString("MMM")
+                            dailyItem.Add(
+                                "date",
+                                Convert.ToDateTime(
+                                    reader("SaleDay")
+                                ).ToString("dd MMM")
                             )
 
-                            positions.Add(position)
+                            dailyItem.Add(
+                                "amount",
+                                Convert.ToDecimal(
+                                    reader("DailySales")
+                                )
+                            )
 
-                            position += 1
+                            dailySales.Add(dailyItem)
 
                         End While
 
+                    End Using
 
-                        ' Clear previous graph
-                        plotSales.Plot.Clear()
+                End Using
 
 
-                        ' If no sales exist
-                        If values.Count = 0 Then
+                '=================================================
+                ' MONTHLY SALES
+                '=================================================
+                Using cmd As New MySqlCommand(
+                    "SELECT DATE_FORMAT(SaleDate,'%b %Y') AS SaleMonth, " &
+                    "SUM(TotalAmount) AS MonthlySales " &
+                    "FROM Sales " &
+                    "WHERE SaleDate >= @FromDate " &
+                    "AND SaleDate < @ToDate " &
+                    "GROUP BY YEAR(SaleDate), MONTH(SaleDate) " &
+                    "ORDER BY YEAR(SaleDate), MONTH(SaleDate)",
+                    conn
+                )
 
-                            plotSales.Plot.Title(
-                                "No Sales Data Available"
+                    cmd.Parameters.AddWithValue(
+                        "@FromDate",
+                        fromDate.Date
+                    )
+
+                    cmd.Parameters.AddWithValue(
+                        "@ToDate",
+                        sqlToDate
+                    )
+
+                    Using reader =
+                        Await cmd.ExecuteReaderAsync()
+
+                        While Await reader.ReadAsync()
+
+                            Dim monthlyItem As New Dictionary(Of String, Object)
+
+                            monthlyItem.Add(
+                                "month",
+                                reader("SaleMonth").ToString()
                             )
 
-                            plotSales.Refresh()
-
-                            Return
-
-                        End If
-
-
-                        ' Convert list to array
-                        Dim salesValues() As Double =
-                            values.ToArray()
-
-                        Dim tickPositions() As Double =
-                            positions.ToArray()
-
-                        Dim tickLabels() As String =
-                            labels.ToArray()
-
-
-                        ' Create bar graph
-                        Dim bars =
-                            plotSales.Plot.Add.Bars(
-                                salesValues
+                            monthlyItem.Add(
+                                "amount",
+                                Convert.ToDecimal(
+                                    reader("MonthlySales")
+                                )
                             )
 
+                            monthlySales.Add(monthlyItem)
 
-                        ' X-axis labels
-                        plotSales.Plot.Axes.Bottom.SetTicks(
-                            tickPositions,
-                            tickLabels
-                        )
+                        End While
 
+                    End Using
 
-                        ' Graph title
-                        plotSales.Plot.Title(
-                            "Monthly Sales"
-                        )
+                End Using
 
 
-                        ' Axis titles
-                        plotSales.Plot.Axes.Left.Label.Text =
-                            "Sales (₹)"
+                '=================================================
+                ' PAYMENT METHODS
+                '=================================================
+                Using cmd As New MySqlCommand(
+                    "SELECT PaymentMethod, " &
+                    "SUM(TotalAmount) AS PaymentSales " &
+                    "FROM Sales " &
+                    "WHERE SaleDate >= @FromDate " &
+                    "AND SaleDate < @ToDate " &
+                    "GROUP BY PaymentMethod " &
+                    "ORDER BY PaymentSales DESC",
+                    conn
+                )
 
-                        plotSales.Plot.Axes.Bottom.Label.Text =
-                            "Month"
+                    cmd.Parameters.AddWithValue(
+                        "@FromDate",
+                        fromDate.Date
+                    )
+
+                    cmd.Parameters.AddWithValue(
+                        "@ToDate",
+                        sqlToDate
+                    )
+
+                    Using reader =
+                        Await cmd.ExecuteReaderAsync()
+
+                        While Await reader.ReadAsync()
+
+                            Dim paymentItem As New Dictionary(Of String, Object)
+
+                            paymentItem.Add(
+                                "method",
+                                reader("PaymentMethod").ToString()
+                            )
+
+                            paymentItem.Add(
+                                "amount",
+                                Convert.ToDecimal(
+                                    reader("PaymentSales")
+                                )
+                            )
+
+                            paymentMethods.Add(paymentItem)
+
+                        End While
+
+                    End Using
+
+                End Using
 
 
-                        ' Refresh graph
-                        plotSales.Refresh()
+                '=================================================
+                ' SALES STATUS
+                '=================================================
+                Using cmd As New MySqlCommand(
+                    "SELECT Status AS SaleStatus, " &
+                    "COUNT(*) AS OrderCount, " &
+                    "SUM(TotalAmount) AS StatusSales " &
+                    "FROM Sales " &
+                    "WHERE SaleDate >= @FromDate " &
+                    "AND SaleDate < @ToDate " &
+                    "GROUP BY Status " &
+                    "ORDER BY OrderCount DESC",
+                    conn
+                )
+
+                    cmd.Parameters.AddWithValue(
+                        "@FromDate",
+                        fromDate.Date
+                    )
+
+                    cmd.Parameters.AddWithValue(
+                        "@ToDate",
+                        sqlToDate
+                    )
+
+                    Using reader =
+                        Await cmd.ExecuteReaderAsync()
+
+                        While Await reader.ReadAsync()
+
+                            Dim statusItem As New Dictionary(Of String, Object)
+
+                            statusItem.Add(
+                                "status",
+                                reader("SaleStatus").ToString()
+                            )
+
+                            statusItem.Add(
+                                "orders",
+                                Convert.ToInt32(
+                                    reader("OrderCount")
+                                )
+                            )
+
+                            statusItem.Add(
+                                "amount",
+                                Convert.ToDecimal(
+                                    reader("StatusSales")
+                                )
+                            )
+
+                            statusData.Add(statusItem)
+
+                        End While
 
                     End Using
 
@@ -399,67 +570,49 @@ Public Class SalesAnalytics
 
             End Using
 
+
+            '=====================================================
+            ' PREPARE RESULT
+            '=====================================================
+            Dim result As New Dictionary(Of String, Object)
+
+            result.Add("totalSales", totalSales)
+            result.Add("totalOrders", totalOrders)
+            result.Add("averageSale", averageSale)
+            result.Add("dailySales", dailySales)
+            result.Add("monthlySales", monthlySales)
+            result.Add("paymentMethods", paymentMethods)
+            result.Add("statusData", statusData)
+
+
+            '=====================================================
+            ' SEND DATA TO JAVASCRIPT
+            '=====================================================
+            Dim jsonResult As String =
+                JsonSerializer.Serialize(result)
+
+            If webView IsNot Nothing AndAlso
+               webView.CoreWebView2 IsNot Nothing Then
+
+                webView.CoreWebView2.PostWebMessageAsString(
+                    jsonResult
+                )
+
+            End If
+
         Catch ex As Exception
 
             MessageBox.Show(
-                "Error loading monthly sales:" &
-                vbCrLf &
+                "Load Sales Analytics Error:" &
+                Environment.NewLine &
                 ex.Message,
-                "Graph Error",
+                "Error",
                 MessageBoxButtons.OK,
                 MessageBoxIcon.Error
             )
 
         End Try
 
-    End Sub
-
-
-
-    ' REFRESH BUTTON
-
-
-    Private Sub btnRefresh_Click(
-        sender As Object,
-        e As EventArgs
-    ) Handles btnRefresh.Click
-
-        LoadAnalytics()
-
-    End Sub
-
-
-
-    ' DATE CHANGE
-
-
-    Private Sub dtpFromDate_ValueChanged(
-        sender As Object,
-        e As EventArgs
-    ) Handles dtpFromDate.ValueChanged
-
-        If dtpFromDate.Value.Date <=
-           dtpToDate.Value.Date Then
-
-            LoadAnalytics()
-
-        End If
-
-    End Sub
-
-
-    Private Sub dtpToDate_ValueChanged(
-        sender As Object,
-        e As EventArgs
-    ) Handles dtpToDate.ValueChanged
-
-        If dtpFromDate.Value.Date <=
-           dtpToDate.Value.Date Then
-
-            LoadAnalytics()
-
-        End If
-
-    End Sub
+    End Function
 
 End Class
