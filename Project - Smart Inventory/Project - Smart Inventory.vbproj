@@ -15,11 +15,17 @@
     <None Remove="WebUI\dashboard.html" />
     <None Remove="WebUI\dashboard.js" />
     <None Remove="WebUI\index.html" />
+    <None Remove="WebUI\login.css" />
+    <None Remove="WebUI\login.html" />
+    <None Remove="WebUI\login.js" />
     <None Remove="WebUI\main.css" />
     <None Remove="WebUI\main.js" />
     <None Remove="WebUI\products.css" />
     <None Remove="WebUI\products.html" />
     <None Remove="WebUI\products.js" />
+    <None Remove="WebUI\register.css" />
+    <None Remove="WebUI\register.html" />
+    <None Remove="WebUI\register.js" />
     <None Remove="WebUI\sales-analytics.css" />
     <None Remove="WebUI\sales-analytics.html" />
     <None Remove="WebUI\sales-analytics.js" />
@@ -38,6 +44,15 @@
     <Content Include="WebUI\index.html">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+    <Content Include="WebUI\login.css">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="WebUI\login.html">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="WebUI\login.js">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
     <Content Include="WebUI\main.css">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
@@ -51,6 +66,15 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="WebUI\products.js">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="WebUI\register.css">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="WebUI\register.html">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="WebUI\register.js">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="WebUI\sales-analytics.css">

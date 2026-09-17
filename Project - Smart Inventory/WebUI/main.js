@@ -87,6 +87,11 @@ function navigate(pageName) {
 
     const page = pages[pageName];
 
+
+    /* -----------------------------------------------------
+       Check page
+       ----------------------------------------------------- */
+
     if (!page) {
 
         console.error(
@@ -98,29 +103,60 @@ function navigate(pageName) {
     }
 
 
-    /* Load page */
+    /* -----------------------------------------------------
+       Load page into iframe
+       ----------------------------------------------------- */
 
-    document
-        .getElementById("page-frame")
-        .src = page.file;
-
-
-    /* Update heading */
-
-    document
-        .getElementById("page-title")
-        .textContent = page.title;
+    const pageFrame =
+        document.getElementById("page-frame");
 
 
-    document
-        .getElementById("page-subtitle")
-        .textContent = page.subtitle;
+    if (pageFrame) {
+
+        pageFrame.src = page.file;
+
+    }
 
 
-    /* Update active button */
+    /* -----------------------------------------------------
+       Update page title
+       ----------------------------------------------------- */
+
+    const pageTitle =
+        document.getElementById("page-title");
+
+
+    if (pageTitle) {
+
+        pageTitle.textContent =
+            page.title;
+
+    }
+
+
+    /* -----------------------------------------------------
+       Update page subtitle
+       ----------------------------------------------------- */
+
+    const pageSubtitle =
+        document.getElementById("page-subtitle");
+
+
+    if (pageSubtitle) {
+
+        pageSubtitle.textContent =
+            page.subtitle;
+
+    }
+
+
+    /* -----------------------------------------------------
+       Remove active class
+       ----------------------------------------------------- */
 
     const buttons =
         document.querySelectorAll(".nav-item");
+
 
     buttons.forEach(button => {
 
@@ -129,10 +165,15 @@ function navigate(pageName) {
     });
 
 
+    /* -----------------------------------------------------
+       Set active navigation button
+       ----------------------------------------------------- */
+
     buttons.forEach(button => {
 
         const command =
             button.getAttribute("onclick");
+
 
         if (
             command &&
@@ -156,76 +197,99 @@ function navigate(pageName) {
 
 function logout() {
 
-    const confirmLogout =
-        confirm(
-            "Are you sure you want to logout?"
-        );
-
-
-    if (!confirmLogout) {
-        return;
-    }
-
-
     /*
-       Later this will communicate
-       with VB.NET.
+       Do NOT use JavaScript confirm() here.
+
+       VB.NET will show the confirmation dialog.
+       This prevents two confirmation dialogs.
     */
+
+
+    /* -----------------------------------------------------
+       Check WebView2
+       ----------------------------------------------------- */
 
     if (
         window.chrome &&
         window.chrome.webview
     ) {
 
-        window.chrome.webview.postMessage(
-            JSON.stringify({
-                action: "logout"
-            })
+
+        /* -------------------------------------------------
+           Send logout request to VB.NET
+           ------------------------------------------------- */
+
+        window.chrome.webview.postMessage({
+
+            action: "logout"
+
+        });
+
+
+    }
+    else {
+
+        console.error(
+            "WebView2 is not available."
         );
 
     }
 
 }
+
+
 /* =========================================================
    RECEIVE MESSAGES FROM IFRAME
    ========================================================= */
 
-window.addEventListener("message", function (event) {
+window.addEventListener(
+    "message",
+    function (event) {
 
-    const data = event.data;
-
-
-    console.log(
-        "Message received from iframe:",
-        data
-    );
+        const data =
+            event.data;
 
 
-    if (
-        data &&
-        data.action === "loadSalesAnalytics"
-    ) {
+        console.log(
+            "Message received from iframe:",
+            data
+        );
 
-        /* -----------------------------------------
-           Forward message to VB.NET
-           ----------------------------------------- */
+
+        /* -------------------------------------------------
+           SALES ANALYTICS
+           ------------------------------------------------- */
 
         if (
-            window.chrome &&
-            window.chrome.webview
+            data &&
+            data.action ===
+            "loadSalesAnalytics"
         ) {
 
-            window.chrome.webview.postMessage(data);
 
-        }
-        else {
+            /* ---------------------------------------------
+               Forward message to VB.NET
+               --------------------------------------------- */
 
-            console.error(
-                "WebView2 is not available."
-            );
+            if (
+                window.chrome &&
+                window.chrome.webview
+            ) {
+
+                window.chrome.webview.postMessage(
+                    data
+                );
+
+            }
+            else {
+
+                console.error(
+                    "WebView2 is not available."
+                );
+
+            }
 
         }
 
     }
-
-});
+);

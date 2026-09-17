@@ -1,0 +1,171 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <title>Create Account - Sales Nova</title>
+
+    <link rel="stylesheet"
+          href="register.css">
+
+</head>
+
+<body>
+
+    <div class="register-container">
+
+        <div class="register-card">
+
+            <div class="logo-section">
+
+                <h1>Sales Nova</h1>
+
+                <p>Create your account</p>
+
+            </div>
+
+
+            <!-- FULL NAME -->
+
+            <div class="form-group">
+
+                <label for="fullName">
+                    Full Name
+                </label>
+
+                <input
+                    type="text"
+                    id="fullName"
+                    placeholder="Enter your full name"
+                    autocomplete="name"
+                >
+
+            </div>
+
+
+            <!-- USERNAME -->
+
+            <div class="form-group">
+
+                <label for="username">
+                    Username
+                </label>
+
+                <input
+                    type="text"
+                    id="username"
+                    placeholder="Choose a username"
+                    autocomplete="username"
+                >
+
+            </div>
+
+
+            <!-- PASSWORD -->
+
+            <div class="form-group">
+
+                <label for="password">
+                    Password
+                </label>
+
+                <input
+                    type="password"
+                    id="password"
+                    placeholder="Enter your password"
+                    autocomplete="new-password"
+                >
+
+            </div>
+
+
+            <!-- CONFIRM PASSWORD -->
+
+            <div class="form-group">
+
+                <label for="confirmPassword">
+                    Confirm Password
+                </label>
+
+                <input
+                    type="password"
+                    id="confirmPassword"
+                    placeholder="Confirm your password"
+                    autocomplete="new-password"
+                >
+
+            </div>
+
+
+            <!-- ROLE -->
+
+            <div class="form-group">
+
+                <label for="role">
+                    Role
+                </label>
+
+                <select id="role">
+
+                    <option value="">
+                        Select Role
+                    </option>
+
+                    <option value="Admin">
+                        Admin
+                    </option>
+
+                    <option value="Manager">
+                        Manager
+                    </option>
+
+                    <option value="Staff">
+                        Staff
+                    </option>
+
+                </select>
+
+            </div>
+
+
+            <!-- REGISTER -->
+
+            <button
+                id="btnRegister"
+                class="btn-register">
+
+                Create Account
+
+            </button>
+
+
+            <!-- BACK TO LOGIN -->
+
+            <button
+                id="btnBackLogin"
+                class="btn-back">
+
+                Back to Login
+
+            </button>
+
+
+            <!-- MESSAGE -->
+
+            <p id="message"></p>
+
+        </div>
+
+    </div>
+
+
+    <script src="register.js"></script>
+
+</body>
+
+</html>

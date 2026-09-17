@@ -32,7 +32,10 @@ Partial Class FrmLogin
         btnExit = New Button()
         PictureBox1 = New PictureBox()
         FolderBrowserDialog1 = New FolderBrowserDialog()
+        btnRegister = New Button()
+        WebViewLogin = New Microsoft.Web.WebView2.WinForms.WebView2()
         CType(PictureBox1, ComponentModel.ISupportInitialize).BeginInit()
+        CType(WebViewLogin, ComponentModel.ISupportInitialize).BeginInit()
         SuspendLayout()
         ' 
         ' Label2
@@ -121,12 +124,36 @@ Partial Class FrmLogin
         PictureBox1.TabIndex = 8
         PictureBox1.TabStop = False
         ' 
+        ' btnRegister
+        ' 
+        btnRegister.Font = New Font("Segoe UI", 11.25F, FontStyle.Bold, GraphicsUnit.Point, CByte(0))
+        btnRegister.Location = New Point(396, 9)
+        btnRegister.Name = "btnRegister"
+        btnRegister.Size = New Size(101, 29)
+        btnRegister.TabIndex = 9
+        btnRegister.Text = "Register"
+        btnRegister.UseVisualStyleBackColor = True
+        ' 
+        ' WebViewLogin
+        ' 
+        WebViewLogin.AllowExternalDrop = True
+        WebViewLogin.CreationProperties = Nothing
+        WebViewLogin.DefaultBackgroundColor = Color.White
+        WebViewLogin.Dock = DockStyle.Fill
+        WebViewLogin.Location = New Point(0, 0)
+        WebViewLogin.Name = "WebViewLogin"
+        WebViewLogin.Size = New Size(500, 538)
+        WebViewLogin.TabIndex = 10
+        WebViewLogin.ZoomFactor = 1R
+        ' 
         ' FrmLogin
         ' 
         AutoScaleDimensions = New SizeF(7F, 15F)
         AutoScaleMode = AutoScaleMode.Font
         BackColor = Color.White
         ClientSize = New Size(500, 538)
+        Controls.Add(WebViewLogin)
+        Controls.Add(btnRegister)
         Controls.Add(btnExit)
         Controls.Add(btnlogin)
         Controls.Add(txtpass)
@@ -140,6 +167,7 @@ Partial Class FrmLogin
         StartPosition = FormStartPosition.CenterScreen
         Text = "FrmLogin"
         CType(PictureBox1, ComponentModel.ISupportInitialize).EndInit()
+        CType(WebViewLogin, ComponentModel.ISupportInitialize).EndInit()
         ResumeLayout(False)
         PerformLayout()
     End Sub
@@ -152,4 +180,6 @@ Partial Class FrmLogin
     Friend WithEvents btnExit As Button
     Friend WithEvents PictureBox1 As PictureBox
     Friend WithEvents FolderBrowserDialog1 As FolderBrowserDialog
+    Friend WithEvents btnRegister As Button
+    Friend WithEvents WebViewLogin As Microsoft.Web.WebView2.WinForms.WebView2
 End Class

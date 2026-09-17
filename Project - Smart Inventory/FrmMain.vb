@@ -2,6 +2,7 @@
 Imports MySql.Data.MySqlClient
 Imports System.IO
 Imports System.Text.Json
+Imports System.Linq
 
 Public Class FrmMain
 
@@ -95,10 +96,13 @@ Public Class FrmMain
     '=========================================================
     ' JAVASCRIPT -> VB.NET MESSAGE
     '=========================================================
+    '=========================================================
+    ' JAVASCRIPT -> VB.NET MESSAGE
+    '=========================================================
     Private Sub WebMessageReceived(
-        sender As Object,
-        e As CoreWebView2WebMessageReceivedEventArgs
-    )
+    sender As Object,
+    e As CoreWebView2WebMessageReceivedEventArgs
+)
 
         Try
 
@@ -106,17 +110,50 @@ Public Class FrmMain
             ' Get JSON message
             '-------------------------------------------------
             Dim json As String =
-                e.WebMessageAsJson
+            e.WebMessageAsJson
 
 
             '-------------------------------------------------
             ' Parse JSON
             '-------------------------------------------------
             Using document As JsonDocument =
-                JsonDocument.Parse(json)
+            JsonDocument.Parse(json)
 
                 Dim root As JsonElement =
-                    document.RootElement
+                document.RootElement
+
+
+                '=================================================
+                ' HANDLE STRING MESSAGE
+                '=================================================
+                If root.ValueKind = JsonValueKind.String Then
+
+                    Dim stringAction As String =
+                                root.GetString()
+
+
+                    Select Case stringAction
+
+                        Case "logout"
+
+                            LogoutFromMain()
+
+                    End Select
+
+
+                    Return
+
+                End If
+
+
+                '=================================================
+                ' HANDLE OBJECT MESSAGE
+                '=================================================
+                If root.ValueKind <> JsonValueKind.Object Then
+
+                    Return
+
+                End If
 
 
                 '-------------------------------------------------
@@ -126,9 +163,16 @@ Public Class FrmMain
 
 
                 If Not root.TryGetProperty(
-                    "action",
-                    actionElement
-                ) Then
+                "action",
+                actionElement
+            ) Then
+
+                    Return
+
+                End If
+
+
+                If actionElement.ValueKind <> JsonValueKind.String Then
 
                     Return
 
@@ -136,12 +180,12 @@ Public Class FrmMain
 
 
                 Dim action As String =
-                    actionElement.GetString()
+                actionElement.GetString()
 
 
-                '-------------------------------------------------
-                ' Process action
-                '-------------------------------------------------
+                '=================================================
+                ' PROCESS ACTION
+                '=================================================
                 Select Case action
 
 
@@ -174,18 +218,25 @@ Public Class FrmMain
 
                         DeleteProduct(root)
 
+
                     Case "loadSalesAnalytics"
+
                         LoadSalesAnalyticsToWeb(root)
+
+
+                    Case "logout"
+
+                        LogoutFromMain()
 
 
                     Case Else
 
                         MessageBox.Show(
-                            "Unknown WebUI action: " & action,
-                            "WebUI",
-                            MessageBoxButtons.OK,
-                            MessageBoxIcon.Warning
-                        )
+                        "Unknown WebUI action: " & action,
+                        "WebUI",
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Warning
+                    )
 
                 End Select
 
@@ -195,14 +246,14 @@ Public Class FrmMain
         Catch ex As Exception
 
             MessageBox.Show(
-                "WebUI communication error:" &
-                Environment.NewLine &
-                Environment.NewLine &
-                ex.Message,
-                "WebUI Error",
-                MessageBoxButtons.OK,
-                MessageBoxIcon.Error
-            )
+            "WebUI communication error:" &
+            Environment.NewLine &
+            Environment.NewLine &
+            ex.Message,
+            "WebUI Error",
+            MessageBoxButtons.OK,
+            MessageBoxIcon.Error
+        )
 
         End Try
 
@@ -1651,6 +1702,59 @@ Public Class FrmMain
 
     End Sub
 
+    '=========================================================
+    ' LOGOUT
+    '=========================================================
+    Private Sub LogoutFromMain()
 
+        Try
+
+            Dim result As DialogResult =
+            MessageBox.Show(
+                "Are you sure you want to logout?",
+                "Logout",
+                MessageBoxButtons.YesNo,
+                MessageBoxIcon.Question
+            )
+
+            If result <> DialogResult.Yes Then
+                Return
+            End If
+
+
+            '-------------------------------------------------
+            ' Hide Main Form
+            '-------------------------------------------------
+            Me.Hide()
+
+
+            '-------------------------------------------------
+            ' Show existing Login Form
+            '-------------------------------------------------
+            If FrmLogin IsNot Nothing Then
+
+                FrmLogin.Show()
+                FrmLogin.WindowState = FormWindowState.Normal
+                FrmLogin.BringToFront()
+                FrmLogin.Activate()
+
+            End If
+
+
+        Catch ex As Exception
+
+            MessageBox.Show(
+            "Logout error:" &
+            Environment.NewLine &
+            Environment.NewLine &
+            ex.Message,
+            "Logout Error",
+            MessageBoxButtons.OK,
+            MessageBoxIcon.Error
+        )
+
+        End Try
+
+    End Sub
 
 End Class
