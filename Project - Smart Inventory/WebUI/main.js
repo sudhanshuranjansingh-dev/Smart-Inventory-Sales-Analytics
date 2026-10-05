@@ -70,6 +70,12 @@ const pages = {
         subtitle: "Analyze sales performance"
     },
 
+    "admin-approval": {
+        file: "admin-approval.html",
+        title: "Admin Approval",
+        subtitle: "Review and manage Admin access requests"
+    },
+
     reports: {
         file: "reports.html",
         title: "Reports",
@@ -80,7 +86,7 @@ const pages = {
 
 
 /* =========================================================
-   NAVIGATE
+   NAVIGATE TO PAGE
    ========================================================= */
 
 function navigate(pageName) {
@@ -89,8 +95,8 @@ function navigate(pageName) {
 
 
     /* -----------------------------------------------------
-       Check page
-       ----------------------------------------------------- */
+       Check page configuration
+    ----------------------------------------------------- */
 
     if (!page) {
 
@@ -100,30 +106,47 @@ function navigate(pageName) {
         );
 
         return;
+
     }
 
 
     /* -----------------------------------------------------
-       Load page into iframe
-       ----------------------------------------------------- */
+       Get iframe
+    ----------------------------------------------------- */
 
     const pageFrame =
-        document.getElementById("page-frame");
+        document.getElementById(
+            "page-frame"
+        );
 
+
+    /* -----------------------------------------------------
+       Load page
+    ----------------------------------------------------- */
 
     if (pageFrame) {
 
-        pageFrame.src = page.file;
+        pageFrame.src =
+            page.file;
+
+    }
+    else {
+
+        console.error(
+            "page-frame was not found."
+        );
 
     }
 
 
     /* -----------------------------------------------------
        Update page title
-       ----------------------------------------------------- */
+    ----------------------------------------------------- */
 
     const pageTitle =
-        document.getElementById("page-title");
+        document.getElementById(
+            "page-title"
+        );
 
 
     if (pageTitle) {
@@ -136,10 +159,12 @@ function navigate(pageName) {
 
     /* -----------------------------------------------------
        Update page subtitle
-       ----------------------------------------------------- */
+    ----------------------------------------------------- */
 
     const pageSubtitle =
-        document.getElementById("page-subtitle");
+        document.getElementById(
+            "page-subtitle"
+        );
 
 
     if (pageSubtitle) {
@@ -151,42 +176,50 @@ function navigate(pageName) {
 
 
     /* -----------------------------------------------------
-       Remove active class
-       ----------------------------------------------------- */
+       Update active navigation item
+    ----------------------------------------------------- */
 
     const buttons =
-        document.querySelectorAll(".nav-item");
+        document.querySelectorAll(
+            ".nav-item"
+        );
 
 
-    buttons.forEach(button => {
+    buttons.forEach(
+        function (button) {
 
-        button.classList.remove("active");
-
-    });
-
-
-    /* -----------------------------------------------------
-       Set active navigation button
-       ----------------------------------------------------- */
-
-    buttons.forEach(button => {
-
-        const command =
-            button.getAttribute("onclick");
-
-
-        if (
-            command &&
-            command.includes(
-                "'" + pageName + "'"
-            )
-        ) {
-
-            button.classList.add("active");
+            button.classList.remove(
+                "active"
+            );
 
         }
+    );
 
-    });
+
+    buttons.forEach(
+        function (button) {
+
+            const command =
+                button.getAttribute(
+                    "onclick"
+                );
+
+
+            if (
+                command &&
+                command.includes(
+                    "'" + pageName + "'"
+                )
+            ) {
+
+                button.classList.add(
+                    "active"
+                );
+
+            }
+
+        }
+    );
 
 }
 
@@ -197,45 +230,83 @@ function navigate(pageName) {
 
 function logout() {
 
-    /*
-       Do NOT use JavaScript confirm() here.
-
-       VB.NET will show the confirmation dialog.
-       This prevents two confirmation dialogs.
-    */
-
-
-    /* -----------------------------------------------------
-       Check WebView2
-       ----------------------------------------------------- */
-
     if (
         window.chrome &&
         window.chrome.webview
     ) {
 
-
-        /* -------------------------------------------------
-           Send logout request to VB.NET
-           ------------------------------------------------- */
-
-        window.chrome.webview.postMessage({
-
-            action: "logout"
-
-        });
-
-
-    }
-    else {
-
-        console.error(
-            "WebView2 is not available."
+        window.chrome.webview.postMessage(
+            {
+                action: "logout"
+            }
         );
 
+        return;
+
     }
 
+
+    console.error(
+        "WebView2 is not available."
+    );
+
 }
+
+
+/* =========================================================
+   SUPPORTED WEBVIEW2 ACTIONS
+   ========================================================= */
+
+const supportedActions = [
+
+    /* -----------------------------------------------------
+       Products
+    ----------------------------------------------------- */
+
+    "loadProducts",
+    "addProduct",
+    "updateProduct",
+    "deleteProduct",
+
+
+    /* -----------------------------------------------------
+       Categories
+    ----------------------------------------------------- */
+
+    "loadCategories",
+
+
+    /* -----------------------------------------------------
+       Suppliers
+    ----------------------------------------------------- */
+
+    "loadSuppliers",
+
+
+    /* -----------------------------------------------------
+       Purchases
+    ----------------------------------------------------- */
+
+    "loadPurchases",
+    "addPurchase",
+
+
+    /* -----------------------------------------------------
+       Sales Analytics
+    ----------------------------------------------------- */
+
+    "loadSalesAnalytics",
+
+
+    /* -----------------------------------------------------
+       Admin Approval
+    ----------------------------------------------------- */
+
+    "loadPendingAdmins",
+    "approveAdmin",
+    "rejectAdmin"
+
+];
 
 
 /* =========================================================
@@ -246,50 +317,121 @@ window.addEventListener(
     "message",
     function (event) {
 
+        /* -------------------------------------------------
+           Ignore empty messages
+        ------------------------------------------------- */
+
+        if (!event.data) {
+
+            return;
+
+        }
+
+
         const data =
             event.data;
 
 
-        console.log(
-            "Message received from iframe:",
-            data
-        );
+        /* -------------------------------------------------
+           Ignore messages without action
+        ------------------------------------------------- */
+
+        if (
+            typeof data !== "object" ||
+            !data.action
+        ) {
+
+            return;
+
+        }
 
 
         /* -------------------------------------------------
-           SALES ANALYTICS
-           ------------------------------------------------- */
+           Check supported action
+        ------------------------------------------------- */
 
         if (
-            data &&
-            data.action ===
-            "loadSalesAnalytics"
+            !supportedActions.includes(
+                data.action
+            )
         ) {
 
+            console.warn(
+                "Unsupported WebUI action:",
+                data.action
+            );
 
-            /* ---------------------------------------------
-               Forward message to VB.NET
-               --------------------------------------------- */
-
-            if (
-                window.chrome &&
-                window.chrome.webview
-            ) {
-
-                window.chrome.webview.postMessage(
-                    data
-                );
-
-            }
-            else {
-
-                console.error(
-                    "WebView2 is not available."
-                );
-
-            }
+            return;
 
         }
+
+
+        /* -------------------------------------------------
+           Forward message to VB.NET
+        ------------------------------------------------- */
+
+        if (
+            window.chrome &&
+            window.chrome.webview
+        ) {
+
+            window.chrome.webview.postMessage(
+                data
+            );
+
+        }
+        else {
+
+            console.error(
+                "WebView2 is not available."
+            );
+
+        }
+
+    }
+);
+
+
+/* =========================================================
+   PAGE FRAME LOAD EVENT
+   ========================================================= */
+
+const pageFrame =
+    document.getElementById(
+        "page-frame"
+    );
+
+
+if (pageFrame) {
+
+    pageFrame.addEventListener(
+        "load",
+        function () {
+
+            console.log(
+                "Page loaded:",
+                pageFrame.src
+            );
+
+        }
+    );
+
+}
+
+
+/* =========================================================
+   INITIAL PAGE
+   ========================================================= */
+
+document.addEventListener(
+    "DOMContentLoaded",
+    function () {
+
+        /*
+         * Load Dashboard when the main WebUI starts.
+         */
+
+        navigate("dashboard");
 
     }
 );

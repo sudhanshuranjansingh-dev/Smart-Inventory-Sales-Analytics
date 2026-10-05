@@ -2,7 +2,6 @@
 Imports MySql.Data.MySqlClient
 Imports System.IO
 Imports System.Text.Json
-Imports System.Linq
 
 Public Class FrmMain
 
@@ -16,6 +15,9 @@ Public Class FrmMain
 
         Try
 
+
+
+
             '-------------------------------------------------
             ' Initialize WebView2
             '-------------------------------------------------
@@ -23,10 +25,13 @@ Public Class FrmMain
 
 
             '-------------------------------------------------
-            ' Register JavaScript -> VB.NET communication
+            ' Register WebView2 message handler
             '-------------------------------------------------
+            RemoveHandler WebView21.CoreWebView2.WebMessageReceived,
+                AddressOf WebMessageReceived
+
             AddHandler WebView21.CoreWebView2.WebMessageReceived,
-                       AddressOf WebMessageReceived
+                AddressOf WebMessageReceived
 
 
             '-------------------------------------------------
@@ -96,9 +101,6 @@ Public Class FrmMain
     '=========================================================
     ' JAVASCRIPT -> VB.NET MESSAGE
     '=========================================================
-    '=========================================================
-    ' JAVASCRIPT -> VB.NET MESSAGE
-    '=========================================================
     Private Sub WebMessageReceived(
     sender As Object,
     e As CoreWebView2WebMessageReceivedEventArgs
@@ -106,16 +108,10 @@ Public Class FrmMain
 
         Try
 
-            '-------------------------------------------------
-            ' Get JSON message
-            '-------------------------------------------------
             Dim json As String =
             e.WebMessageAsJson
 
 
-            '-------------------------------------------------
-            ' Parse JSON
-            '-------------------------------------------------
             Using document As JsonDocument =
             JsonDocument.Parse(json)
 
@@ -124,13 +120,13 @@ Public Class FrmMain
 
 
                 '=================================================
-                ' HANDLE STRING MESSAGE
+                ' STRING MESSAGE
                 '=================================================
-                If root.ValueKind = JsonValueKind.String Then
+                If root.ValueKind =
+                JsonValueKind.String Then
 
                     Dim stringAction As String =
-                                root.GetString()
-
+                    root.GetString()
 
                     Select Case stringAction
 
@@ -140,16 +136,16 @@ Public Class FrmMain
 
                     End Select
 
-
                     Return
 
                 End If
 
 
                 '=================================================
-                ' HANDLE OBJECT MESSAGE
+                ' OBJECT MESSAGE
                 '=================================================
-                If root.ValueKind <> JsonValueKind.Object Then
+                If root.ValueKind <>
+                JsonValueKind.Object Then
 
                     Return
 
@@ -157,10 +153,9 @@ Public Class FrmMain
 
 
                 '-------------------------------------------------
-                ' Get action safely
+                ' GET ACTION
                 '-------------------------------------------------
                 Dim actionElement As JsonElement
-
 
                 If Not root.TryGetProperty(
                 "action",
@@ -172,7 +167,8 @@ Public Class FrmMain
                 End If
 
 
-                If actionElement.ValueKind <> JsonValueKind.String Then
+                If actionElement.ValueKind <>
+                JsonValueKind.String Then
 
                     Return
 
@@ -188,7 +184,6 @@ Public Class FrmMain
                 '=================================================
                 Select Case action
 
-
                     Case "loadProducts"
 
                         LoadProductsToWeb()
@@ -202,6 +197,18 @@ Public Class FrmMain
                     Case "loadSuppliers"
 
                         LoadSuppliersToWeb()
+
+
+
+
+                    Case "loadPurchases"
+
+                        LoadPurchasesToWeb()
+
+
+                    Case "addPurchase"
+
+                        AddPurchase(root)
 
 
                     Case "addProduct"
@@ -222,6 +229,21 @@ Public Class FrmMain
                     Case "loadSalesAnalytics"
 
                         LoadSalesAnalyticsToWeb(root)
+
+
+                    Case "loadPendingAdmins"
+
+                        LoadPendingAdminsToWeb()
+
+
+                    Case "approveAdmin"
+
+                        ApproveAdmin(root)
+
+
+                    Case "rejectAdmin"
+
+                        RejectAdmin(root)
 
 
                     Case "logout"
@@ -267,107 +289,164 @@ Public Class FrmMain
 
         Try
 
-            Using con As MySqlConnection = DBConnection.GetConnection()
+            Using con As MySqlConnection =
+                DBConnection.GetConnection()
 
                 con.Open()
 
+
                 Dim query As String =
-                "SELECT " &
-                "p.ProductID, " &
-                "p.ProductCode, " &
-                "p.ProductName, " &
-                "p.CategoryID, " &
-                "c.CategoryName, " &
-                "p.SupplierID, " &
-                "s.SupplierName, " &
-                "p.PurchasePrice, " &
-                "p.SellingPrice, " &
-                "p.StockQuantity, " &
-                "p.MinimumStock " &
-                "FROM Products p " &
-                "LEFT JOIN Categories c ON p.CategoryID = c.CategoryID " &
-                "LEFT JOIN Suppliers s ON p.SupplierID = s.SupplierID " &
-                "ORDER BY p.ProductID DESC"
+                    "SELECT " &
+                    "p.ProductID, " &
+                    "p.ProductCode, " &
+                    "p.ProductName, " &
+                    "p.CategoryID, " &
+                    "c.CategoryName, " &
+                    "p.SupplierID, " &
+                    "s.SupplierName, " &
+                    "p.PurchasePrice, " &
+                    "p.SellingPrice, " &
+                    "p.StockQuantity, " &
+                    "p.MinimumStock " &
+                    "FROM Products p " &
+                    "LEFT JOIN Categories c " &
+                    "ON p.CategoryID = c.CategoryID " &
+                    "LEFT JOIN Suppliers s " &
+                    "ON p.SupplierID = s.SupplierID " &
+                    "ORDER BY p.ProductID DESC"
 
-                Using cmd As New MySqlCommand(query, con)
 
-                    Using reader As MySqlDataReader = cmd.ExecuteReader()
+                Using cmd As New MySqlCommand(
+                    query,
+                    con
+                )
 
-                        Dim products As New List(Of Dictionary(Of String, Object))()
+                    Using reader As MySqlDataReader =
+                        cmd.ExecuteReader()
+
+                        Dim products As New List(
+                            Of Dictionary(Of String, Object)
+                        )()
+
 
                         While reader.Read()
 
-                            ' Create product dictionary
-                            Dim product As New Dictionary(Of String, Object)()
+                            Dim product As New Dictionary(
+                                Of String, Object
+                            )()
+
 
                             product.Add(
-                            "ProductID",
-                            GetDbInt(reader, "ProductID")
-                        )
+                                "ProductID",
+                                GetDbInt(
+                                    reader,
+                                    "ProductID"
+                                )
+                            )
+
 
                             product.Add(
-                            "ProductCode",
-                            GetDbString(reader, "ProductCode")
-                        )
+                                "ProductCode",
+                                GetDbString(
+                                    reader,
+                                    "ProductCode"
+                                )
+                            )
+
 
                             product.Add(
-                            "ProductName",
-                            GetDbString(reader, "ProductName")
-                        )
+                                "ProductName",
+                                GetDbString(
+                                    reader,
+                                    "ProductName"
+                                )
+                            )
+
 
                             product.Add(
-                            "CategoryID",
-                            GetDbNullableInt(reader, "CategoryID")
-                        )
+                                "CategoryID",
+                                GetDbNullableInt(
+                                    reader,
+                                    "CategoryID"
+                                )
+                            )
+
 
                             product.Add(
-                            "CategoryName",
-                            GetDbString(reader, "CategoryName")
-                        )
+                                "CategoryName",
+                                GetDbString(
+                                    reader,
+                                    "CategoryName"
+                                )
+                            )
+
 
                             product.Add(
-                            "SupplierID",
-                            GetDbNullableInt(reader, "SupplierID")
-                        )
+                                "SupplierID",
+                                GetDbNullableInt(
+                                    reader,
+                                    "SupplierID"
+                                )
+                            )
+
 
                             product.Add(
-                            "SupplierName",
-                            GetDbString(reader, "SupplierName")
-                        )
+                                "SupplierName",
+                                GetDbString(
+                                    reader,
+                                    "SupplierName"
+                                )
+                            )
+
 
                             product.Add(
-                            "PurchasePrice",
-                            GetDbDecimal(reader, "PurchasePrice")
-                        )
+                                "PurchasePrice",
+                                GetDbDecimal(
+                                    reader,
+                                    "PurchasePrice"
+                                )
+                            )
+
 
                             product.Add(
-                            "SellingPrice",
-                            GetDbDecimal(reader, "SellingPrice")
-                        )
+                                "SellingPrice",
+                                GetDbDecimal(
+                                    reader,
+                                    "SellingPrice"
+                                )
+                            )
+
 
                             product.Add(
-                            "StockQuantity",
-                            GetDbInt(reader, "StockQuantity")
-                        )
+                                "StockQuantity",
+                                GetDbInt(
+                                    reader,
+                                    "StockQuantity"
+                                )
+                            )
+
 
                             product.Add(
-                            "MinimumStock",
-                            GetDbInt(reader, "MinimumStock", 10)
-                        )
+                                "MinimumStock",
+                                GetDbInt(
+                                    reader,
+                                    "MinimumStock",
+                                    10
+                                )
+                            )
+
 
                             products.Add(product)
 
                         End While
 
-                        '-------------------------------------------------
-                        ' Send products to JavaScript
-                        '-------------------------------------------------
+
                         SendToWeb(
-                        New With {
-                            .type = "products",
-                            .data = products
-                        }
-                    )
+                            New With {
+                                .type = "products",
+                                .data = products
+                            }
+                        )
 
                     End Using
 
@@ -375,17 +454,18 @@ Public Class FrmMain
 
             End Using
 
+
         Catch ex As Exception
 
             MessageBox.Show(
-            "Error loading products:" &
-            Environment.NewLine &
-            Environment.NewLine &
-            ex.Message,
-            "Database Error",
-            MessageBoxButtons.OK,
-            MessageBoxIcon.Error
-        )
+                "Error loading products:" &
+                Environment.NewLine &
+                Environment.NewLine &
+                ex.Message,
+                "Database Error",
+                MessageBoxButtons.OK,
+                MessageBoxIcon.Error
+            )
 
         End Try
 
@@ -399,45 +479,63 @@ Public Class FrmMain
 
         Try
 
-            Using con As MySqlConnection = DBConnection.GetConnection()
+            Using con As MySqlConnection =
+                DBConnection.GetConnection()
 
                 con.Open()
 
+
                 Dim query As String =
-                "SELECT CategoryID, CategoryName " &
-                "FROM Categories " &
-                "ORDER BY CategoryName"
+                    "SELECT CategoryID, CategoryName " &
+                    "FROM Categories " &
+                    "ORDER BY CategoryName"
 
-                Using cmd As New MySqlCommand(query, con)
 
-                    Using reader As MySqlDataReader = cmd.ExecuteReader()
+                Using cmd As New MySqlCommand(
+                    query,
+                    con
+                )
 
-                        Dim categories As New List(Of Dictionary(Of String, Object))()
+                    Using reader As MySqlDataReader =
+                        cmd.ExecuteReader()
+
+                        Dim categories As New List(
+                            Of Dictionary(Of String, Object)
+                        )()
+
 
                         While reader.Read()
 
-                            Dim category As New Dictionary(Of String, Object)()
+                            Dim category As New Dictionary(
+                                Of String, Object
+                            )()
+
 
                             category.Add(
-                            "CategoryID",
-                            Convert.ToInt32(reader("CategoryID"))
-                        )
+                                "CategoryID",
+                                Convert.ToInt32(
+                                    reader("CategoryID")
+                                )
+                            )
+
 
                             category.Add(
-                            "CategoryName",
-                            reader("CategoryName").ToString()
-                        )
+                                "CategoryName",
+                                reader("CategoryName").ToString()
+                            )
+
 
                             categories.Add(category)
 
                         End While
 
+
                         SendToWeb(
-                        New With {
-                            .type = "categories",
-                            .data = categories
-                        }
-                    )
+                            New With {
+                                .type = "categories",
+                                .data = categories
+                            }
+                        )
 
                     End Using
 
@@ -445,21 +543,23 @@ Public Class FrmMain
 
             End Using
 
+
         Catch ex As Exception
 
             MessageBox.Show(
-            "Error loading categories:" &
-            Environment.NewLine &
-            Environment.NewLine &
-            ex.Message,
-            "Database Error",
-            MessageBoxButtons.OK,
-            MessageBoxIcon.Error
-        )
+                "Error loading categories:" &
+                Environment.NewLine &
+                Environment.NewLine &
+                ex.Message,
+                "Database Error",
+                MessageBoxButtons.OK,
+                MessageBoxIcon.Error
+            )
 
         End Try
 
     End Sub
+
 
     '=========================================================
     ' LOAD SUPPLIERS
@@ -468,43 +568,175 @@ Public Class FrmMain
 
         Try
 
-            Using con As MySqlConnection = DBConnection.GetConnection()
+            Using con As MySqlConnection =
+                DBConnection.GetConnection()
 
                 con.Open()
 
+
                 Dim query As String =
-                "SELECT SupplierID, SupplierName " &
-                "FROM Suppliers " &
-                "ORDER BY SupplierName"
+                    "SELECT SupplierID, SupplierName " &
+                    "FROM Suppliers " &
+                    "ORDER BY SupplierName"
 
-                Using cmd As New MySqlCommand(query, con)
 
-                    Using reader As MySqlDataReader = cmd.ExecuteReader()
+                Using cmd As New MySqlCommand(
+                    query,
+                    con
+                )
 
-                        Dim suppliers As New List(Of Dictionary(Of String, Object))()
+                    Using reader As MySqlDataReader =
+                        cmd.ExecuteReader()
+
+                        Dim suppliers As New List(
+                            Of Dictionary(Of String, Object)
+                        )()
+
 
                         While reader.Read()
 
-                            Dim supplier As New Dictionary(Of String, Object)()
+                            Dim supplier As New Dictionary(
+                                Of String, Object
+                            )()
+
 
                             supplier.Add(
-                            "SupplierID",
-                            Convert.ToInt32(reader("SupplierID"))
-                        )
+                                "SupplierID",
+                                Convert.ToInt32(
+                                    reader("SupplierID")
+                                )
+                            )
+
 
                             supplier.Add(
-                            "SupplierName",
-                            reader("SupplierName").ToString()
-                        )
+                                "SupplierName",
+                                reader("SupplierName").ToString()
+                            )
+
 
                             suppliers.Add(supplier)
 
                         End While
 
+
+                        SendToWeb(
+                            New With {
+                                .type = "suppliers",
+                                .data = suppliers
+                            }
+                        )
+
+                    End Using
+
+                End Using
+
+            End Using
+
+
+        Catch ex As Exception
+
+            MessageBox.Show(
+                "Error loading suppliers:" &
+                Environment.NewLine &
+                Environment.NewLine &
+                ex.Message,
+                "Database Error",
+                MessageBoxButtons.OK,
+                MessageBoxIcon.Error
+            )
+
+        End Try
+
+    End Sub
+
+    '=========================================================
+    ' LOAD PURCHASES
+    '=========================================================
+    Private Sub LoadPurchasesToWeb()
+
+        Try
+
+            Using con As MySqlConnection =
+            DBConnection.GetConnection()
+
+                con.Open()
+
+                Dim query As String =
+                "SELECT " &
+                "p.PurchaseID, " &
+                "p.SupplierID, " &
+                "s.SupplierName, " &
+                "p.PurchaseDate, " &
+                "p.TotalAmount " &
+                "FROM Purchases p " &
+                "LEFT JOIN Suppliers s " &
+                "ON p.SupplierID = s.SupplierID " &
+                "ORDER BY p.PurchaseID DESC"
+
+                Using cmd As New MySqlCommand(query, con)
+
+                    Using reader As MySqlDataReader =
+                    cmd.ExecuteReader()
+
+                        Dim purchases As New List(
+                        Of Dictionary(Of String, Object)
+                    )()
+
+                        While reader.Read()
+
+                            Dim purchase As New Dictionary(
+                            Of String, Object
+                        )()
+
+                            purchase("PurchaseID") =
+                            GetDbInt(
+                                reader,
+                                "PurchaseID"
+                            )
+
+                            purchase("SupplierID") =
+                            GetDbNullableInt(
+                                reader,
+                                "SupplierID"
+                            )
+
+                            purchase("SupplierName") =
+                            GetDbString(
+                                reader,
+                                "SupplierName"
+                            )
+
+                            If IsDBNull(
+                            reader("PurchaseDate")
+                        ) Then
+
+                                purchase("PurchaseDate") = ""
+
+                            Else
+
+                                purchase("PurchaseDate") =
+                                Convert.ToDateTime(
+                                    reader("PurchaseDate")
+                                ).ToString(
+                                    "yyyy-MM-dd HH:mm:ss"
+                                )
+
+                            End If
+
+                            purchase("TotalAmount") =
+                            GetDbDecimal(
+                                reader,
+                                "TotalAmount"
+                            )
+
+                            purchases.Add(purchase)
+
+                        End While
+
                         SendToWeb(
                         New With {
-                            .type = "suppliers",
-                            .data = suppliers
+                            .type = "purchases",
+                            .data = purchases
                         }
                     )
 
@@ -516,14 +748,477 @@ Public Class FrmMain
 
         Catch ex As Exception
 
-            MessageBox.Show(
-            "Error loading suppliers:" &
-            Environment.NewLine &
-            Environment.NewLine &
-            ex.Message,
-            "Database Error",
-            MessageBoxButtons.OK,
-            MessageBoxIcon.Error
+            SendToWeb(
+            New With {
+                .type = "purchaseError",
+                .message =
+                    "Error loading purchases: " &
+                    ex.Message
+            }
+        )
+
+        End Try
+
+    End Sub
+
+    '=========================================================
+    ' ADD PURCHASE
+    '=========================================================
+    Private Sub AddPurchase(root As JsonElement)
+
+        Dim transaction As MySqlTransaction = Nothing
+        Dim purchaseID As Integer = 0
+
+        Try
+
+            '-------------------------------------------------
+            ' GET VALUES
+            '-------------------------------------------------
+
+            Dim supplierID As Integer =
+            GetIntegerValue(
+                root,
+                "SupplierID"
+            )
+
+            Dim productID As Integer =
+            GetIntegerValue(
+                root,
+                "ProductID"
+            )
+
+            Dim quantity As Integer =
+            GetIntegerValue(
+                root,
+                "Quantity"
+            )
+
+            Dim purchasePrice As Decimal =
+            GetDecimalValue(
+                root,
+                "PurchasePrice"
+            )
+
+
+            '-------------------------------------------------
+            ' VALIDATION
+            '-------------------------------------------------
+
+            If supplierID <= 0 Then
+
+                SendToWeb(
+                New With {
+                    .type = "purchaseError",
+                    .message = "Please select a supplier."
+                }
+            )
+
+                Return
+
+            End If
+
+
+            If productID <= 0 Then
+
+                SendToWeb(
+                New With {
+                    .type = "purchaseError",
+                    .message = "Please select a product."
+                }
+            )
+
+                Return
+
+            End If
+
+
+            If quantity <= 0 Then
+
+                SendToWeb(
+                New With {
+                    .type = "purchaseError",
+                    .message =
+                        "Quantity must be greater than zero."
+                }
+            )
+
+                Return
+
+            End If
+
+
+            If purchasePrice <= 0D Then
+
+                SendToWeb(
+                New With {
+                    .type = "purchaseError",
+                    .message =
+                        "Purchase price must be greater than zero."
+                }
+            )
+
+                Return
+
+            End If
+
+
+            '-------------------------------------------------
+            ' CALCULATE TOTAL
+            '-------------------------------------------------
+
+            Dim totalPrice As Decimal =
+            quantity * purchasePrice
+
+
+            '-------------------------------------------------
+            ' DATABASE CONNECTION
+            '-------------------------------------------------
+
+            Using con As MySqlConnection =
+            DBConnection.GetConnection()
+
+                con.Open()
+
+
+                '-------------------------------------------------
+                ' START TRANSACTION
+                '-------------------------------------------------
+
+                transaction =
+                con.BeginTransaction()
+
+
+                '=================================================
+                ' 1. VERIFY SUPPLIER
+                '=================================================
+
+                Dim supplierQuery As String =
+                "SELECT COUNT(*) " &
+                "FROM Suppliers " &
+                "WHERE SupplierID = @SupplierID"
+
+                Using cmd As New MySqlCommand(
+                supplierQuery,
+                con,
+                transaction
+            )
+
+                    cmd.Parameters.AddWithValue(
+                    "@SupplierID",
+                    supplierID
+                )
+
+                    Dim supplierExists As Integer =
+                    Convert.ToInt32(
+                        cmd.ExecuteScalar()
+                    )
+
+                    If supplierExists = 0 Then
+
+                        Throw New Exception(
+                        "Selected supplier was not found."
+                    )
+
+                    End If
+
+                End Using
+
+
+                '=================================================
+                ' 2. GET PRODUCT AND CURRENT STOCK
+                '=================================================
+
+                Dim previousStock As Integer = 0
+
+                Dim productQuery As String =
+                "SELECT StockQuantity " &
+                "FROM Products " &
+                "WHERE ProductID = @ProductID " &
+                "FOR UPDATE"
+
+                Using cmd As New MySqlCommand(
+                productQuery,
+                con,
+                transaction
+            )
+
+                    cmd.Parameters.AddWithValue(
+                    "@ProductID",
+                    productID
+                )
+
+                    Dim result As Object =
+                    cmd.ExecuteScalar()
+
+                    If result Is Nothing OrElse
+                   result Is DBNull.Value Then
+
+                        Throw New Exception(
+                        "Selected product was not found."
+                    )
+
+                    End If
+
+                    previousStock =
+                    Convert.ToInt32(result)
+
+                End Using
+
+
+                '=================================================
+                ' 3. CALCULATE NEW STOCK
+                '=================================================
+
+                Dim newStock As Integer =
+                previousStock + quantity
+
+
+                '=================================================
+                ' 4. INSERT PURCHASE HEADER
+                '=================================================
+
+                Dim purchaseQuery As String =
+                "INSERT INTO Purchases " &
+                "(SupplierID, PurchaseDate, TotalAmount) " &
+                "VALUES " &
+                "(@SupplierID, NOW(), @TotalAmount)"
+
+                Using cmd As New MySqlCommand(
+                purchaseQuery,
+                con,
+                transaction
+            )
+
+                    cmd.Parameters.AddWithValue(
+                    "@SupplierID",
+                    supplierID
+                )
+
+                    cmd.Parameters.AddWithValue(
+                    "@TotalAmount",
+                    totalPrice
+                )
+
+                    cmd.ExecuteNonQuery()
+
+                    purchaseID =
+                    Convert.ToInt32(
+                        cmd.LastInsertedId
+                    )
+
+                End Using
+
+
+                '=================================================
+                ' 5. INSERT PURCHASE DETAIL
+                '=================================================
+
+                Dim detailQuery As String =
+                "INSERT INTO PurchaseDetails " &
+                "(PurchaseID, ProductID, Quantity, " &
+                "PurchasePrice, TotalPrice) " &
+                "VALUES " &
+                "(@PurchaseID, @ProductID, @Quantity, " &
+                "@PurchasePrice, @TotalPrice)"
+
+                Using cmd As New MySqlCommand(
+                detailQuery,
+                con,
+                transaction
+            )
+
+                    cmd.Parameters.AddWithValue(
+                    "@PurchaseID",
+                    purchaseID
+                )
+
+                    cmd.Parameters.AddWithValue(
+                    "@ProductID",
+                    productID
+                )
+
+                    cmd.Parameters.AddWithValue(
+                    "@Quantity",
+                    quantity
+                )
+
+                    cmd.Parameters.AddWithValue(
+                    "@PurchasePrice",
+                    purchasePrice
+                )
+
+                    cmd.Parameters.AddWithValue(
+                    "@TotalPrice",
+                    totalPrice
+                )
+
+                    cmd.ExecuteNonQuery()
+
+                End Using
+
+
+                '=================================================
+                ' 6. UPDATE PRODUCT STOCK
+                '=================================================
+
+                Dim stockQuery As String =
+                "UPDATE Products SET " &
+                "StockQuantity = @NewStock, " &
+                "PurchasePrice = @PurchasePrice " &
+                "WHERE ProductID = @ProductID"
+
+                Using cmd As New MySqlCommand(
+                stockQuery,
+                con,
+                transaction
+            )
+
+                    cmd.Parameters.AddWithValue(
+                    "@NewStock",
+                    newStock
+                )
+
+                    cmd.Parameters.AddWithValue(
+                    "@PurchasePrice",
+                    purchasePrice
+                )
+
+                    cmd.Parameters.AddWithValue(
+                    "@ProductID",
+                    productID
+                )
+
+                    Dim rowsAffected As Integer =
+                    cmd.ExecuteNonQuery()
+
+                    If rowsAffected = 0 Then
+
+                        Throw New Exception(
+                        "Product stock could not be updated."
+                    )
+
+                    End If
+
+                End Using
+
+
+                '=================================================
+                ' 7. INSERT STOCK HISTORY
+                '=================================================
+
+                Dim historyQuery As String =
+                "INSERT INTO StockHistory " &
+                "(ProductID, ChangeType, Quantity, " &
+                "PreviousStock, NewStock, ChangeDate) " &
+                "VALUES " &
+                "(@ProductID, @ChangeType, @Quantity, " &
+                "@PreviousStock, @NewStock, NOW())"
+
+                Using cmd As New MySqlCommand(
+                historyQuery,
+                con,
+                transaction
+            )
+
+                    cmd.Parameters.AddWithValue(
+                    "@ProductID",
+                    productID
+                )
+
+                    cmd.Parameters.AddWithValue(
+                    "@ChangeType",
+                    "PURCHASE"
+                )
+
+                    cmd.Parameters.AddWithValue(
+                    "@Quantity",
+                    quantity
+                )
+
+                    cmd.Parameters.AddWithValue(
+                    "@PreviousStock",
+                    previousStock
+                )
+
+                    cmd.Parameters.AddWithValue(
+                    "@NewStock",
+                    newStock
+                )
+
+                    cmd.ExecuteNonQuery()
+
+                End Using
+
+
+                '=================================================
+                ' 8. COMMIT TRANSACTION
+                '=================================================
+
+                transaction.Commit()
+
+                transaction = Nothing
+
+            End Using
+
+
+            '=================================================
+            ' SUCCESS RESPONSE
+            '=================================================
+
+            SendToWeb(
+            New With {
+                .type = "purchaseAdded",
+                .message =
+                    "Purchase added successfully.",
+                .purchaseID = purchaseID,
+                .totalAmount = totalPrice
+            }
+        )
+
+
+            '=================================================
+            ' REFRESH WEB UI DATA
+            '=================================================
+
+            LoadPurchasesToWeb()
+
+            LoadProductsToWeb()
+
+            LoadSuppliersToWeb()
+
+
+        Catch ex As Exception
+
+            '=================================================
+            ' ROLLBACK TRANSACTION
+            '=================================================
+
+            Try
+
+                If transaction IsNot Nothing Then
+
+                    transaction.Rollback()
+
+                End If
+
+            Catch
+
+                ' Ignore rollback errors
+
+            End Try
+
+
+            '=================================================
+            ' SEND ERROR TO WEB UI
+            '=================================================
+
+            SendToWeb(
+            New With {
+                .type = "purchaseError",
+                .message =
+                    "Unable to add purchase: " &
+                    ex.Message
+            }
         )
 
         End Try
@@ -538,53 +1233,59 @@ Public Class FrmMain
 
         Try
 
+            '-------------------------------------------------
+            ' Make sure WebView2 is ready
+            '-------------------------------------------------
             If WebView21.CoreWebView2 Is Nothing Then
-
                 Return
-
             End If
 
 
+            '-------------------------------------------------
+            ' Convert VB.NET object to JSON
+            '-------------------------------------------------
             Dim json As String =
-                JsonSerializer.Serialize(data)
+            JsonSerializer.Serialize(data)
 
 
             '-------------------------------------------------
-            ' Send message to WebView2
+            ' Send message to top-level WebUI
             '-------------------------------------------------
             WebView21.CoreWebView2.PostWebMessageAsJson(
-                json
-            )
+            json
+        )
 
 
             '-------------------------------------------------
-            ' Send message to iframe
+            ' Send message to current iframe
             '-------------------------------------------------
             Dim script As String =
-                "if (document.getElementById('page-frame')) {" &
-                "document.getElementById('page-frame')" &
-                ".contentWindow.postMessage(" &
-                json &
-                ", '*');" &
-                "}"
+            "(() => {" &
+            "const frame = document.getElementById('page-frame');" &
+            "if (frame && frame.contentWindow) {" &
+            "frame.contentWindow.postMessage(" &
+            json &
+            ", '*');" &
+            "}" &
+            "})();"
 
 
             WebView21.CoreWebView2.ExecuteScriptAsync(
-                script
-            )
+            script
+        )
 
 
         Catch ex As Exception
 
             MessageBox.Show(
-                "Error sending data to WebUI:" &
-                Environment.NewLine &
-                Environment.NewLine &
-                ex.Message,
-                "WebUI Error",
-                MessageBoxButtons.OK,
-                MessageBoxIcon.Error
-            )
+            "Error sending data to WebUI:" &
+            Environment.NewLine &
+            Environment.NewLine &
+            ex.Message,
+            "WebUI Error",
+            MessageBoxButtons.OK,
+            MessageBoxIcon.Error
+        )
 
         End Try
 
@@ -742,6 +1443,20 @@ Public Class FrmMain
                 )
 
 
+            If productID <= 0 Then
+
+                MessageBox.Show(
+                    "Invalid Product ID.",
+                    "Product",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Warning
+                )
+
+                Return
+
+            End If
+
+
             Using con As MySqlConnection =
                 DBConnection.GetConnection()
 
@@ -892,6 +1607,34 @@ Public Class FrmMain
                     root,
                     "ProductID"
                 )
+
+
+            If productID <= 0 Then
+
+                MessageBox.Show(
+                    "Invalid Product ID.",
+                    "Product",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Warning
+                )
+
+                Return
+
+            End If
+
+
+            Dim result As DialogResult =
+                MessageBox.Show(
+                    "Are you sure you want to delete this product?",
+                    "Delete Product",
+                    MessageBoxButtons.YesNo,
+                    MessageBoxIcon.Question
+                )
+
+
+            If result <> DialogResult.Yes Then
+                Return
+            End If
 
 
             Using con As MySqlConnection =
@@ -1165,6 +1908,7 @@ Public Class FrmMain
 
     End Function
 
+
     '=========================================================
     ' GET DATABASE INTEGER
     '=========================================================
@@ -1174,11 +1918,14 @@ Public Class FrmMain
         Optional defaultValue As Integer = 0
     ) As Integer
 
-        If IsDBNull(reader(columnName)) Then
+        If IsDBNull(
+            reader(columnName)
+        ) Then
 
             Return defaultValue
 
         End If
+
 
         Return Convert.ToInt32(
             reader(columnName)
@@ -1195,11 +1942,14 @@ Public Class FrmMain
         columnName As String
     ) As Object
 
-        If IsDBNull(reader(columnName)) Then
+        If IsDBNull(
+            reader(columnName)
+        ) Then
 
             Return Nothing
 
         End If
+
 
         Return Convert.ToInt32(
             reader(columnName)
@@ -1217,11 +1967,14 @@ Public Class FrmMain
         Optional defaultValue As Decimal = 0D
     ) As Decimal
 
-        If IsDBNull(reader(columnName)) Then
+        If IsDBNull(
+            reader(columnName)
+        ) Then
 
             Return defaultValue
 
         End If
+
 
         Return Convert.ToDecimal(
             reader(columnName)
@@ -1238,65 +1991,107 @@ Public Class FrmMain
         columnName As String
     ) As String
 
-        If IsDBNull(reader(columnName)) Then
+        If IsDBNull(
+            reader(columnName)
+        ) Then
 
             Return ""
 
         End If
 
+
         Return reader(columnName).ToString()
 
     End Function
 
-    Private Sub LoadSalesAnalyticsToWeb(root As JsonElement)
+
+    '=========================================================
+    ' SALES ANALYTICS
+    '=========================================================
+    Private Sub LoadSalesAnalyticsToWeb(
+        root As JsonElement
+    )
 
         Try
 
-            '=========================================================
-            ' GET DATE RANGE FROM WEB
-            '=========================================================
+            '-------------------------------------------------
+            ' Default date range
+            '-------------------------------------------------
+            Dim fromDate As Date =
+                Date.Today.AddDays(-30)
 
-            Dim fromDate As Date = Date.Today.AddDays(-30)
-            Dim toDate As Date = Date.Today
+            Dim toDate As Date =
+                Date.Today
+
 
             Dim fromDateElement As JsonElement
             Dim toDateElement As JsonElement
 
-            If root.TryGetProperty("fromDate", fromDateElement) Then
 
-                Dim tempFrom As Date
+            If root.TryGetProperty(
+                "fromDate",
+                fromDateElement
+            ) Then
 
-                If Date.TryParse(
-                    fromDateElement.GetString(),
-                    tempFrom
-                ) Then
+                If fromDateElement.ValueKind =
+                    JsonValueKind.String Then
 
-                    fromDate = tempFrom
+                    Dim tempFrom As Date
 
-                End If
+                    If Date.TryParse(
+                        fromDateElement.GetString(),
+                        tempFrom
+                    ) Then
 
-            End If
+                        fromDate = tempFrom
 
-
-            If root.TryGetProperty("toDate", toDateElement) Then
-
-                Dim tempTo As Date
-
-                If Date.TryParse(
-                    toDateElement.GetString(),
-                    tempTo
-                ) Then
-
-                    toDate = tempTo
+                    End If
 
                 End If
 
             End If
 
 
-            '=========================================================
-            ' DATABASE
-            '=========================================================
+            If root.TryGetProperty(
+                "toDate",
+                toDateElement
+            ) Then
+
+                If toDateElement.ValueKind =
+                    JsonValueKind.String Then
+
+                    Dim tempTo As Date
+
+                    If Date.TryParse(
+                        toDateElement.GetString(),
+                        tempTo
+                    ) Then
+
+                        toDate = tempTo
+
+                    End If
+
+                End If
+
+            End If
+
+
+            '-------------------------------------------------
+            ' Validate date range
+            '-------------------------------------------------
+            If fromDate > toDate Then
+
+                Dim tempDate As Date =
+                    fromDate
+
+                fromDate =
+                    toDate
+
+                toDate =
+                    tempDate
+
+            End If
+
 
             Using conn As MySqlConnection =
                 DBConnection.GetConnection()
@@ -1304,13 +2099,14 @@ Public Class FrmMain
                 conn.Open()
 
 
-                '=====================================================
-                ' TOTAL SALES + ORDERS + AVERAGE
-                '=====================================================
+                '=================================================
+                ' TOTAL SALES / ORDERS / AVERAGE
+                '=================================================
+                Dim totalSales As Decimal = 0D
 
-                Dim totalSales As Decimal = 0
                 Dim totalOrders As Integer = 0
-                Dim averageSale As Decimal = 0
+
+                Dim averageSale As Decimal = 0D
 
 
                 Dim totalQuery As String =
@@ -1333,6 +2129,7 @@ Public Class FrmMain
                         fromDate.Date
                     )
 
+
                     cmd.Parameters.AddWithValue(
                         "@ToDate",
                         toDate.Date.AddDays(1)
@@ -1349,10 +2146,12 @@ Public Class FrmMain
                                     reader("TotalOrders")
                                 )
 
+
                             totalSales =
                                 Convert.ToDecimal(
                                     reader("TotalSales")
                                 )
+
 
                             averageSale =
                                 Convert.ToDecimal(
@@ -1366,10 +2165,9 @@ Public Class FrmMain
                 End Using
 
 
-                '=====================================================
+                '=================================================
                 ' DAILY SALES
-                '=====================================================
-
+                '=================================================
                 Dim dailySales As New List(Of Object)
 
 
@@ -1394,6 +2192,7 @@ Public Class FrmMain
                         fromDate.Date
                     )
 
+
                     cmd.Parameters.AddWithValue(
                         "@ToDate",
                         toDate.Date.AddDays(1)
@@ -1405,7 +2204,10 @@ Public Class FrmMain
 
                         While reader.Read()
 
-                            Dim item As New Dictionary(Of String, Object)
+                            Dim item As New Dictionary(
+                                Of String, Object
+                            )
+
 
                             item.Add(
                                 "date",
@@ -1414,12 +2216,14 @@ Public Class FrmMain
                                 ).ToString("yyyy-MM-dd")
                             )
 
+
                             item.Add(
                                 "amount",
                                 Convert.ToDecimal(
                                     reader("Amount")
                                 )
                             )
+
 
                             dailySales.Add(item)
 
@@ -1430,10 +2234,9 @@ Public Class FrmMain
                 End Using
 
 
-                '=====================================================
+                '=================================================
                 ' MONTHLY SALES
-                '=====================================================
-
+                '=================================================
                 Dim monthlySales As New List(Of Object)
 
 
@@ -1458,6 +2261,7 @@ Public Class FrmMain
                         fromDate.Date
                     )
 
+
                     cmd.Parameters.AddWithValue(
                         "@ToDate",
                         toDate.Date.AddDays(1)
@@ -1469,12 +2273,16 @@ Public Class FrmMain
 
                         While reader.Read()
 
-                            Dim item As New Dictionary(Of String, Object)
+                            Dim item As New Dictionary(
+                                Of String, Object
+                            )
+
 
                             item.Add(
                                 "month",
                                 reader("SaleMonth").ToString()
                             )
+
 
                             item.Add(
                                 "amount",
@@ -1482,6 +2290,7 @@ Public Class FrmMain
                                     reader("Amount")
                                 )
                             )
+
 
                             monthlySales.Add(item)
 
@@ -1492,10 +2301,9 @@ Public Class FrmMain
                 End Using
 
 
-                '=====================================================
-                ' PAYMENT METHOD
-                '=====================================================
-
+                '=================================================
+                ' PAYMENT METHODS
+                '=================================================
                 Dim paymentSales As New List(Of Object)
 
 
@@ -1520,6 +2328,7 @@ Public Class FrmMain
                         fromDate.Date
                     )
 
+
                     cmd.Parameters.AddWithValue(
                         "@ToDate",
                         toDate.Date.AddDays(1)
@@ -1531,12 +2340,16 @@ Public Class FrmMain
 
                         While reader.Read()
 
-                            Dim item As New Dictionary(Of String, Object)
+                            Dim item As New Dictionary(
+                                Of String, Object
+                            )
+
 
                             item.Add(
                                 "method",
                                 reader("PaymentMethod").ToString()
                             )
+
 
                             item.Add(
                                 "amount",
@@ -1544,6 +2357,7 @@ Public Class FrmMain
                                     reader("Amount")
                                 )
                             )
+
 
                             paymentSales.Add(item)
 
@@ -1554,10 +2368,9 @@ Public Class FrmMain
                 End Using
 
 
-                '=====================================================
-                ' STATUS
-                '=====================================================
-
+                '=================================================
+                ' SALES STATUS
+                '=================================================
                 Dim statusSales As New List(Of Object)
 
 
@@ -1583,6 +2396,7 @@ Public Class FrmMain
                         fromDate.Date
                     )
 
+
                     cmd.Parameters.AddWithValue(
                         "@ToDate",
                         toDate.Date.AddDays(1)
@@ -1594,12 +2408,16 @@ Public Class FrmMain
 
                         While reader.Read()
 
-                            Dim item As New Dictionary(Of String, Object)
+                            Dim item As New Dictionary(
+                                Of String, Object
+                            )
+
 
                             item.Add(
                                 "status",
                                 reader("Status").ToString()
                             )
+
 
                             item.Add(
                                 "orders",
@@ -1608,12 +2426,14 @@ Public Class FrmMain
                                 )
                             )
 
+
                             item.Add(
                                 "amount",
                                 Convert.ToDecimal(
                                     reader("Amount")
                                 )
                             )
+
 
                             statusSales.Add(item)
 
@@ -1624,56 +2444,67 @@ Public Class FrmMain
                 End Using
 
 
-                '=====================================================
-                ' SEND DATA TO WEB UI
-                '=====================================================
+                '=================================================
+                ' BUILD RESULT
+                '=================================================
+                Dim result As New Dictionary(
+                    Of String, Object
+                )
 
-                Dim result As New Dictionary(Of String, Object)
 
                 result.Add(
                     "action",
                     "salesAnalyticsData"
                 )
 
+
                 result.Add(
                     "totalSales",
                     totalSales
                 )
+
 
                 result.Add(
                     "totalOrders",
                     totalOrders
                 )
 
+
                 result.Add(
                     "averageSale",
                     averageSale
                 )
+
 
                 result.Add(
                     "dailySales",
                     dailySales
                 )
 
+
                 result.Add(
                     "monthlySales",
                     monthlySales
                 )
+
 
                 result.Add(
                     "paymentSales",
                     paymentSales
                 )
 
+
                 result.Add(
                     "statusSales",
                     statusSales
                 )
 
+
                 result.Add(
                     "fromDate",
                     fromDate.ToString("yyyy-MM-dd")
                 )
+
 
                 result.Add(
                     "toDate",
@@ -1683,7 +2514,6 @@ Public Class FrmMain
 
                 SendToWeb(result)
 
-
             End Using
 
 
@@ -1692,11 +2522,400 @@ Public Class FrmMain
             MessageBox.Show(
                 "Sales Analytics Error:" &
                 Environment.NewLine &
+                Environment.NewLine &
                 ex.Message,
                 "Sales Analytics",
                 MessageBoxButtons.OK,
                 MessageBoxIcon.Error
             )
+
+        End Try
+
+    End Sub
+
+
+    '=========================================================
+    ' LOAD PENDING ADMIN REQUESTS
+    '=========================================================
+    Private Sub LoadPendingAdminsToWeb()
+
+        Try
+
+            '-------------------------------------------------
+            ' Check Admin authorization
+            '-------------------------------------------------
+            If Not Session.IsAdmin Then
+
+                SendToWeb(
+                New With {
+                    .type = "adminApprovalError",
+                    .message = "Admin access required."
+                }
+            )
+
+                Return
+
+            End If
+
+
+            '-------------------------------------------------
+            ' Open database connection
+            '-------------------------------------------------
+            Using con As MySqlConnection =
+            DBConnection.GetConnection()
+
+                con.Open()
+
+
+                '-------------------------------------------------
+                ' Query pending Admin requests
+                '-------------------------------------------------
+                Dim query As String =
+                "SELECT " &
+                "UserID, " &
+                "Username, " &
+                "FullName, " &
+                "Role, " &
+                "AccountStatus " &
+                "FROM Users " &
+                "WHERE Role = 'Admin' " &
+                "AND AccountStatus = 'Pending' " &
+                "ORDER BY UserID DESC"
+
+
+                Using cmd As New MySqlCommand(
+                query,
+                con
+            )
+
+                    Using reader As MySqlDataReader =
+                    cmd.ExecuteReader()
+
+                        Dim pendingAdmins As New List(
+                        Of Dictionary(Of String, Object)
+                    )()
+
+
+                        '-------------------------------------------------
+                        ' Read database records
+                        '-------------------------------------------------
+                        While reader.Read()
+
+                            Dim user As New Dictionary(
+                            Of String, Object
+                        )()
+
+
+                            user("UserID") =
+                            Convert.ToInt32(
+                                reader("UserID")
+                            )
+
+
+                            user("Username") =
+                            reader("Username").ToString()
+
+
+                            user("FullName") =
+                            reader("FullName").ToString()
+
+
+                            user("Role") =
+                            reader("Role").ToString()
+
+
+                            user("AccountStatus") =
+                            reader("AccountStatus").ToString()
+
+
+                            pendingAdmins.Add(user)
+
+                        End While
+
+
+                        '-------------------------------------------------
+                        ' Send result to Admin Approval WebUI
+                        '-------------------------------------------------
+                        SendToWeb(
+                        New With {
+                            .type = "pendingAdmins",
+                            .data = pendingAdmins
+                        }
+                    )
+
+                    End Using
+
+                End Using
+
+            End Using
+
+
+        Catch ex As Exception
+
+            '-------------------------------------------------
+            ' Send error to WebUI
+            '-------------------------------------------------
+            SendToWeb(
+            New With {
+                .type = "adminApprovalError",
+                .message =
+                    "Unable to load pending Admin requests: " &
+                    ex.Message
+            }
+        )
+
+        End Try
+
+    End Sub
+    '=========================================================
+    ' APPROVE ADMIN REQUEST
+    '=========================================================
+    Private Sub ApproveAdmin(root As JsonElement)
+
+        Try
+
+            '-------------------------------------------------
+            ' ADMIN AUTHORIZATION
+            '-------------------------------------------------
+            If Not Session.IsAdmin Then
+
+                SendToWeb(
+                New With {
+                    .type = "adminApprovalError",
+                    .message = "Admin access required."
+                }
+            )
+
+                Return
+
+            End If
+
+
+            '-------------------------------------------------
+            ' GET USER ID
+            '-------------------------------------------------
+            Dim userID As Integer =
+            GetIntegerValue(
+                root,
+                "userID"
+            )
+
+
+            If userID <= 0 Then
+
+                SendToWeb(
+                New With {
+                    .type = "adminApprovalError",
+                    .message = "Invalid user ID."
+                }
+            )
+
+                Return
+
+            End If
+
+
+            '-------------------------------------------------
+            ' DATABASE
+            '-------------------------------------------------
+            Using con As MySqlConnection =
+            DBConnection.GetConnection()
+
+                con.Open()
+
+
+                Dim query As String =
+                "UPDATE Users SET " &
+                "AccountStatus = 'Approved', " &
+                "ApprovedBy = @ApprovedBy, " &
+                "ApprovedAt = NOW() " &
+                "WHERE UserID = @UserID " &
+                "AND Role = 'Admin' " &
+                "AND AccountStatus = 'Pending'"
+
+
+                Using cmd As New MySqlCommand(
+                query,
+                con
+            )
+
+                    cmd.Parameters.AddWithValue(
+                    "@ApprovedBy",
+                    Session.CurrentUserID
+                )
+
+
+                    cmd.Parameters.AddWithValue(
+                    "@UserID",
+                    userID
+                )
+
+
+                    Dim rowsAffected As Integer =
+                    cmd.ExecuteNonQuery()
+
+
+                    If rowsAffected = 0 Then
+
+                        SendToWeb(
+                        New With {
+                            .type = "adminApprovalError",
+                            .message =
+                                "Request was not found or has already been processed."
+                        }
+                    )
+
+                        Return
+
+                    End If
+
+                End Using
+
+            End Using
+
+
+            SendToWeb(
+            New With {
+                .type = "adminApprovalMessage",
+                .message =
+                    "Admin request approved successfully."
+            }
+        )
+
+
+        Catch ex As Exception
+
+            SendToWeb(
+            New With {
+                .type = "adminApprovalError",
+                .message =
+                    "Unable to approve request: " &
+                    ex.Message
+            }
+        )
+
+        End Try
+
+    End Sub
+
+    '=========================================================
+    ' REJECT ADMIN REQUEST
+    '=========================================================
+    Private Sub RejectAdmin(root As JsonElement)
+
+        Try
+
+            '-------------------------------------------------
+            ' ADMIN AUTHORIZATION
+            '-------------------------------------------------
+            If Not Session.IsAdmin Then
+
+                SendToWeb(
+                New With {
+                    .type = "adminApprovalError",
+                    .message = "Admin access required."
+                }
+            )
+
+                Return
+
+            End If
+
+
+            '-------------------------------------------------
+            ' GET USER ID
+            '-------------------------------------------------
+            Dim userID As Integer =
+            GetIntegerValue(
+                root,
+                "userID"
+            )
+
+
+            If userID <= 0 Then
+
+                SendToWeb(
+                New With {
+                    .type = "adminApprovalError",
+                    .message = "Invalid user ID."
+                }
+            )
+
+                Return
+
+            End If
+
+
+            '-------------------------------------------------
+            ' DATABASE
+            '-------------------------------------------------
+            Using con As MySqlConnection =
+            DBConnection.GetConnection()
+
+                con.Open()
+
+
+                Dim query As String =
+                "UPDATE Users SET " &
+                "AccountStatus = 'Rejected' " &
+                "WHERE UserID = @UserID " &
+                "AND Role = 'Admin' " &
+                "AND AccountStatus = 'Pending'"
+
+
+                Using cmd As New MySqlCommand(
+                query,
+                con
+            )
+
+                    cmd.Parameters.AddWithValue(
+                    "@UserID",
+                    userID
+                )
+
+
+                    Dim rowsAffected As Integer =
+                    cmd.ExecuteNonQuery()
+
+
+                    If rowsAffected = 0 Then
+
+                        SendToWeb(
+                        New With {
+                            .type = "adminApprovalError",
+                            .message =
+                                "Request was not found or has already been processed."
+                        }
+                    )
+
+                        Return
+
+                    End If
+
+                End Using
+
+            End Using
+
+
+            SendToWeb(
+            New With {
+                .type = "adminApprovalMessage",
+                .message =
+                    "Admin request rejected."
+            }
+        )
+
+
+        Catch ex As Exception
+
+            SendToWeb(
+            New With {
+                .type = "adminApprovalError",
+                .message =
+                    "Unable to reject request: " &
+                    ex.Message
+            }
+        )
 
         End Try
 
@@ -1710,16 +2929,23 @@ Public Class FrmMain
         Try
 
             Dim result As DialogResult =
-            MessageBox.Show(
-                "Are you sure you want to logout?",
-                "Logout",
-                MessageBoxButtons.YesNo,
-                MessageBoxIcon.Question
-            )
+                MessageBox.Show(
+                    "Are you sure you want to logout?",
+                    "Logout",
+                    MessageBoxButtons.YesNo,
+                    MessageBoxIcon.Question
+                )
+
 
             If result <> DialogResult.Yes Then
                 Return
             End If
+
+
+            '-------------------------------------------------
+            ' Clear current user session
+            '-------------------------------------------------
+            Session.ClearSession()
 
 
             '-------------------------------------------------
@@ -1729,13 +2955,17 @@ Public Class FrmMain
 
 
             '-------------------------------------------------
-            ' Show existing Login Form
+            ' Show Login Form
             '-------------------------------------------------
             If FrmLogin IsNot Nothing Then
 
                 FrmLogin.Show()
-                FrmLogin.WindowState = FormWindowState.Normal
+
+                FrmLogin.WindowState =
+                    FormWindowState.Normal
+
                 FrmLogin.BringToFront()
+
                 FrmLogin.Activate()
 
             End If
@@ -1744,14 +2974,14 @@ Public Class FrmMain
         Catch ex As Exception
 
             MessageBox.Show(
-            "Logout error:" &
-            Environment.NewLine &
-            Environment.NewLine &
-            ex.Message,
-            "Logout Error",
-            MessageBoxButtons.OK,
-            MessageBoxIcon.Error
-        )
+                "Logout error:" &
+                Environment.NewLine &
+                Environment.NewLine &
+                ex.Message,
+                "Logout Error",
+                MessageBoxButtons.OK,
+                MessageBoxIcon.Error
+            )
 
         End Try
 

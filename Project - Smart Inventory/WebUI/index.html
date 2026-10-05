@@ -1,253 +1,342 @@
 ﻿<!DOCTYPE html>
 <html lang="en">
 
-<head>
+	<head>
 
-    <meta charset="UTF-8">
+		<meta charset="UTF-8">
 
-    <meta name="viewport"
-          content="width=device-width, initial-scale=1.0">
+			<meta name="viewport"
+				  content="width=device-width, initial-scale=1.0">
 
-    <title>Smart Inventory</title>
+				<title>Smart Inventory</title>
 
-    <link rel="stylesheet"
-          href="main.css">
+				<link rel="stylesheet"
+					  href="main.css">
 
-</head>
+				</head>
 
-<body>
+	<body>
 
-    <div class="app">
+		<div class="app">
 
-        <!-- ================= SIDEBAR ================= -->
+			<!-- ================= SIDEBAR ================= -->
 
-        <aside class="sidebar">
+			<aside class="sidebar">
 
-            <div class="brand">
+				<!-- BRAND -->
 
-                <div class="brand-logo">
-                    📦
-                </div>
+				<div class="brand">
 
-                <div>
-                    <div class="brand-name">
-                        Smart
-                    </div>
+					<div class="brand-logo">
+						📦
+					</div>
 
-                    <div class="brand-subtitle">
-                        INVENTORY
-                    </div>
-                </div>
+					<div>
 
-            </div>
+						<div class="brand-name">
+							Smart
+						</div>
 
+						<div class="brand-subtitle">
+							INVENTORY
+						</div>
 
-            <!-- Navigation -->
+					</div>
 
-            <nav class="navigation">
+				</div>
 
-                <div class="section-title">
-                    MAIN
-                </div>
 
-                <button class="nav-item active"
-                        onclick="navigate('dashboard')">
+				<!-- ================= NAVIGATION ================= -->
 
-                    <span>⌂</span>
-                    <label>Dashboard</label>
+				<nav class="navigation">
 
-                </button>
+					<!-- MAIN -->
 
+					<div class="section-title">
+						MAIN
+					</div>
 
-                <div class="section-title">
-                    INVENTORY
-                </div>
 
-                <button class="nav-item"
-                        onclick="navigate('products')">
+					<button class="nav-item active"
+							onclick="navigate('dashboard')">
 
-                    <span>▣</span>
-                    <label>Products</label>
+						<span>⌂</span>
 
-                </button>
+						<label>
+							Dashboard
+						</label>
 
-                <button class="nav-item"
-                        onclick="navigate('categories')">
+					</button>
 
-                    <span>▦</span>
-                    <label>Categories</label>
 
-                </button>
+					<!-- INVENTORY -->
 
-                <button class="nav-item"
-                        onclick="navigate('suppliers')">
+					<div class="section-title">
+						INVENTORY
+					</div>
 
-                    <span>♙</span>
-                    <label>Suppliers</label>
 
-                </button>
+					<button class="nav-item"
+							onclick="navigate('products')">
 
+						<span>▣</span>
 
-                <div class="section-title">
-                    TRANSACTIONS
-                </div>
+						<label>
+							Products
+						</label>
 
-                <button class="nav-item"
-                        onclick="navigate('purchases')">
+					</button>
 
-                    <span>🛒</span>
-                    <label>Purchases</label>
 
-                </button>
+					<button class="nav-item"
+							onclick="navigate('categories')">
 
-                <button class="nav-item"
-                        onclick="navigate('sales')">
+						<span>▦</span>
 
-                    <span>₹</span>
-                    <label>Sales</label>
+						<label>
+							Categories
+						</label>
 
-                </button>
+					</button>
 
-                <button class="nav-item"
-                        onclick="navigate('sales-history')">
 
-                    <span>☷</span>
-                    <label>Sales History</label>
+					<button class="nav-item"
+							onclick="navigate('suppliers')">
 
-                </button>
+						<span>♙</span>
 
+						<label>
+							Suppliers
+						</label>
 
-                <div class="section-title">
-                    ANALYTICS
-                </div>
+					</button>
 
-                <button class="nav-item"
-                        onclick="navigate('inventory')">
 
-                    <span>▤</span>
-                    <label>Inventory</label>
+					<!-- TRANSACTIONS -->
 
-                </button>
+					<div class="section-title">
+						TRANSACTIONS
+					</div>
 
-                <button class="nav-item"
-                        onclick="navigate('product-analysis')">
 
-                    <span>◈</span>
-                    <label>Product Analysis</label>
+					<button class="nav-item"
+							onclick="navigate('purchases')">
 
-                </button>
+						<span>🛒</span>
 
-                <button class="nav-item"
-                        onclick="navigate('sales-analytics')">
+						<label>
+							Purchases
+						</label>
 
-                    <span>◉</span>
-                    <label>Sales Analytics</label>
+					</button>
 
-                </button>
 
+					<button class="nav-item"
+							onclick="navigate('sales')">
 
-                <div class="section-title">
-                    REPORTING
-                </div>
+						<span>₹</span>
 
-                <button class="nav-item"
-                        onclick="navigate('reports')">
+						<label>
+							Sales
+						</label>
 
-                    <span>▤</span>
-                    <label>Reports</label>
+					</button>
 
-                </button>
 
-            </nav>
+					<button class="nav-item"
+							onclick="navigate('sales-history')">
 
+						<span>☷</span>
 
-            <!-- Bottom -->
+						<label>
+							Sales History
+						</label>
 
-            <div class="sidebar-bottom">
+					</button>
 
-                <button class="nav-item"
-                        onclick="logout()">
 
-                    <span>↪</span>
-                    <label>Logout</label>
+					<!-- ANALYTICS -->
 
-                </button>
+					<div class="section-title">
+						ANALYTICS
+					</div>
 
-            </div>
 
-        </aside>
+					<button class="nav-item"
+							onclick="navigate('inventory')">
 
+						<span>▤</span>
 
-        <!-- ================= MAIN ================= -->
+						<label>
+							Inventory
+						</label>
 
-        <main class="main">
+					</button>
 
-            <!-- Topbar -->
 
-            <header class="topbar">
+					<button class="nav-item"
+							onclick="navigate('product-analysis')">
 
-                <div class="page-heading">
+						<span>◈</span>
 
-                    <h1 id="page-title">
-                        Dashboard
-                    </h1>
+						<label>
+							Product Analysis
+						</label>
 
-                    <p id="page-subtitle">
-                        Overview of your inventory and sales
-                    </p>
+					</button>
 
-                </div>
 
+					<button class="nav-item"
+							onclick="navigate('sales-analytics')">
 
-                <div class="topbar-right">
+						<span>◉</span>
 
-                    <button class="notification">
-                        🔔
-                    </button>
+						<label>
+							Sales Analytics
+						</label>
 
+					</button>
 
-                    <div class="user">
 
-                        <div class="avatar">
-                            A
-                        </div>
+					<!-- REPORTING -->
 
-                        <div class="user-details">
+					<div class="section-title">
+						REPORTING
+					</div>
 
-                            <strong id="username">
-                                Admin
-                            </strong>
 
-                            <small>
-                                Administrator
-                            </small>
+					<button class="nav-item"
+							onclick="navigate('reports')">
 
-                        </div>
+						<span>▤</span>
 
-                    </div>
+						<label>
+							Reports
+						</label>
 
-                </div>
+					</button>
 
-            </header>
 
+					<!-- ADMINISTRATION -->
 
-            <!-- Content -->
+					<div class="section-title">
+						ADMINISTRATION
+					</div>
 
-            <section class="content">
 
-                <iframe id="page-frame"
-                        src="dashboard.html">
-                </iframe>
+					<button class="nav-item"
+							id="btnAdminApproval"
+							onclick="navigate('admin-approval')">
 
-            </section>
+						<span>♟</span>
 
-        </main>
+						<label>
+							Admin Approval
+						</label>
 
-    </div>
+					</button>
 
+				</nav>
 
-    <script src="main.js"></script>
 
-</body>
+				<!-- ================= SIDEBAR BOTTOM ================= -->
+
+				<div class="sidebar-bottom">
+
+					<button class="nav-item"
+							onclick="logout()">
+
+						<span>↪</span>
+
+						<label>
+							Logout
+						</label>
+
+					</button>
+
+				</div>
+
+			</aside>
+
+
+			<!-- ================= MAIN CONTENT ================= -->
+
+			<main class="main">
+
+				<!-- TOPBAR -->
+
+				<header class="topbar">
+
+					<div class="page-heading">
+
+						<h1 id="page-title">
+							Dashboard
+						</h1>
+
+						<p id="page-subtitle">
+							Overview of your inventory and sales
+						</p>
+
+					</div>
+
+
+					<div class="topbar-right">
+
+						<!-- NOTIFICATION -->
+
+						<button class="notification">
+							🔔
+						</button>
+
+
+						<!-- USER -->
+
+						<div class="user">
+
+							<div class="avatar">
+								A
+							</div>
+
+
+							<div class="user-details">
+
+								<strong id="username">
+									Admin
+								</strong>
+
+								<small>
+									Administrator
+								</small>
+
+							</div>
+
+						</div>
+
+					</div>
+
+				</header>
+
+
+				<!-- CONTENT -->
+
+				<section class="content">
+
+					<iframe
+						id="page-frame"
+						src="dashboard.html">
+					</iframe>
+
+				</section>
+
+			</main>
+
+		</div>
+
+
+		<!-- MAIN JAVASCRIPT -->
+
+		<script src="main.js"></script>
+
+	</body>
 
 </html>

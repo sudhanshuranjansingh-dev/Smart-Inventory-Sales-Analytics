@@ -1,0 +1,125 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <title>Admin Approval</title>
+
+    <link rel="stylesheet"
+          href="admin-approval.css">
+
+</head>
+
+<body>
+
+    <div class="page-container">
+
+        <!-- HEADER -->
+
+        <div class="page-header">
+
+            <div>
+
+                <h1>Admin Approval</h1>
+
+                <p>
+                    Review and manage Admin access requests.
+                </p>
+
+            </div>
+
+            <button
+                id="btnRefresh"
+                class="btn-refresh">
+
+                Refresh
+
+            </button>
+
+        </div>
+
+
+        <!-- INFORMATION -->
+
+        <div class="info-card">
+
+            <h3>Pending Admin Requests</h3>
+
+            <p>
+                New users requesting Admin access must be
+                approved by an existing Admin.
+            </p>
+
+        </div>
+
+
+        <!-- TABLE -->
+
+        <div class="table-card">
+
+            <div class="table-wrapper">
+
+                <table>
+
+                    <thead>
+
+                        <tr>
+
+                            <th>User ID</th>
+
+                            <th>Username</th>
+
+                            <th>Full Name</th>
+
+                            <th>Role</th>
+
+                            <th>Status</th>
+
+                            <th>Requested</th>
+
+                            <th>Action</th>
+
+                        </tr>
+
+                    </thead>
+
+                    <tbody id="approvalTableBody">
+
+                        <tr>
+
+                            <td
+                                colspan="7"
+                                class="empty-message">
+
+                                Loading requests...
+
+                            </td>
+
+                        </tr>
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        </div>
+
+
+        <!-- MESSAGE -->
+
+        <p id="message"></p>
+
+    </div>
+
+
+    <script src="admin-approval.js"></script>
+
+</body>
+
+</html>

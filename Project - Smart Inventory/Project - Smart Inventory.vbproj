@@ -11,6 +11,9 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="WebUI\admin-approval.css" />
+    <None Remove="WebUI\admin-approval.html" />
+    <None Remove="WebUI\admin-approval.js" />
     <None Remove="WebUI\dashboard.css" />
     <None Remove="WebUI\dashboard.html" />
     <None Remove="WebUI\dashboard.js" />
@@ -23,6 +26,9 @@
     <None Remove="WebUI\products.css" />
     <None Remove="WebUI\products.html" />
     <None Remove="WebUI\products.js" />
+    <None Remove="WebUI\purchases.css" />
+    <None Remove="WebUI\purchases.html" />
+    <None Remove="WebUI\purchases.js" />
     <None Remove="WebUI\register.css" />
     <None Remove="WebUI\register.html" />
     <None Remove="WebUI\register.js" />
@@ -32,6 +38,15 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Content Include="WebUI\admin-approval.css">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="WebUI\admin-approval.html">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="WebUI\admin-approval.js">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
     <Content Include="WebUI\dashboard.css">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
@@ -66,6 +81,15 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="WebUI\products.js">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="WebUI\purchases.css">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="WebUI\purchases.html">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="WebUI\purchases.js">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="WebUI\register.css">

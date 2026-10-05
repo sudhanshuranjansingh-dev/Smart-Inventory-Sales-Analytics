@@ -275,10 +275,6 @@ Public Class FrmLogin
 
                         ExitApplication()
 
-                    Case "exit"
-
-                        ExitApplication()
-
 
                     Case Else
 
@@ -312,116 +308,196 @@ Public Class FrmLogin
     ' LOGIN FROM WEB
     '=========================================================
     Private Sub LoginFromWeb(
-        username As String,
-        password As String
-    )
+    username As String,
+    password As String
+)
 
         Try
 
-            ' Validate input
+            '=========================================================
+            ' VALIDATE INPUT
+            '=========================================================
+
             If String.IsNullOrWhiteSpace(username) Then
 
                 SendMessageToWeb(
-                    "Please enter your username."
-                )
+                "Please enter your username."
+            )
 
                 Return
 
             End If
+
 
             If String.IsNullOrWhiteSpace(password) Then
 
                 SendMessageToWeb(
-                    "Please enter your password."
-                )
+                "Please enter your password."
+            )
 
                 Return
 
             End If
 
 
-            ' Open database connection
+            '=========================================================
+            ' DATABASE CONNECTION
+            '=========================================================
+
             Using con As MySqlConnection =
-                DBConnection.GetConnection()
+            DBConnection.GetConnection()
 
                 con.Open()
 
 
-                ' Login query
+                '=========================================================
+                ' LOGIN QUERY
+                '=========================================================
+
                 Dim query As String =
-                    "SELECT UserID, Username, FullName, Role " &
-                    "FROM Users " &
-                    "WHERE Username = @username " &
-                    "AND Password = @password"
+                "SELECT " &
+                "UserID, " &
+                "Username, " &
+                "FullName, " &
+                "Role, " &
+                "AccountStatus " &
+                "FROM Users " &
+                "WHERE Username = @username " &
+                "AND Password = @password"
 
 
                 Using cmd As New MySqlCommand(
-                    query,
-                    con
+                query,
+                con
+            )
+
+                    cmd.Parameters.AddWithValue(
+                    "@username",
+                    username
                 )
 
-                    ' Parameters
                     cmd.Parameters.AddWithValue(
-                        "@username",
-                        username
-                    )
-
-                    cmd.Parameters.AddWithValue(
-                        "@password",
-                        password
-                    )
+                    "@password",
+                    password
+                )
 
 
                     Using reader As MySqlDataReader =
-                        cmd.ExecuteReader()
-
-                        '-------------------------------------------------
-                        ' LOGIN SUCCESS
-                        '-------------------------------------------------
-                        If reader.Read() Then
-
-                            Dim fullName As String =
-                                reader("FullName").ToString()
-
-                            Dim role As String =
-                                reader("Role").ToString()
+                    cmd.ExecuteReader()
 
 
-                            MessageBox.Show(
-                                "Welcome, " & fullName & "!" &
-                                Environment.NewLine &
-                                "Role: " & role,
-                                "Login Successful",
-                                MessageBoxButtons.OK,
-                                MessageBoxIcon.Information
-                            )
+                        '=================================================
+                        ' USER NOT FOUND
+                        '=================================================
 
+                        If Not reader.Read() Then
 
-                            ' Open Main Form
-                            FrmMain.Show()
-
-                            ' Make Main Form active
-                            FrmMain.WindowState =
-                                FormWindowState.Normal
-
-                            FrmMain.BringToFront()
-
-                            FrmMain.Activate()
-
-
-                            ' Hide Login Form
-                            Me.Hide()
-
-                        Else
-
-                            '-------------------------------------------------
-                            ' LOGIN FAILED
-                            '-------------------------------------------------
                             SendMessageToWeb(
-                                "Invalid username or password."
-                            )
+                            "Invalid username or password."
+                        )
+
+                            Return
 
                         End If
+
+
+                        '=================================================
+                        ' READ USER INFORMATION
+                        '=================================================
+
+                        Dim userID As Integer =
+                        Convert.ToInt32(
+                            reader("UserID")
+                        )
+
+
+                        Dim loggedUsername As String =
+                        reader("Username").ToString()
+
+
+                        Dim fullName As String =
+                        reader("FullName").ToString()
+
+
+                        Dim role As String =
+                        reader("Role").ToString()
+
+
+                        Dim accountStatus As String =
+                        reader("AccountStatus").ToString()
+
+
+                        '=================================================
+                        ' CHECK ACCOUNT STATUS
+                        '=================================================
+
+                        If accountStatus = "Pending" Then
+
+                            SendMessageToWeb(
+                        "Your account is pending Admin approval."
+                        )
+
+                            Return
+
+                        End If
+
+
+                        If accountStatus = "Rejected" Then
+
+                            SendMessageToWeb(
+                            "Your account request was rejected."
+                        )
+
+                            Return
+
+                        End If
+
+
+                        If accountStatus <> "Approved" Then
+
+                            SendMessageToWeb(
+                            "Your account is not approved."
+                        )
+
+                            Return
+
+                        End If
+
+                        '=========================================================
+                        ' CREATE USER SESSION
+                        '=========================================================
+                        Session.CurrentUserID = userID
+                        Session.CurrentUsername = loggedUsername
+                        Session.CurrentFullName = fullName
+                        Session.CurrentRole = role
+                        Session.CurrentAccountStatus = accountStatus
+
+
+                        '=========================================================
+                        ' LOGIN SUCCESSFUL
+                        '=========================================================
+                        MessageBox.Show(
+                        "Welcome, " & fullName & "!" &
+                        Environment.NewLine &
+                        "Role: " & role,
+                        "Login Successful",
+                         MessageBoxButtons.OK,
+                         MessageBoxIcon.Information
+                        )
+
+
+                        '=========================================================
+                        ' OPEN MAIN FORM
+                        '=========================================================
+                        FrmMain.Show()
+
+                        FrmMain.WindowState =
+                        FormWindowState.Normal
+
+                        FrmMain.BringToFront()
+                        FrmMain.Activate()
+
+                        Me.Hide()
 
                     End Using
 
@@ -429,17 +505,31 @@ Public Class FrmLogin
 
             End Using
 
+
+        Catch ex As MySqlException
+
+            MessageBox.Show(
+            "Database connection error." &
+            Environment.NewLine &
+            Environment.NewLine &
+            ex.Message,
+            "Login Error",
+            MessageBoxButtons.OK,
+            MessageBoxIcon.Error
+        )
+
+
         Catch ex As Exception
 
             MessageBox.Show(
-                "Database connection error." &
-                Environment.NewLine &
-                Environment.NewLine &
-                ex.Message,
-                "Login Error",
-                MessageBoxButtons.OK,
-                MessageBoxIcon.Error
-            )
+            "Unable to login." &
+            Environment.NewLine &
+            Environment.NewLine &
+            ex.Message,
+            "Login Error",
+            MessageBoxButtons.OK,
+            MessageBoxIcon.Error
+        )
 
         End Try
 
@@ -457,70 +547,82 @@ Public Class FrmLogin
 
         Try
 
-            '-------------------------------------------------
+            '=========================================================
             ' VALIDATION
-            '-------------------------------------------------
+            '=========================================================
+
             If String.IsNullOrWhiteSpace(fullName) Then
-
-                SendMessageToWeb(
-                "Please enter your full name."
-            )
-
+                SendMessageToWeb("Please enter your full name.")
                 Return
-
             End If
-
 
             If String.IsNullOrWhiteSpace(username) Then
-
-                SendMessageToWeb(
-                "Please enter a username."
-            )
-
+                SendMessageToWeb("Please enter a username.")
                 Return
-
             End If
-
 
             If String.IsNullOrWhiteSpace(password) Then
-
-                SendMessageToWeb(
-                "Please enter a password."
-            )
-
+                SendMessageToWeb("Please enter a password.")
                 Return
-
             End If
-
 
             If String.IsNullOrWhiteSpace(role) Then
+                SendMessageToWeb("Please select a role.")
+                Return
+            End If
 
-                SendMessageToWeb(
-                "Please select a role."
-            )
 
+            '=========================================================
+            ' ALLOWED ROLES
+            '=========================================================
+
+            If role <> "Staff" AndAlso
+           role <> "Manager" AndAlso
+           role <> "Admin" Then
+
+                SendMessageToWeb("Invalid role selected.")
                 Return
 
             End If
 
 
-            '-------------------------------------------------
-            ' DATABASE CONNECTION
-            '-------------------------------------------------
+            '=========================================================
+            ' DETERMINE ACCOUNT STATUS
+            '=========================================================
+
+            Dim accountStatus As String
+
+            If role = "Admin" Then
+
+                'Admin registration requires approval
+                accountStatus = "Pending"
+
+            Else
+
+                'Staff and Manager can register directly
+                accountStatus = "Approved"
+
+            End If
+
+
+            '=========================================================
+            ' DATABASE
+            '=========================================================
+
             Using con As MySqlConnection =
             DBConnection.GetConnection()
 
                 con.Open()
 
 
-                '-------------------------------------------------
+                '=====================================================
                 ' CHECK USERNAME
-                '-------------------------------------------------
+                '=====================================================
+
                 Dim checkQuery As String =
                 "SELECT COUNT(*) " &
                 "FROM Users " &
                 "WHERE Username = @username"
-
 
                 Using checkCmd As New MySqlCommand(
                 checkQuery,
@@ -532,12 +634,10 @@ Public Class FrmLogin
                     username
                 )
 
-
                     Dim userCount As Integer =
                     Convert.ToInt32(
                         checkCmd.ExecuteScalar()
                     )
-
 
                     If userCount > 0 Then
 
@@ -552,15 +652,15 @@ Public Class FrmLogin
                 End Using
 
 
-                '-------------------------------------------------
+                '=====================================================
                 ' INSERT USER
-                '-------------------------------------------------
+                '=====================================================
+
                 Dim insertQuery As String =
                 "INSERT INTO Users " &
-                "(Username, Password, FullName, Role) " &
+                "(Username, Password, FullName, Role, AccountStatus) " &
                 "VALUES " &
-                "(@username, @password, @fullName, @role)"
-
+                "(@username, @password, @fullName, @role, @accountStatus)"
 
                 Using cmd As New MySqlCommand(
                 insertQuery,
@@ -587,6 +687,11 @@ Public Class FrmLogin
                     role
                 )
 
+                    cmd.Parameters.AddWithValue(
+                    "@accountStatus",
+                    accountStatus
+                )
+
 
                     Dim rowsAffected As Integer =
                     cmd.ExecuteNonQuery()
@@ -594,18 +699,46 @@ Public Class FrmLogin
 
                     If rowsAffected > 0 Then
 
-                        MessageBox.Show(
-                        "Account created successfully!" &
-                        Environment.NewLine &
-                        Environment.NewLine &
-                        "You can now login.",
-                        "Registration Successful",
-                        MessageBoxButtons.OK,
-                        MessageBoxIcon.Information
-                    )
+                        '=================================================
+                        ' ADMIN REQUEST
+                        '=================================================
+
+                        If role = "Admin" Then
+
+                            MessageBox.Show(
+                            "Admin access request submitted!" &
+                            Environment.NewLine &
+                            Environment.NewLine &
+                            "Your account is waiting for approval " &
+                            "from an existing Admin." &
+                            Environment.NewLine &
+                            Environment.NewLine &
+                            "You cannot login until your request " &
+                            "is approved.",
+                            "Admin Approval Required",
+                            MessageBoxButtons.OK,
+                            MessageBoxIcon.Information
+                        )
+
+                        Else
+
+                            '=================================================
+                            ' NORMAL ACCOUNT
+                            '=================================================
+
+                            MessageBox.Show(
+                            "Account created successfully!" &
+                            Environment.NewLine &
+                            Environment.NewLine &
+                            "You can now login.",
+                            "Registration Successful",
+                            MessageBoxButtons.OK,
+                            MessageBoxIcon.Information
+                        )
+
+                        End If
 
 
-                        ' Return to login page
                         LoadLoginPage()
 
                     Else
@@ -623,9 +756,6 @@ Public Class FrmLogin
 
         Catch ex As MySqlException
 
-            '-------------------------------------------------
-            ' DUPLICATE USERNAME
-            '-------------------------------------------------
             If ex.Number = 1062 Then
 
                 SendMessageToWeb(
@@ -635,7 +765,7 @@ Public Class FrmLogin
             Else
 
                 MessageBox.Show(
-                "Database error:" &
+                "Database error during registration." &
                 Environment.NewLine &
                 Environment.NewLine &
                 ex.Message,
@@ -650,7 +780,7 @@ Public Class FrmLogin
         Catch ex As Exception
 
             MessageBox.Show(
-            "Registration error:" &
+            "Unable to create account." &
             Environment.NewLine &
             Environment.NewLine &
             ex.Message,
