@@ -1,0 +1,168 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <title>Categories</title>
+
+    <link rel="stylesheet"
+          href="categories.css">
+
+</head>
+
+<body>
+
+    <div class="categories-page">
+
+
+        <!-- =================================================
+             PAGE HEADER
+             ================================================= -->
+
+        <div class="page-header">
+
+            <div>
+
+                <h1>Categories</h1>
+
+                <p>
+                    Manage your product categories
+                </p>
+
+            </div>
+
+        </div>
+
+
+        <!-- =================================================
+             ADD CATEGORY CARD
+             ================================================= -->
+
+        <div class="category-form-card">
+
+            <h2>Add Category</h2>
+
+            <form id="categoryForm">
+
+                <div class="form-group">
+
+                    <label for="categoryName">
+                        Category Name
+                    </label>
+
+                    <input type="text"
+                           id="categoryName"
+                           placeholder="Enter category name"
+                           autocomplete="off"
+                           required>
+
+                </div>
+
+
+                <div class="form-actions">
+
+                    <button type="submit"
+                            id="btnAddCategory"
+                            class="primary-button">
+                        Add Category
+                    </button>
+
+                    <button type="button"
+                            id="btnClear"
+                            class="secondary-button">
+                        Clear
+                    </button>
+
+                </div>
+
+            </form>
+
+            <div id="categoryMessage"
+                 class="message"></div>
+
+        </div>
+
+
+        <!-- =================================================
+             CATEGORY LIST
+             ================================================= -->
+
+        <div class="category-list-card">
+
+            <div class="list-header">
+
+                <div>
+
+                    <h2>Category List</h2>
+
+                    <p>
+                        Existing product categories
+                    </p>
+
+                </div>
+
+                <span id="categoryCount"
+                      class="category-count">
+                    0
+                </span>
+
+            </div>
+
+
+            <div class="table-container">
+
+                <table>
+
+                    <thead>
+
+                        <tr>
+
+                            <th>
+                                ID
+                            </th>
+
+                            <th>
+                                Category Name
+                            </th>
+
+                            <th>
+                                Actions
+                            </th>
+
+                        </tr>
+
+                    </thead>
+
+                    <tbody id="categoriesTableBody">
+
+                        <tr>
+
+                            <td colspan="3"
+                                class="empty-row">
+                                Loading categories...
+                            </td>
+
+                        </tr>
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        </div>
+
+
+    </div>
+
+
+    <script src="categories.js"></script>
+
+</body>
+
+</html>

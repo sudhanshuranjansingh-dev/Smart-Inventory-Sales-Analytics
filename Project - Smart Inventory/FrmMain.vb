@@ -193,12 +193,22 @@ Public Class FrmMain
 
                         LoadCategoriesToWeb()
 
+                    Case "addCategory"
+
+                        AddCategory(root)
+
+
+                    Case "deleteCategory"
+
+                        DeleteCategory(root)
+
 
                     Case "loadSuppliers"
 
                         LoadSuppliersToWeb()
 
-
+                    Case "addSupplier"
+                        AddSupplier(root)
 
 
                     Case "loadPurchases"
@@ -209,6 +219,12 @@ Public Class FrmMain
                     Case "addPurchase"
 
                         AddPurchase(root)
+
+                    Case "loadSales"
+                        LoadSalesToWeb()
+
+                    Case "addSale"
+                        AddSale(root)
 
 
                     Case "addProduct"
@@ -281,6 +297,499 @@ Public Class FrmMain
 
     End Sub
 
+
+    Private Sub LoadSalesToWeb()
+
+        Try
+
+            Using conn As MySqlConnection = DBConnection.GetConnection()
+
+                conn.Open()
+
+                Dim sales As New List(Of Object)
+
+                Dim query As String =
+                "SELECT " &
+                "sd.SaleID, " &
+                "p.ProductName, " &
+                "sd.Quantity, " &
+                "sd.SellingPrice, " &
+                "sd.TotalPrice, " &
+                "s.SaleDate " &
+                "FROM saledetails sd " &
+                "INNER JOIN sales s ON sd.SaleID = s.SaleID " &
+                "INNER JOIN products p ON sd.ProductID = p.ProductID " &
+                "ORDER BY s.SaleDate DESC"
+
+                Using cmd As New MySqlCommand(query, conn)
+
+                    Using reader As MySqlDataReader = cmd.ExecuteReader()
+
+                        While reader.Read()
+
+                            sales.Add(New With {
+                            .SaleID = Convert.ToInt32(reader("SaleID")),
+                            .ProductName = reader("ProductName").ToString(),
+                            .Quantity = Convert.ToInt32(reader("Quantity")),
+                            .SellingPrice = Convert.ToDecimal(reader("SellingPrice")),
+                            .TotalAmount = Convert.ToDecimal(reader("TotalPrice")),
+                            .SaleDate = Convert.ToDateTime(reader("SaleDate")).ToString("yyyy-MM-dd HH:mm")
+                        })
+
+                        End While
+
+                    End Using
+
+                End Using
+
+                SendToWeb(New With {
+                .type = "sales",
+                .data = sales
+            })
+
+            End Using
+
+        Catch ex As Exception
+
+            SendToWeb(New With {
+            .type = "saleError",
+            .message = ex.Message
+        })
+
+        End Try
+
+    End Sub
+
+
+
+    '=========================================================
+    ' ADD SALE
+    '=========================================================
+    Private Sub AddSale(root As JsonElement)
+
+        Dim transaction As MySqlTransaction = Nothing
+        Dim saleID As Integer = 0
+
+        Try
+
+            '-------------------------------------------------
+            ' GET VALUES FROM WEB UI
+            '-------------------------------------------------
+            Dim productID As Integer =
+            GetIntegerValue(
+                root,
+                "ProductID"
+            )
+
+            Dim quantity As Integer =
+            GetIntegerValue(
+                root,
+                "Quantity"
+            )
+
+            Dim sellingPrice As Decimal =
+            GetDecimalValue(
+                root,
+                "SellingPrice"
+            )
+
+
+            '-------------------------------------------------
+            ' VALIDATION
+            '-------------------------------------------------
+            If productID <= 0 Then
+
+                SendToWeb(
+                New With {
+                    .type = "saleError",
+                    .message = "Please select a product."
+                }
+            )
+
+                Return
+
+            End If
+
+
+            If quantity <= 0 Then
+
+                SendToWeb(
+                New With {
+                    .type = "saleError",
+                    .message =
+                        "Quantity must be greater than zero."
+                }
+            )
+
+                Return
+
+            End If
+
+
+            If sellingPrice <= 0D Then
+
+                SendToWeb(
+                New With {
+                    .type = "saleError",
+                    .message =
+                        "Selling price must be greater than zero."
+                }
+            )
+
+                Return
+
+            End If
+
+
+            '-------------------------------------------------
+            ' CALCULATE TOTAL
+            '-------------------------------------------------
+            Dim totalPrice As Decimal =
+            quantity * sellingPrice
+
+
+            '-------------------------------------------------
+            ' DATABASE CONNECTION
+            '-------------------------------------------------
+            Using con As MySqlConnection =
+            DBConnection.GetConnection()
+
+                con.Open()
+
+
+                '-------------------------------------------------
+                ' START TRANSACTION
+                '-------------------------------------------------
+                transaction =
+                con.BeginTransaction()
+
+
+                '=================================================
+                ' 1. GET CURRENT PRODUCT STOCK
+                '=================================================
+                Dim previousStock As Integer = 0
+
+
+                Dim productQuery As String =
+                "SELECT StockQuantity " &
+                "FROM Products " &
+                "WHERE ProductID = @ProductID " &
+                "FOR UPDATE"
+
+
+                Using cmd As New MySqlCommand(
+                productQuery,
+                con,
+                transaction
+            )
+
+                    cmd.Parameters.AddWithValue(
+                    "@ProductID",
+                    productID
+                )
+
+
+                    Dim result As Object =
+                    cmd.ExecuteScalar()
+
+
+                    If result Is Nothing OrElse
+                   result Is DBNull.Value Then
+
+                        Throw New Exception(
+                        "Selected product was not found."
+                    )
+
+                    End If
+
+
+                    previousStock =
+                    Convert.ToInt32(result)
+
+                End Using
+
+
+                '=================================================
+                ' 2. CHECK AVAILABLE STOCK
+                '=================================================
+                If quantity > previousStock Then
+
+                    Throw New Exception(
+                    "Insufficient stock. Available stock: " &
+                    previousStock.ToString()
+                )
+
+                End If
+
+
+                '=================================================
+                ' 3. CALCULATE NEW STOCK
+                '=================================================
+                Dim newStock As Integer =
+                previousStock - quantity
+
+
+                '=================================================
+                ' 4. INSERT SALE HEADER
+                '=================================================
+
+
+
+                Dim saleQuery As String =
+                "INSERT INTO Sales " &
+                "(CustomerName, PaymentMethod, TotalAmount, Status) " &
+                "VALUES " &
+                "(@CustomerName, @PaymentMethod, " &
+                "@TotalAmount, @Status)"
+
+
+                Using cmd As New MySqlCommand(
+                saleQuery,
+                con,
+                transaction
+            )
+
+                    cmd.Parameters.AddWithValue(
+                    "@CustomerName",
+                    DBNull.Value
+                )
+
+                    cmd.Parameters.AddWithValue(
+                    "@PaymentMethod",
+                    "Cash"
+                )
+
+                    cmd.Parameters.AddWithValue(
+                    "@TotalAmount",
+                    totalPrice
+                )
+
+                    cmd.Parameters.AddWithValue(
+                    "@Status",
+                    "Completed"
+                )
+
+
+                    cmd.ExecuteNonQuery()
+
+
+                    saleID =
+                    Convert.ToInt32(
+                        cmd.LastInsertedId
+                    )
+
+                End Using
+
+
+                '=================================================
+                ' 5. INSERT SALE DETAIL
+                '=================================================
+                Dim detailQuery As String =
+                "INSERT INTO SaleDetails " &
+                "(SaleID, ProductID, Quantity, " &
+                "SellingPrice, TotalPrice) " &
+                "VALUES " &
+                "(@SaleID, @ProductID, @Quantity, " &
+                "@SellingPrice, @TotalPrice)"
+
+
+                Using cmd As New MySqlCommand(
+                detailQuery,
+                con,
+                transaction
+            )
+
+                    cmd.Parameters.AddWithValue(
+                    "@SaleID",
+                    saleID
+                )
+
+                    cmd.Parameters.AddWithValue(
+                    "@ProductID",
+                    productID
+                )
+
+                    cmd.Parameters.AddWithValue(
+                    "@Quantity",
+                    quantity
+                )
+
+                    cmd.Parameters.AddWithValue(
+                    "@SellingPrice",
+                    sellingPrice
+                )
+
+                    cmd.Parameters.AddWithValue(
+                    "@TotalPrice",
+                    totalPrice
+                )
+
+
+                    cmd.ExecuteNonQuery()
+
+                End Using
+
+
+                '=================================================
+                ' 6. UPDATE PRODUCT STOCK
+                '=================================================
+                Dim stockQuery As String =
+                "UPDATE Products SET " &
+                "StockQuantity = @NewStock " &
+                "WHERE ProductID = @ProductID"
+
+
+                Using cmd As New MySqlCommand(
+                stockQuery,
+                con,
+                transaction
+            )
+
+                    cmd.Parameters.AddWithValue(
+                    "@NewStock",
+                    newStock
+                )
+
+                    cmd.Parameters.AddWithValue(
+                    "@ProductID",
+                    productID
+                )
+
+
+                    Dim rowsAffected As Integer =
+                    cmd.ExecuteNonQuery()
+
+
+                    If rowsAffected = 0 Then
+
+                        Throw New Exception(
+                        "Product stock could not be updated."
+                    )
+
+                    End If
+
+                End Using
+
+
+                '=================================================
+                ' 7. INSERT STOCK HISTORY
+                '=================================================
+                Dim historyQuery As String =
+                "INSERT INTO StockHistory " &
+                "(ProductID, ChangeType, Quantity, " &
+                "PreviousStock, NewStock, ChangeDate) " &
+                "VALUES " &
+                "(@ProductID, @ChangeType, @Quantity, " &
+                "@PreviousStock, @NewStock, NOW())"
+
+
+                Using cmd As New MySqlCommand(
+                historyQuery,
+                con,
+                transaction
+            )
+
+                    cmd.Parameters.AddWithValue(
+                    "@ProductID",
+                    productID
+                )
+
+                    cmd.Parameters.AddWithValue(
+                    "@ChangeType",
+                    "SALE"
+                )
+
+                    cmd.Parameters.AddWithValue(
+                    "@Quantity",
+                    quantity
+                )
+
+                    cmd.Parameters.AddWithValue(
+                    "@PreviousStock",
+                    previousStock
+                )
+
+                    cmd.Parameters.AddWithValue(
+                    "@NewStock",
+                    newStock
+                )
+
+
+                    cmd.ExecuteNonQuery()
+
+                End Using
+
+
+                '=================================================
+                ' 8. COMMIT TRANSACTION
+                '=================================================
+                transaction.Commit()
+
+                transaction = Nothing
+
+            End Using
+
+
+            '=================================================
+            ' SUCCESS MESSAGE
+            '=================================================
+            SendToWeb(
+            New With {
+                .type = "saleAdded",
+                .saleID = saleID,
+                .message =
+                    "Sale completed successfully."
+            }
+        )
+
+
+            '=================================================
+            ' REFRESH SALES
+            '=================================================
+            LoadSalesToWeb()
+
+
+            '=================================================
+            ' REFRESH PRODUCTS / STOCK
+            '=================================================
+            LoadProductsToWeb()
+
+
+        Catch ex As Exception
+
+            '-------------------------------------------------
+            ' ROLLBACK
+            '-------------------------------------------------
+            Try
+
+                If transaction IsNot Nothing Then
+
+                    transaction.Rollback()
+
+                End If
+
+            Catch
+
+                ' Ignore rollback errors
+
+            End Try
+
+
+            '-------------------------------------------------
+            ' SEND ERROR TO WEB UI
+            '-------------------------------------------------
+            SendToWeb(
+            New With {
+                .type = "saleError",
+                .message =
+                    "Unable to complete sale: " &
+                    ex.Message
+            }
+        )
+
+        End Try
+
+    End Sub
 
     '=========================================================
     ' LOAD PRODUCTS
@@ -471,7 +980,6 @@ Public Class FrmMain
 
     End Sub
 
-
     '=========================================================
     ' LOAD CATEGORIES
     '=========================================================
@@ -480,49 +988,52 @@ Public Class FrmMain
         Try
 
             Using con As MySqlConnection =
-                DBConnection.GetConnection()
+            DBConnection.GetConnection()
 
                 con.Open()
 
 
+                '-------------------------------------------------
+                ' LOAD CATEGORIES
+                '-------------------------------------------------
                 Dim query As String =
-                    "SELECT CategoryID, CategoryName " &
-                    "FROM Categories " &
-                    "ORDER BY CategoryName"
+                "SELECT CategoryID, CategoryName " &
+                "FROM Categories " &
+                "ORDER BY CategoryName"
 
 
                 Using cmd As New MySqlCommand(
-                    query,
-                    con
-                )
+                query,
+                con
+            )
 
                     Using reader As MySqlDataReader =
-                        cmd.ExecuteReader()
+                    cmd.ExecuteReader()
 
                         Dim categories As New List(
-                            Of Dictionary(Of String, Object)
-                        )()
+                        Of Dictionary(Of String, Object)
+                    )()
 
 
                         While reader.Read()
 
                             Dim category As New Dictionary(
-                                Of String, Object
-                            )()
+                            Of String, Object
+                        )()
 
 
                             category.Add(
-                                "CategoryID",
-                                Convert.ToInt32(
-                                    reader("CategoryID")
-                                )
+                            "CategoryID",
+                            Convert.ToInt32(
+                                reader("CategoryID")
                             )
+                        )
 
 
                             category.Add(
-                                "CategoryName",
-                                reader("CategoryName").ToString()
-                            )
+                            "CategoryName",
+                            reader("CategoryName").ToString()
+                        )
 
 
                             categories.Add(category)
@@ -530,12 +1041,15 @@ Public Class FrmMain
                         End While
 
 
+                        '-------------------------------------------------
+                        ' SEND TO WEB UI
+                        '-------------------------------------------------
                         SendToWeb(
-                            New With {
-                                .type = "categories",
-                                .data = categories
-                            }
-                        )
+                        New With {
+                            .type = "categories",
+                            .data = categories
+                        }
+                    )
 
                     End Using
 
@@ -547,14 +1061,319 @@ Public Class FrmMain
         Catch ex As Exception
 
             MessageBox.Show(
-                "Error loading categories:" &
-                Environment.NewLine &
-                Environment.NewLine &
-                ex.Message,
-                "Database Error",
-                MessageBoxButtons.OK,
-                MessageBoxIcon.Error
+            "Error loading categories:" &
+            Environment.NewLine &
+            Environment.NewLine &
+            ex.Message,
+            "Database Error",
+            MessageBoxButtons.OK,
+            MessageBoxIcon.Error
+        )
+
+        End Try
+
+    End Sub
+
+
+    '=========================================================
+    ' ADD CATEGORY
+    '=========================================================
+    Private Sub AddCategory(root As JsonElement)
+
+        Try
+
+            '-------------------------------------------------
+            ' GET CATEGORY NAME
+            '-------------------------------------------------
+            Dim categoryName As String =
+            GetStringValue(
+                root,
+                "CategoryName"
+            ).Trim()
+
+
+            '-------------------------------------------------
+            ' VALIDATE
+            '-------------------------------------------------
+            If String.IsNullOrWhiteSpace(categoryName) Then
+
+                SendToWeb(
+                New With {
+                    .type = "categoryError",
+                    .message = "Category name is required."
+                }
             )
+
+                Return
+
+            End If
+
+
+            '-------------------------------------------------
+            ' DATABASE
+            '-------------------------------------------------
+            Using con As MySqlConnection =
+            DBConnection.GetConnection()
+
+                con.Open()
+
+
+                '-------------------------------------------------
+                ' CHECK DUPLICATE
+                '-------------------------------------------------
+                Dim checkQuery As String =
+                "SELECT COUNT(*) " &
+                "FROM Categories " &
+                "WHERE CategoryName = @CategoryName"
+
+
+                Using checkCmd As New MySqlCommand(
+                checkQuery,
+                con
+            )
+
+                    checkCmd.Parameters.AddWithValue(
+                    "@CategoryName",
+                    categoryName
+                )
+
+
+                    Dim existingCount As Integer =
+                    Convert.ToInt32(
+                        checkCmd.ExecuteScalar()
+                    )
+
+
+                    If existingCount > 0 Then
+
+                        SendToWeb(
+                        New With {
+                            .type = "categoryError",
+                            .message =
+                                "Category already exists."
+                        }
+                    )
+
+                        Return
+
+                    End If
+
+                End Using
+
+
+                '-------------------------------------------------
+                ' INSERT CATEGORY
+                '-------------------------------------------------
+                Dim insertQuery As String =
+                "INSERT INTO Categories " &
+                "(CategoryName) " &
+                "VALUES " &
+                "(@CategoryName)"
+
+
+                Using cmd As New MySqlCommand(
+                insertQuery,
+                con
+            )
+
+                    cmd.Parameters.AddWithValue(
+                    "@CategoryName",
+                    categoryName
+                )
+
+
+                    cmd.ExecuteNonQuery()
+
+                End Using
+
+            End Using
+
+
+            '-------------------------------------------------
+            ' SUCCESS
+            '-------------------------------------------------
+            SendToWeb(
+            New With {
+                .type = "categoryAdded",
+                .message =
+                    "Category added successfully."
+            }
+        )
+
+
+            '-------------------------------------------------
+            ' REFRESH CATEGORY LIST
+            '-------------------------------------------------
+            LoadCategoriesToWeb()
+
+
+            '-------------------------------------------------
+            ' ALSO REFRESH PRODUCT PAGE DATA
+            '-------------------------------------------------
+            LoadProductsToWeb()
+
+
+        Catch ex As Exception
+
+            SendToWeb(
+            New With {
+                .type = "categoryError",
+                .message =
+                    "Unable to add category: " &
+                    ex.Message
+            }
+        )
+
+        End Try
+
+    End Sub
+
+
+    '=========================================================
+    ' DELETE CATEGORY
+    '=========================================================
+    Private Sub DeleteCategory(root As JsonElement)
+
+        Try
+
+            '-------------------------------------------------
+            ' GET CATEGORY ID
+            '-------------------------------------------------
+            Dim categoryID As Integer =
+            GetIntegerValue(
+                root,
+                "CategoryID"
+            )
+
+
+            '-------------------------------------------------
+            ' VALIDATE
+            '-------------------------------------------------
+            If categoryID <= 0 Then
+
+                SendToWeb(
+                New With {
+                    .type = "categoryError",
+                    .message = "Invalid category ID."
+                }
+            )
+
+                Return
+
+            End If
+
+
+            '-------------------------------------------------
+            ' DATABASE
+            '-------------------------------------------------
+            Using con As MySqlConnection =
+            DBConnection.GetConnection()
+
+                con.Open()
+
+
+                '-------------------------------------------------
+                ' CHECK WHETHER CATEGORY IS USED BY PRODUCTS
+                '-------------------------------------------------
+                Dim checkQuery As String =
+                "SELECT COUNT(*) " &
+                "FROM Products " &
+                "WHERE CategoryID = @CategoryID"
+
+
+                Using checkCmd As New MySqlCommand(
+                checkQuery,
+                con
+            )
+
+                    checkCmd.Parameters.AddWithValue(
+                    "@CategoryID",
+                    categoryID
+                )
+
+
+                    Dim productCount As Integer =
+                    Convert.ToInt32(
+                        checkCmd.ExecuteScalar()
+                    )
+
+
+                    If productCount > 0 Then
+
+                        SendToWeb(
+                        New With {
+                            .type = "categoryError",
+                            .message =
+                                "This category is being used by a product and cannot be deleted."
+                        }
+                    )
+
+                        Return
+
+                    End If
+
+                End Using
+
+
+                '-------------------------------------------------
+                ' DELETE CATEGORY
+                '-------------------------------------------------
+                Dim deleteQuery As String =
+                "DELETE FROM Categories " &
+                "WHERE CategoryID = @CategoryID"
+
+
+                Using cmd As New MySqlCommand(
+                deleteQuery,
+                con
+            )
+
+                    cmd.Parameters.AddWithValue(
+                    "@CategoryID",
+                    categoryID
+                )
+
+                    cmd.ExecuteNonQuery()
+
+                End Using
+
+            End Using
+
+
+            '-------------------------------------------------
+            ' SUCCESS
+            '-------------------------------------------------
+            SendToWeb(
+            New With {
+                .type = "categoryDeleted",
+                .message =
+                    "Category deleted successfully."
+            }
+        )
+
+
+            '-------------------------------------------------
+            ' REFRESH CATEGORY LIST
+            '-------------------------------------------------
+            LoadCategoriesToWeb()
+
+
+            '-------------------------------------------------
+            ' REFRESH PRODUCTS
+            '-------------------------------------------------
+            LoadProductsToWeb()
+
+
+        Catch ex As Exception
+
+            SendToWeb(
+            New With {
+                .type = "categoryError",
+                .message =
+                    "Unable to delete category: " &
+                    ex.Message
+            }
+        )
 
         End Try
 
@@ -568,63 +1387,66 @@ Public Class FrmMain
 
         Try
 
-            Using con As MySqlConnection =
-                DBConnection.GetConnection()
+            Using con As MySqlConnection = DBConnection.GetConnection()
 
                 con.Open()
 
-
                 Dim query As String =
-                    "SELECT SupplierID, SupplierName " &
-                    "FROM Suppliers " &
-                    "ORDER BY SupplierName"
+                "SELECT SupplierID, SupplierName, Phone, Email, Address " &
+                "FROM Suppliers " &
+                "ORDER BY SupplierName"
 
+                Using cmd As New MySqlCommand(query, con)
 
-                Using cmd As New MySqlCommand(
-                    query,
-                    con
-                )
+                    Using reader As MySqlDataReader = cmd.ExecuteReader()
 
-                    Using reader As MySqlDataReader =
-                        cmd.ExecuteReader()
-
-                        Dim suppliers As New List(
-                            Of Dictionary(Of String, Object)
-                        )()
-
+                        Dim suppliers As New List(Of Dictionary(Of String, Object))()
 
                         While reader.Read()
 
-                            Dim supplier As New Dictionary(
-                                Of String, Object
-                            )()
-
+                            Dim supplier As New Dictionary(Of String, Object)()
 
                             supplier.Add(
-                                "SupplierID",
-                                Convert.ToInt32(
-                                    reader("SupplierID")
-                                )
-                            )
-
+                            "SupplierID",
+                            Convert.ToInt32(reader("SupplierID"))
+                        )
 
                             supplier.Add(
-                                "SupplierName",
-                                reader("SupplierName").ToString()
-                            )
+                            "SupplierName",
+                            reader("SupplierName").ToString()
+                        )
 
+                            supplier.Add(
+                            "Phone",
+                            If(reader.IsDBNull(reader.GetOrdinal("Phone")),
+                               "",
+                               reader("Phone").ToString())
+                        )
+
+                            supplier.Add(
+                            "Email",
+                            If(reader.IsDBNull(reader.GetOrdinal("Email")),
+                               "",
+                               reader("Email").ToString())
+                        )
+
+                            supplier.Add(
+                            "Address",
+                            If(reader.IsDBNull(reader.GetOrdinal("Address")),
+                               "",
+                               reader("Address").ToString())
+                        )
 
                             suppliers.Add(supplier)
 
                         End While
 
-
                         SendToWeb(
-                            New With {
-                                .type = "suppliers",
-                                .data = suppliers
-                            }
-                        )
+                        New With {
+                            .type = "suppliers",
+                            .data = suppliers
+                        }
+                    )
 
                     End Using
 
@@ -632,18 +1454,121 @@ Public Class FrmMain
 
             End Using
 
-
         Catch ex As Exception
 
             MessageBox.Show(
-                "Error loading suppliers:" &
-                Environment.NewLine &
-                Environment.NewLine &
-                ex.Message,
-                "Database Error",
-                MessageBoxButtons.OK,
-                MessageBoxIcon.Error
-            )
+            "Error loading suppliers:" &
+            Environment.NewLine &
+            Environment.NewLine &
+            ex.Message,
+            "Database Error",
+            MessageBoxButtons.OK,
+            MessageBoxIcon.Error
+        )
+
+        End Try
+
+    End Sub
+
+    Private Sub AddSupplier(root As JsonElement)
+
+        Try
+
+            '-------------------------------------------------
+            ' GET DATA FROM WEB
+            '-------------------------------------------------
+            Dim supplierName As String = GetStringValue(root, "SupplierName")
+            Dim phone As String = GetStringValue(root, "Phone")
+            Dim email As String = GetStringValue(root, "Email")
+            Dim address As String = GetStringValue(root, "Address")
+
+            '-------------------------------------------------
+            ' VALIDATION
+            '-------------------------------------------------
+            If String.IsNullOrWhiteSpace(supplierName) Then
+
+                SendToWeb(New With {
+                .type = "supplierError",
+                .message = "Supplier name is required."
+            })
+
+                Return
+
+            End If
+
+            Using con As MySqlConnection = DBConnection.GetConnection()
+
+                con.Open()
+
+                '-------------------------------------------------
+                ' CHECK DUPLICATE SUPPLIER
+                '-------------------------------------------------
+                Dim checkQuery As String =
+                "SELECT COUNT(*) FROM Suppliers " &
+                "WHERE SupplierName = @SupplierName"
+
+                Using checkCmd As New MySqlCommand(checkQuery, con)
+
+                    checkCmd.Parameters.AddWithValue("@SupplierName", supplierName)
+
+                    Dim count As Integer =
+                    Convert.ToInt32(checkCmd.ExecuteScalar())
+
+                    If count > 0 Then
+
+                        SendToWeb(New With {
+                        .type = "supplierError",
+                        .message = "Supplier already exists."
+                    })
+
+                        Return
+
+                    End If
+
+                End Using
+
+                '-------------------------------------------------
+                ' INSERT SUPPLIER
+                '-------------------------------------------------
+                Dim insertQuery As String =
+                "INSERT INTO Suppliers " &
+                "(SupplierName, Phone, Email, Address) " &
+                "VALUES " &
+                "(@SupplierName, @Phone, @Email, @Address)"
+
+                Using cmd As New MySqlCommand(insertQuery, con)
+
+                    cmd.Parameters.AddWithValue("@SupplierName", supplierName)
+                    cmd.Parameters.AddWithValue("@Phone", phone)
+                    cmd.Parameters.AddWithValue("@Email", email)
+                    cmd.Parameters.AddWithValue("@Address", address)
+
+                    cmd.ExecuteNonQuery()
+
+                End Using
+
+            End Using
+
+            '-------------------------------------------------
+            ' SUCCESS
+            '-------------------------------------------------
+            SendToWeb(New With {
+            .type = "supplierAdded",
+            .message = "Supplier added successfully."
+        })
+
+            ' Refresh supplier list
+            LoadSuppliersToWeb()
+
+            ' Refresh product page supplier dropdown
+            LoadProductsToWeb()
+
+        Catch ex As Exception
+
+            SendToWeb(New With {
+            .type = "supplierError",
+            .message = ex.Message
+        })
 
         End Try
 

@@ -1,12 +1,18 @@
 ﻿<!DOCTYPE html>
 <html lang="en">
+
 <head>
+
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <title>Login - Sales Nova</title>
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
 
-    <link rel="stylesheet" href="login.css">
+    <title>Sales Nova - Login</title>
+
+    <link rel="stylesheet"
+          href="login.css">
+
 </head>
 
 <body>
@@ -15,51 +21,121 @@
 
         <div class="login-card">
 
-            <div class="logo-section">
+
+            <!-- =================================================
+                 HEADER
+                 ================================================= -->
+
+            <div class="login-header">
+
                 <h1>Sales Nova</h1>
+
                 <p>Sales Analytics System</p>
+
             </div>
 
-            <div class="form-group">
-                <label for="username">Username</label>
-                <input
-                    type="text"
-                    id="username"
-                    placeholder="Enter your username"
-                    autocomplete="username">
-            </div>
 
-            <div class="form-group">
-                <label for="password">Password</label>
-                <input
-                    type="password"
-                    id="password"
-                    placeholder="Enter your password"
-                    autocomplete="current-password">
-            </div>
+            <!-- =================================================
+                 LOGIN FORM
+                 ================================================= -->
 
-            <button id="btnLogin" class="btn-login">
-                Login
-            </button>
+            <form class="login-form"
+                  onsubmit="return false;">
+
+
+                <!-- USERNAME -->
+
+                <div class="form-group">
+
+                    <label for="username">
+                        Username
+                    </label>
+
+                    <input type="text"
+                           id="username"
+                           name="username"
+                           placeholder="Enter your username"
+                           autocomplete="username">
+
+                </div>
+
+
+                <!-- PASSWORD -->
+
+                <div class="form-group">
+
+                    <label for="password">
+                        Password
+                    </label>
+
+                    <input type="password"
+                           id="password"
+                           name="password"
+                           placeholder="Enter your password"
+                           autocomplete="current-password">
+
+                </div>
+
+
+                <!-- LOGIN BUTTON -->
+
+                <button type="button"
+                        id="btnLogin"
+                        class="login-button">
+                    Login
+                </button>
+
+
+                <!-- MESSAGE -->
+
+                <div id="message"
+                     class="login-message"></div>
+
+
+            </form>
+
+
+            <!-- =================================================
+                 REGISTER
+                 ================================================= -->
 
             <div class="register-section">
-                <span>New user?</span>
-                <button id="btnRegister" class="btn-register">
+
+                <span>
+                    New user?
+                </span>
+
+                <a href="#"
+                   id="btnRegister"
+                   onclick="return false;">
                     Create an account
-                </button>
+                </a>
+
             </div>
 
-            <button id="btnExit" class="btn-exit">
+
+            <!-- =================================================
+                 EXIT
+                 ================================================= -->
+
+            <button type="button"
+                    id="btnExit"
+                    class="exit-button">
                 Exit
             </button>
 
-            <p id="message"></p>
 
         </div>
 
     </div>
 
+
+    <!-- =====================================================
+         JAVASCRIPT
+         ===================================================== -->
+
     <script src="login.js"></script>
 
 </body>
+
 </html>

@@ -1,0 +1,329 @@
+﻿/* =========================================================
+   SMART INVENTORY
+   CATEGORIES PAGE
+   ========================================================= */
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+
+/* =========================================================
+   PAGE
+   ========================================================= */
+
+html,
+body {
+    width: 100%;
+    min-height: 100%;
+    font-family: "Segoe UI", Arial, sans-serif;
+    background: #f5f6f8;
+    color: #222;
+}
+
+
+body {
+    overflow-x: hidden;
+}
+
+
+/* =========================================================
+   MAIN CONTAINER
+   ========================================================= */
+
+.categories-page {
+    width: 100%;
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 28px;
+}
+
+
+/* =========================================================
+   PAGE HEADER
+   ========================================================= */
+
+.page-header {
+    margin-bottom: 24px;
+}
+
+    .page-header h1 {
+        font-size: 30px;
+        font-weight: 700;
+        color: #1f1f1f;
+        margin-bottom: 6px;
+    }
+
+    .page-header p {
+        font-size: 15px;
+        color: #777;
+    }
+
+
+/* =========================================================
+   COMMON CARD
+   ========================================================= */
+
+.category-form-card,
+.category-list-card {
+    width: 100%;
+    background: #ffffff;
+    border-radius: 12px;
+    padding: 24px;
+    margin-bottom: 22px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.06);
+}
+
+
+    /* =========================================================
+   CARD HEADINGS
+   ========================================================= */
+
+    .category-form-card h2,
+    .category-list-card h2 {
+        font-size: 21px;
+        font-weight: 650;
+        color: #222;
+        margin-bottom: 6px;
+    }
+
+    .category-form-card h2 {
+        margin-bottom: 20px;
+    }
+
+
+/* =========================================================
+   FORM
+   ========================================================= */
+
+.form-group {
+    width: 100%;
+    margin-bottom: 20px;
+}
+
+    .form-group label {
+        display: block;
+        font-size: 15px;
+        font-weight: 600;
+        color: #333;
+        margin-bottom: 8px;
+    }
+
+    .form-group input {
+        width: 100%;
+        height: 46px;
+        padding: 0 14px;
+        border: 1px solid #d5d9df;
+        border-radius: 8px;
+        background: #ffffff;
+        font-size: 15px;
+        outline: none;
+    }
+
+        .form-group input:focus {
+            border-color: #555;
+            box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.05);
+        }
+
+
+/* =========================================================
+   BUTTONS
+   ========================================================= */
+
+.form-actions {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.primary-button,
+.secondary-button {
+    height: 44px;
+    padding: 0 22px;
+    border-radius: 8px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.primary-button {
+    border: none;
+    background: #222;
+    color: #ffffff;
+}
+
+    .primary-button:hover {
+        background: #111;
+    }
+
+.secondary-button {
+    border: 1px solid #d3d7dc;
+    background: #ffffff;
+    color: #333;
+}
+
+    .secondary-button:hover {
+        background: #f5f5f5;
+    }
+
+
+/* =========================================================
+   MESSAGE
+   ========================================================= */
+
+.message {
+    min-height: 20px;
+    margin-top: 12px;
+    font-size: 14px;
+}
+
+
+/* =========================================================
+   LIST HEADER
+   ========================================================= */
+
+.list-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 18px;
+}
+
+    .list-header p {
+        font-size: 14px;
+        color: #777;
+    }
+
+.category-count {
+    min-width: 38px;
+    height: 32px;
+    padding: 0 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 16px;
+    background: #eeeeee;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+
+/* =========================================================
+   TABLE
+   ========================================================= */
+
+.table-container {
+    width: 100%;
+    overflow-x: auto;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 500px;
+}
+
+thead {
+    background: #f5f6f8;
+}
+
+th {
+    padding: 13px 15px;
+    text-align: left;
+    font-size: 14px;
+    font-weight: 650;
+    color: #444;
+    border-bottom: 1px solid #e1e3e6;
+}
+
+td {
+    padding: 13px 15px;
+    font-size: 14px;
+    color: #333;
+    border-bottom: 1px solid #eeeeee;
+}
+
+tbody tr:hover {
+    background: #fafafa;
+}
+
+.empty-row {
+    text-align: center;
+    color: #888;
+    padding: 25px;
+}
+
+
+/* =========================================================
+   TABLE ACTION BUTTON
+   ========================================================= */
+
+.delete-button {
+    height: 34px;
+    padding: 0 14px;
+    border: 1px solid #d5d5d5;
+    border-radius: 6px;
+    background: #ffffff;
+    color: #333;
+    cursor: pointer;
+    font-size: 13px;
+}
+
+    .delete-button:hover {
+        background: #f3f3f3;
+    }
+
+
+/* =========================================================
+   RESPONSIVE
+   ========================================================= */
+
+@media (max-width: 700px) {
+
+    .categories-page {
+        padding: 18px;
+    }
+
+    .category-form-card,
+    .category-list-card {
+        padding: 18px;
+    }
+
+    .page-header h1 {
+        font-size: 26px;
+    }
+
+    .list-header {
+        align-items: flex-start;
+    }
+}
+
+
+/* =========================================================
+   SMALL HEIGHT
+   ========================================================= */
+
+@media (max-height: 650px) {
+
+    .categories-page {
+        padding-top: 16px;
+        padding-bottom: 16px;
+    }
+
+    .category-form-card,
+    .category-list-card {
+        padding: 18px;
+        margin-bottom: 15px;
+    }
+
+    .page-header {
+        margin-bottom: 15px;
+    }
+
+    .form-group {
+        margin-bottom: 12px;
+    }
+}

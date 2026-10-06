@@ -274,6 +274,8 @@ const supportedActions = [
     ----------------------------------------------------- */
 
     "loadCategories",
+    "addCategory",
+    "deleteCategory",
 
 
     /* -----------------------------------------------------
@@ -281,6 +283,7 @@ const supportedActions = [
     ----------------------------------------------------- */
 
     "loadSuppliers",
+    "addSupplier",
 
 
     /* -----------------------------------------------------
@@ -289,12 +292,13 @@ const supportedActions = [
 
     "loadPurchases",
     "addPurchase",
-
+   
 
     /* -----------------------------------------------------
        Sales Analytics
     ----------------------------------------------------- */
-
+    "loadSales",
+    "addSale",
     "loadSalesAnalytics",
 
 

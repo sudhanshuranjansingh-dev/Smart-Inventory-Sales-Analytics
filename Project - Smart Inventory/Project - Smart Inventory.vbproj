@@ -14,6 +14,9 @@
     <None Remove="WebUI\admin-approval.css" />
     <None Remove="WebUI\admin-approval.html" />
     <None Remove="WebUI\admin-approval.js" />
+    <None Remove="WebUI\categories.css" />
+    <None Remove="WebUI\categories.html" />
+    <None Remove="WebUI\categories.js" />
     <None Remove="WebUI\dashboard.css" />
     <None Remove="WebUI\dashboard.html" />
     <None Remove="WebUI\dashboard.js" />
@@ -35,6 +38,12 @@
     <None Remove="WebUI\sales-analytics.css" />
     <None Remove="WebUI\sales-analytics.html" />
     <None Remove="WebUI\sales-analytics.js" />
+    <None Remove="WebUI\sales.css" />
+    <None Remove="WebUI\sales.html" />
+    <None Remove="WebUI\sales.js" />
+    <None Remove="WebUI\suppliers.css" />
+    <None Remove="WebUI\suppliers.html" />
+    <None Remove="WebUI\suppliers.js" />
   </ItemGroup>
 
   <ItemGroup>
@@ -45,6 +54,15 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="WebUI\admin-approval.js">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="WebUI\categories.css">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="WebUI\categories.html">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="WebUI\categories.js">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="WebUI\dashboard.css">
@@ -108,6 +126,24 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="WebUI\sales-analytics.js">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="WebUI\sales.css">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="WebUI\sales.html">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="WebUI\sales.js">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="WebUI\suppliers.css">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="WebUI\suppliers.html">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="WebUI\suppliers.js">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
