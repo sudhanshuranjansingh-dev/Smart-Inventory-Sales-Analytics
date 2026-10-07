@@ -262,7 +262,7 @@ const supportedActions = [
     /* -----------------------------------------------------
        Products
     ----------------------------------------------------- */
-
+    "loadProductAnalysis",
     "loadProducts",
     "addProduct",
     "updateProduct",
@@ -292,6 +292,11 @@ const supportedActions = [
 
     "loadPurchases",
     "addPurchase",
+
+    /* ----------------------------------
+    Inventory
+    ----------------------------------*/
+    "loadInventory",
    
 
     /* -----------------------------------------------------
@@ -300,6 +305,7 @@ const supportedActions = [
     "loadSales",
     "addSale",
     "loadSalesAnalytics",
+    "loadReports",
 
 
     /* -----------------------------------------------------

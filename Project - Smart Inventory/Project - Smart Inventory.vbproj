@@ -21,11 +21,17 @@
     <None Remove="WebUI\dashboard.html" />
     <None Remove="WebUI\dashboard.js" />
     <None Remove="WebUI\index.html" />
+    <None Remove="WebUI\inventory.css" />
+    <None Remove="WebUI\inventory.html" />
+    <None Remove="WebUI\inventory.js" />
     <None Remove="WebUI\login.css" />
     <None Remove="WebUI\login.html" />
     <None Remove="WebUI\login.js" />
     <None Remove="WebUI\main.css" />
     <None Remove="WebUI\main.js" />
+    <None Remove="WebUI\product-analysis.css" />
+    <None Remove="WebUI\product-analysis.html" />
+    <None Remove="WebUI\product-analysis.js" />
     <None Remove="WebUI\products.css" />
     <None Remove="WebUI\products.html" />
     <None Remove="WebUI\products.js" />
@@ -35,15 +41,27 @@
     <None Remove="WebUI\register.css" />
     <None Remove="WebUI\register.html" />
     <None Remove="WebUI\register.js" />
+    <None Remove="WebUI\reports.css" />
+    <None Remove="WebUI\reports.html" />
+    <None Remove="WebUI\reports.js" />
     <None Remove="WebUI\sales-analytics.css" />
     <None Remove="WebUI\sales-analytics.html" />
     <None Remove="WebUI\sales-analytics.js" />
+    <None Remove="WebUI\sales-history.css" />
+    <None Remove="WebUI\sales-history.html" />
+    <None Remove="WebUI\sales-history.js" />
     <None Remove="WebUI\sales.css" />
     <None Remove="WebUI\sales.html" />
     <None Remove="WebUI\sales.js" />
     <None Remove="WebUI\suppliers.css" />
     <None Remove="WebUI\suppliers.html" />
     <None Remove="WebUI\suppliers.js" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="WebUI\reports.css">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
 
   <ItemGroup>
@@ -77,6 +95,15 @@
     <Content Include="WebUI\index.html">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+    <Content Include="WebUI\inventory.css">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="WebUI\inventory.html">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="WebUI\inventory.js">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
     <Content Include="WebUI\login.css">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
@@ -90,6 +117,15 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="WebUI\main.js">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="WebUI\product-analysis.css">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="WebUI\product-analysis.html">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="WebUI\product-analysis.js">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="WebUI\products.css">
@@ -119,6 +155,12 @@
     <Content Include="WebUI\register.js">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+    <Content Include="WebUI\reports.html">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="WebUI\reports.js">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
     <Content Include="WebUI\sales-analytics.css">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
@@ -126,6 +168,15 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="WebUI\sales-analytics.js">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="WebUI\sales-history.css">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="WebUI\sales-history.html">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="WebUI\sales-history.js">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="WebUI\sales.css">

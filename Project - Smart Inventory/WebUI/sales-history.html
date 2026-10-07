@@ -1,0 +1,159 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Sales History</title>
+
+    <link rel="stylesheet" href="sales-history.css">
+</head>
+
+<body>
+
+    <div class="sales-history-container">
+
+        <!-- ==============================
+             PAGE HEADER
+        =============================== -->
+        <div class="page-header">
+
+            <div>
+                <h2>Sales History</h2>
+                <p>View and review previous sales transactions</p>
+            </div>
+
+            <button type="button"
+                    class="refresh-btn"
+                    onclick="loadSalesHistory()">
+                ↻ Refresh
+            </button>
+
+        </div>
+
+
+        <!-- ==============================
+             SUMMARY
+        =============================== -->
+        <div class="summary-cards">
+
+            <div class="summary-card">
+                <span class="summary-label">
+                    Total Sales
+                </span>
+
+                <strong id="totalSales">
+                    0
+                </strong>
+            </div>
+
+
+            <div class="summary-card">
+                <span class="summary-label">
+                    Total Items Sold
+                </span>
+
+                <strong id="totalItems">
+                    0
+                </strong>
+            </div>
+
+
+            <div class="summary-card">
+                <span class="summary-label">
+                    Total Revenue
+                </span>
+
+                <strong id="totalRevenue">
+                    ₹0.00
+                </strong>
+            </div>
+
+        </div>
+
+
+        <!-- ==============================
+             SEARCH / FILTER
+        =============================== -->
+        <div class="filter-section">
+
+            <div class="search-box">
+
+                <label for="searchSales">
+                    Search Sales
+                </label>
+
+                <input type="text"
+                       id="searchSales"
+                       placeholder="Search by Sale ID or Product..."
+                       oninput="filterSales()">
+
+            </div>
+
+
+            <div class="date-box">
+
+                <label for="saleDateFilter">
+                    Date
+                </label>
+
+                <input type="date"
+                       id="saleDateFilter"
+                       onchange="filterSales()">
+
+            </div>
+
+
+            <button type="button"
+                    class="clear-filter-btn"
+                    onclick="clearSalesFilter()">
+                Clear
+            </button>
+
+        </div>
+
+
+        <!-- ==============================
+             SALES TABLE
+        =============================== -->
+        <div class="table-container">
+
+            <table>
+
+                <thead>
+
+                    <tr>
+                        <th>Sale ID</th>
+                        <th>Product</th>
+                        <th>Quantity</th>
+                        <th>Selling Price</th>
+                        <th>Total Amount</th>
+                        <th>Sale Date</th>
+                    </tr>
+
+                </thead>
+
+                <tbody id="salesHistoryTableBody">
+
+                    <tr>
+                        <td colspan="6"
+                            class="empty-message">
+                            Loading sales history...
+                        </td>
+                    </tr>
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </div>
+
+
+    <script src="sales-history.js"></script>
+
+</body>
+
+</html>

@@ -1,0 +1,296 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Reports</title>
+
+    <link rel="stylesheet" href="reports.css">
+</head>
+
+<body>
+
+    <div class="reports-container">
+
+        <!-- ================= HEADER ================= -->
+
+        <div class="page-header">
+
+            <div>
+                <h1>Reports</h1>
+                <p>Generate and analyze inventory and sales reports</p>
+            </div>
+
+            <div class="header-actions">
+
+                <button id="refreshBtn"
+                        class="btn btn-secondary">
+                    ↻ Refresh
+                </button>
+
+                <button id="printBtn"
+                        class="btn btn-primary">
+                    🖨 Print
+                </button>
+
+            </div>
+
+        </div>
+
+
+        <!-- ================= REPORT CONTROLS ================= -->
+
+        <div class="report-controls">
+
+            <div class="control-group">
+
+                <label for="reportType">
+                    Report Type
+                </label>
+
+                <select id="reportType">
+
+                    <option value="sales">
+                        Sales Report
+                    </option>
+
+                    <option value="inventory">
+                        Inventory Report
+                    </option>
+
+                    <option value="low-stock">
+                        Low Stock Report
+                    </option>
+
+                    <option value="product-performance">
+                        Product Performance
+                    </option>
+
+                </select>
+
+            </div>
+
+
+            <div id="dateControls"
+                 class="date-controls">
+
+                <div class="control-group">
+
+                    <label for="fromDate">
+                        From Date
+                    </label>
+
+                    <input type="date"
+                           id="fromDate">
+
+                </div>
+
+
+                <div class="control-group">
+
+                    <label for="toDate">
+                        To Date
+                    </label>
+
+                    <input type="date"
+                           id="toDate">
+
+                </div>
+
+            </div>
+
+
+            <div class="control-group search-group">
+
+                <label for="searchInput">
+                    Search
+                </label>
+
+                <input type="text"
+                       id="searchInput"
+                       placeholder="Search report...">
+
+            </div>
+
+
+            <div class="control-group generate-group">
+
+                <label>&nbsp;</label>
+
+                <button id="generateBtn"
+                        class="btn btn-primary">
+                    Generate Report
+                </button>
+
+            </div>
+
+        </div>
+
+
+        <!-- ================= SUMMARY ================= -->
+
+        <div class="summary-grid">
+
+            <div class="summary-card">
+
+                <div class="summary-icon">
+                    📊
+                </div>
+
+                <div>
+
+                    <span class="summary-label">
+                        Total Records
+                    </span>
+
+                    <strong id="totalRecords">
+                        0
+                    </strong>
+
+                </div>
+
+            </div>
+
+
+            <div class="summary-card">
+
+                <div class="summary-icon">
+                    📦
+                </div>
+
+                <div>
+
+                    <span class="summary-label">
+                        Total Units
+                    </span>
+
+                    <strong id="totalUnits">
+                        0
+                    </strong>
+
+                </div>
+
+            </div>
+
+
+            <div class="summary-card">
+
+                <div class="summary-icon">
+                    💰
+                </div>
+
+                <div>
+
+                    <span class="summary-label">
+                        Total Amount
+                    </span>
+
+                    <strong id="totalAmount">
+                        ₹0.00
+                    </strong>
+
+                </div>
+
+            </div>
+
+
+            <div class="summary-card">
+
+                <div class="summary-icon">
+                    ⚠
+                </div>
+
+                <div>
+
+                    <span class="summary-label">
+                        Alerts
+                    </span>
+
+                    <strong id="totalAlerts">
+                        0
+                    </strong>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- ================= REPORT TITLE ================= -->
+
+        <div class="report-heading">
+
+            <div>
+
+                <h2 id="reportTitle">
+                    Sales Report
+                </h2>
+
+                <p id="reportSubtitle">
+                    View sales transactions and revenue
+                </p>
+
+            </div>
+
+        </div>
+
+
+        <!-- ================= TABLE ================= -->
+
+        <div class="table-container">
+
+            <table id="reportTable">
+
+                <thead id="reportTableHead">
+
+                    <tr>
+
+                        <th>Sale ID</th>
+                        <th>Product</th>
+                        <th>Quantity</th>
+                        <th>Selling Price</th>
+                        <th>Total</th>
+                        <th>Date</th>
+
+                    </tr>
+
+                </thead>
+
+                <tbody id="reportTableBody">
+
+                    <tr>
+
+                        <td colspan="6"
+                            class="empty-state">
+
+                            No report data available.
+
+                        </td>
+
+                    </tr>
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+
+        <!-- ================= STATUS ================= -->
+
+        <div id="reportStatus"
+             class="report-status">
+
+            Ready to generate report.
+
+        </div>
+
+    </div>
+
+
+    <script src="reports.js"></script>
+
+</body>
+</html>
