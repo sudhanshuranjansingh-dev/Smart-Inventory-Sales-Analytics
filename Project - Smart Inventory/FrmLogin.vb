@@ -15,10 +15,22 @@ Public Class FrmLogin
 
         Try
 
-            ' Initialize WebView2
+            '=====================================================
+            ' HIDE FORM WHILE WEBVIEW2 IS INITIALIZING
+            '=====================================================
+
+            Me.Opacity = 0
+
+            '=====================================================
+            ' INITIALIZE WEBVIEW2
+            '=====================================================
+
             Await WebViewLogin.EnsureCoreWebView2Async()
 
-            ' WebUI login page path
+            '=====================================================
+            ' LOGIN PAGE PATH
+            '=====================================================
+
             Dim loginPath As String =
                 Path.Combine(
                     Application.StartupPath,
@@ -26,8 +38,13 @@ Public Class FrmLogin
                     "login.html"
                 )
 
-            ' Check login.html
+            '=====================================================
+            ' CHECK LOGIN PAGE
+            '=====================================================
+
             If Not File.Exists(loginPath) Then
+
+                Me.Opacity = 1
 
                 MessageBox.Show(
                     "Login page was not found." &
@@ -43,11 +60,23 @@ Public Class FrmLogin
 
             End If
 
-            ' Load login page
+            '=====================================================
+            ' LOAD LOGIN PAGE
+            '=====================================================
+
             WebViewLogin.Source =
                 New Uri(loginPath)
 
+            '=====================================================
+            ' WAIT UNTIL WEBVIEW PAGE IS LOADED
+            '=====================================================
+
+            AddHandler WebViewLogin.NavigationCompleted,
+                AddressOf WebViewLogin_NavigationCompleted
+
         Catch ex As Exception
+
+            Me.Opacity = 1
 
             MessageBox.Show(
                 "Unable to load Login page." &
@@ -65,115 +94,164 @@ Public Class FrmLogin
 
 
     '=========================================================
-    ' WEBVIEW2 MESSAGE RECEIVED
+    ' WEBVIEW2 NAVIGATION COMPLETED
     '=========================================================
+    Private Sub WebViewLogin_NavigationCompleted(
+        sender As Object,
+        e As CoreWebView2NavigationCompletedEventArgs
+    )
+
+        Try
+
+            '=====================================================
+            ' SHOW LOGIN FORM ONLY AFTER WEBVIEW IS READY
+            '=====================================================
+
+            If e.IsSuccess Then
+
+                Me.Opacity = 1
+
+            Else
+
+                Me.Opacity = 1
+
+                MessageBox.Show(
+                    "Unable to load the Login page.",
+                    "WebView Error",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Error
+                )
+
+            End If
+
+            '=====================================================
+            ' REMOVE HANDLER
+            '=====================================================
+
+            RemoveHandler WebViewLogin.NavigationCompleted,
+                AddressOf WebViewLogin_NavigationCompleted
+
+        Catch ex As Exception
+
+            Me.Opacity = 1
+
+        End Try
+
+    End Sub
+
+
     '=========================================================
     ' WEBVIEW2 MESSAGE RECEIVED
     '=========================================================
     Private Sub WebViewLogin_WebMessageReceived(
-    sender As Object,
-    e As CoreWebView2WebMessageReceivedEventArgs
-) Handles WebViewLogin.WebMessageReceived
+        sender As Object,
+        e As CoreWebView2WebMessageReceivedEventArgs
+    ) Handles WebViewLogin.WebMessageReceived
 
         Try
 
             Dim json As String =
-            e.WebMessageAsJson
+                e.WebMessageAsJson
 
             Using document As JsonDocument =
-            JsonDocument.Parse(json)
+                JsonDocument.Parse(json)
 
                 Dim root As JsonElement =
-                document.RootElement
+                    document.RootElement
 
-                ' Message must be an object
-                If root.ValueKind <> JsonValueKind.Object Then
+                '=================================================
+                ' MESSAGE MUST BE OBJECT
+                '=================================================
+
+                If root.ValueKind <>
+                    JsonValueKind.Object Then
+
                     Return
+
                 End If
 
-
-                '-------------------------------------------------
+                '=================================================
                 ' GET ACTION
-                '-------------------------------------------------
+                '=================================================
+
                 Dim actionElement As JsonElement
 
                 If Not root.TryGetProperty(
-                "action",
-                actionElement
-            ) Then
+                    "action",
+                    actionElement
+                ) Then
 
                     Return
 
                 End If
-
 
                 If actionElement.ValueKind <>
-                JsonValueKind.String Then
+                    JsonValueKind.String Then
 
                     Return
 
                 End If
 
-
                 Dim action As String =
-                actionElement.GetString()
+                    actionElement.GetString()
 
-
-                '-------------------------------------------------
+                '=================================================
                 ' HANDLE ACTION
-                '-------------------------------------------------
+                '=================================================
+
                 Select Case action
+
+                    '=================================================
+                    ' LOGIN
+                    '=================================================
 
                     Case "login"
 
                         Dim usernameElement As JsonElement
-
                         Dim passwordElement As JsonElement
 
-
                         If Not root.TryGetProperty(
-                        "username",
-                        usernameElement
-                    ) Then
+                            "username",
+                            usernameElement
+                        ) Then
 
                             SendMessageToWeb(
-                            "Username is required."
-                        )
+                                "Username is required."
+                            )
 
                             Return
 
                         End If
 
-
                         If Not root.TryGetProperty(
-                        "password",
-                        passwordElement
-                    ) Then
+                            "password",
+                            passwordElement
+                        ) Then
 
                             SendMessageToWeb(
-                            "Password is required."
-                        )
+                                "Password is required."
+                            )
 
                             Return
 
                         End If
-
 
                         Dim username As String =
-                        usernameElement.GetString()
-
+                            usernameElement.GetString()
 
                         Dim password As String =
-                        passwordElement.GetString()
-
+                            passwordElement.GetString()
 
                         LoginFromWeb(
-                        username,
-                        password
-                    )
-                        '-------------------------------------------------
-                        ' REGISTER
-                        '-------------------------------------------------
+                            username,
+                            password
+                        )
+
+
+                    '=================================================
+                    ' REGISTER
+                    '=================================================
+
                     Case "register"
 
                         Dim fullNameElement As JsonElement
@@ -194,7 +272,6 @@ Public Class FrmLogin
 
                         End If
 
-
                         If Not root.TryGetProperty(
                             "username",
                             usernameElement
@@ -207,7 +284,6 @@ Public Class FrmLogin
                             Return
 
                         End If
-
 
                         If Not root.TryGetProperty(
                             "password",
@@ -222,7 +298,6 @@ Public Class FrmLogin
 
                         End If
 
-
                         If Not root.TryGetProperty(
                             "role",
                             roleElement
@@ -236,7 +311,6 @@ Public Class FrmLogin
 
                         End If
 
-
                         Dim fullName As String =
                             fullNameElement.GetString()
 
@@ -249,39 +323,50 @@ Public Class FrmLogin
                         Dim role As String =
                             roleElement.GetString()
 
-
                         RegisterUserFromWeb(
                             fullName,
                             username,
                             password,
                             role
                         )
+
+
+                    '=================================================
+                    ' REGISTER PAGE
+                    '=================================================
+
                     Case "registerPage"
 
                         LoadRegisterPage()
 
-'-------------------------------------------------
-' BACK TO LOGIN
-'-------------------------------------------------
+
+                    '=================================================
+                    ' BACK TO LOGIN
+                    '=================================================
+
                     Case "backToLogin"
 
                         LoadLoginPage()
 
 
-'-------------------------------------------------
-' EXIT
-'-------------------------------------------------
+                    '=================================================
+                    ' EXIT
+                    '=================================================
+
                     Case "exit"
 
                         ExitApplication()
 
 
+                        '=================================================
+                        ' UNKNOWN ACTION
+                        '=================================================
+
                     Case Else
 
                         SendMessageToWeb(
-                        "Unknown action: " & action)
-
-                    
+                            "Unknown action: " & action
+                        )
 
                 End Select
 
@@ -290,14 +375,14 @@ Public Class FrmLogin
         Catch ex As Exception
 
             MessageBox.Show(
-            "WebUI communication error." &
-            Environment.NewLine &
-            Environment.NewLine &
-            ex.Message,
-            "Login Error",
-            MessageBoxButtons.OK,
-            MessageBoxIcon.Error
-        )
+                "WebUI communication error." &
+                Environment.NewLine &
+                Environment.NewLine &
+                ex.Message,
+                "Login Error",
+                MessageBoxButtons.OK,
+                MessageBoxIcon.Error
+            )
 
         End Try
 
@@ -308,134 +393,128 @@ Public Class FrmLogin
     ' LOGIN FROM WEB
     '=========================================================
     Private Sub LoginFromWeb(
-    username As String,
-    password As String
-)
+        username As String,
+        password As String
+    )
 
         Try
 
-            '=========================================================
+            '=====================================================
             ' VALIDATE INPUT
-            '=========================================================
+            '=====================================================
 
             If String.IsNullOrWhiteSpace(username) Then
 
                 SendMessageToWeb(
-                "Please enter your username."
-            )
+                    "Please enter your username."
+                )
 
                 Return
 
             End If
-
 
             If String.IsNullOrWhiteSpace(password) Then
 
                 SendMessageToWeb(
-                "Please enter your password."
-            )
+                    "Please enter your password."
+                )
 
                 Return
 
             End If
 
 
-            '=========================================================
+            '=====================================================
             ' DATABASE CONNECTION
-            '=========================================================
+            '=====================================================
 
             Using con As MySqlConnection =
-            DBConnection.GetConnection()
+                DBConnection.GetConnection()
 
                 con.Open()
 
 
-                '=========================================================
+                '=================================================
                 ' LOGIN QUERY
-                '=========================================================
+                '=================================================
 
                 Dim query As String =
-                "SELECT " &
-                "UserID, " &
-                "Username, " &
-                "FullName, " &
-                "Role, " &
-                "AccountStatus " &
-                "FROM Users " &
-                "WHERE Username = @username " &
-                "AND Password = @password"
+                    "SELECT " &
+                    "UserID, " &
+                    "Username, " &
+                    "FullName, " &
+                    "Role, " &
+                    "AccountStatus " &
+                    "FROM Users " &
+                    "WHERE Username = @username " &
+                    "AND Password = @password"
 
 
                 Using cmd As New MySqlCommand(
-                query,
-                con
-            )
-
-                    cmd.Parameters.AddWithValue(
-                    "@username",
-                    username
+                    query,
+                    con
                 )
 
                     cmd.Parameters.AddWithValue(
-                    "@password",
-                    password
-                )
+                        "@username",
+                        username
+                    )
+
+                    cmd.Parameters.AddWithValue(
+                        "@password",
+                        password
+                    )
 
 
                     Using reader As MySqlDataReader =
-                    cmd.ExecuteReader()
+                        cmd.ExecuteReader()
 
-
-                        '=================================================
+                        '=========================================
                         ' USER NOT FOUND
-                        '=================================================
+                        '=========================================
 
                         If Not reader.Read() Then
 
                             SendMessageToWeb(
-                            "Invalid username or password."
-                        )
+                                "Invalid username or password."
+                            )
 
                             Return
 
                         End If
 
 
-                        '=================================================
+                        '=========================================
                         ' READ USER INFORMATION
-                        '=================================================
+                        '=========================================
 
                         Dim userID As Integer =
-                        Convert.ToInt32(
-                            reader("UserID")
-                        )
-
+                            Convert.ToInt32(
+                                reader("UserID")
+                            )
 
                         Dim loggedUsername As String =
-                        reader("Username").ToString()
-
+                            reader("Username").ToString()
 
                         Dim fullName As String =
-                        reader("FullName").ToString()
-
+                            reader("FullName").ToString()
 
                         Dim role As String =
-                        reader("Role").ToString()
-
+                            reader("Role").ToString()
 
                         Dim accountStatus As String =
-                        reader("AccountStatus").ToString()
+                            reader("AccountStatus").ToString()
 
 
-                        '=================================================
-                        ' CHECK ACCOUNT STATUS
-                        '=================================================
+                        '=========================================
+                        ' ACCOUNT STATUS
+                        '=========================================
 
                         If accountStatus = "Pending" Then
 
                             SendMessageToWeb(
-                        "Your account is pending Admin approval."
-                        )
+                                "Your account is pending Admin approval."
+                            )
 
                             Return
 
@@ -445,8 +524,8 @@ Public Class FrmLogin
                         If accountStatus = "Rejected" Then
 
                             SendMessageToWeb(
-                            "Your account request was rejected."
-                        )
+                                "Your account request was rejected."
+                            )
 
                             Return
 
@@ -456,48 +535,71 @@ Public Class FrmLogin
                         If accountStatus <> "Approved" Then
 
                             SendMessageToWeb(
-                            "Your account is not approved."
-                        )
+                                "Your account is not approved."
+                            )
 
                             Return
 
                         End If
 
-                        '=========================================================
+
+                        '=========================================
                         ' CREATE USER SESSION
-                        '=========================================================
-                        Session.CurrentUserID = userID
-                        Session.CurrentUsername = loggedUsername
-                        Session.CurrentFullName = fullName
-                        Session.CurrentRole = role
-                        Session.CurrentAccountStatus = accountStatus
+                        '=========================================
+
+                        Session.CurrentUserID =
+                            userID
+
+                        Session.CurrentUsername =
+                            loggedUsername
+
+                        Session.CurrentFullName =
+                            fullName
+
+                        Session.CurrentRole =
+                            role
+
+                        Session.CurrentAccountStatus =
+                            accountStatus
 
 
-                        '=========================================================
+                        '=========================================
                         ' LOGIN SUCCESSFUL
-                        '=========================================================
+                        '=========================================
+
                         MessageBox.Show(
-                        "Welcome, " & fullName & "!" &
-                        Environment.NewLine &
-                        "Role: " & role,
-                        "Login Successful",
-                         MessageBoxButtons.OK,
-                         MessageBoxIcon.Information
+                            "Welcome, " &
+                            fullName &
+                            "!" &
+                            Environment.NewLine &
+                            "Role: " &
+                            role,
+                            "Login Successful",
+                            MessageBoxButtons.OK,
+                            MessageBoxIcon.Information
                         )
 
 
-                        '=========================================================
+                        '=========================================
+                        ' CLOSE/HIDE LOGIN FORM FIRST
+                        '=========================================
+
+                        Me.Hide()
+
+
+                        '=========================================
                         ' OPEN MAIN FORM
-                        '=========================================================
+                        '=========================================
+
                         FrmMain.Show()
 
                         FrmMain.WindowState =
-                        FormWindowState.Normal
+                            FormWindowState.Normal
 
                         FrmMain.BringToFront()
+
                         FrmMain.Activate()
 
-                        Me.Hide()
 
                     End Using
 
@@ -509,141 +611,165 @@ Public Class FrmLogin
         Catch ex As MySqlException
 
             MessageBox.Show(
-            "Database connection error." &
-            Environment.NewLine &
-            Environment.NewLine &
-            ex.Message,
-            "Login Error",
-            MessageBoxButtons.OK,
-            MessageBoxIcon.Error
-        )
+                "Database connection error." &
+                Environment.NewLine &
+                Environment.NewLine &
+                ex.Message,
+                "Login Error",
+                MessageBoxButtons.OK,
+                MessageBoxIcon.Error
+            )
 
 
         Catch ex As Exception
 
             MessageBox.Show(
-            "Unable to login." &
-            Environment.NewLine &
-            Environment.NewLine &
-            ex.Message,
-            "Login Error",
-            MessageBoxButtons.OK,
-            MessageBoxIcon.Error
-        )
+                "Unable to login." &
+                Environment.NewLine &
+                Environment.NewLine &
+                ex.Message,
+                "Login Error",
+                MessageBoxButtons.OK,
+                MessageBoxIcon.Error
+            )
 
         End Try
 
     End Sub
 
+
     '=========================================================
     ' REGISTER USER
     '=========================================================
     Private Sub RegisterUserFromWeb(
-    fullName As String,
-    username As String,
-    password As String,
-    role As String
-)
+        fullName As String,
+        username As String,
+        password As String,
+        role As String
+    )
 
         Try
 
-            '=========================================================
+            '=====================================================
             ' VALIDATION
-            '=========================================================
+            '=====================================================
 
             If String.IsNullOrWhiteSpace(fullName) Then
-                SendMessageToWeb("Please enter your full name.")
+
+                SendMessageToWeb(
+                    "Please enter your full name."
+                )
+
                 Return
+
             End If
 
             If String.IsNullOrWhiteSpace(username) Then
-                SendMessageToWeb("Please enter a username.")
+
+                SendMessageToWeb(
+                    "Please enter a username."
+                )
+
                 Return
+
             End If
 
             If String.IsNullOrWhiteSpace(password) Then
-                SendMessageToWeb("Please enter a password.")
+
+                SendMessageToWeb(
+                    "Please enter a password."
+                )
+
                 Return
+
             End If
 
             If String.IsNullOrWhiteSpace(role) Then
-                SendMessageToWeb("Please select a role.")
+
+                SendMessageToWeb(
+                    "Please select a role."
+                )
+
                 Return
+
             End If
 
 
-            '=========================================================
+            '=====================================================
             ' ALLOWED ROLES
-            '=========================================================
+            '=====================================================
 
             If role <> "Staff" AndAlso
-           role <> "Manager" AndAlso
-           role <> "Admin" Then
+               role <> "Manager" AndAlso
+               role <> "Admin" Then
 
-                SendMessageToWeb("Invalid role selected.")
+                SendMessageToWeb(
+                    "Invalid role selected."
+                )
+
                 Return
 
             End If
 
 
-            '=========================================================
+            '=====================================================
             ' DETERMINE ACCOUNT STATUS
-            '=========================================================
+            '=====================================================
 
             Dim accountStatus As String
 
             If role = "Admin" Then
 
-                'Admin registration requires approval
                 accountStatus = "Pending"
 
             Else
 
-                'Staff and Manager can register directly
                 accountStatus = "Approved"
 
             End If
 
 
-            '=========================================================
+            '=====================================================
             ' DATABASE
-            '=========================================================
+            '=====================================================
 
             Using con As MySqlConnection =
-            DBConnection.GetConnection()
+                DBConnection.GetConnection()
 
                 con.Open()
 
 
-                '=====================================================
+                '=================================================
                 ' CHECK USERNAME
-                '=====================================================
+                '=================================================
 
                 Dim checkQuery As String =
-                "SELECT COUNT(*) " &
-                "FROM Users " &
-                "WHERE Username = @username"
+                    "SELECT COUNT(*) " &
+                    "FROM Users " &
+                    "WHERE Username = @username"
+
 
                 Using checkCmd As New MySqlCommand(
-                checkQuery,
-                con
-            )
-
-                    checkCmd.Parameters.AddWithValue(
-                    "@username",
-                    username
+                    checkQuery,
+                    con
                 )
 
-                    Dim userCount As Integer =
-                    Convert.ToInt32(
-                        checkCmd.ExecuteScalar()
+                    checkCmd.Parameters.AddWithValue(
+                        "@username",
+                        username
                     )
+
+                    Dim userCount As Integer =
+                        Convert.ToInt32(
+                            checkCmd.ExecuteScalar()
+                        )
+
 
                     If userCount > 0 Then
 
                         SendMessageToWeb(
-                        "Username already exists."
-                    )
+                            "Username already exists."
+                        )
 
                         Return
 
@@ -652,89 +778,90 @@ Public Class FrmLogin
                 End Using
 
 
-                '=====================================================
+                '=================================================
                 ' INSERT USER
-                '=====================================================
+                '=================================================
 
                 Dim insertQuery As String =
-                "INSERT INTO Users " &
-                "(Username, Password, FullName, Role, AccountStatus) " &
-                "VALUES " &
-                "(@username, @password, @fullName, @role, @accountStatus)"
+                    "INSERT INTO Users " &
+                    "(Username, Password, FullName, Role, AccountStatus) " &
+                    "VALUES " &
+                    "(@username, @password, @fullName, @role, @accountStatus)"
+
 
                 Using cmd As New MySqlCommand(
-                insertQuery,
-                con
-            )
-
-                    cmd.Parameters.AddWithValue(
-                    "@username",
-                    username
+                    insertQuery,
+                    con
                 )
 
                     cmd.Parameters.AddWithValue(
-                    "@password",
-                    password
-                )
+                        "@username",
+                        username
+                    )
 
                     cmd.Parameters.AddWithValue(
-                    "@fullName",
-                    fullName
-                )
+                        "@password",
+                        password
+                    )
 
                     cmd.Parameters.AddWithValue(
-                    "@role",
-                    role
-                )
+                        "@fullName",
+                        fullName
+                    )
 
                     cmd.Parameters.AddWithValue(
-                    "@accountStatus",
-                    accountStatus
-                )
+                        "@role",
+                        role
+                    )
+
+                    cmd.Parameters.AddWithValue(
+                        "@accountStatus",
+                        accountStatus
+                    )
 
 
                     Dim rowsAffected As Integer =
-                    cmd.ExecuteNonQuery()
+                        cmd.ExecuteNonQuery()
 
 
                     If rowsAffected > 0 Then
 
-                        '=================================================
+                        '=========================================
                         ' ADMIN REQUEST
-                        '=================================================
+                        '=========================================
 
                         If role = "Admin" Then
 
                             MessageBox.Show(
-                            "Admin access request submitted!" &
-                            Environment.NewLine &
-                            Environment.NewLine &
-                            "Your account is waiting for approval " &
-                            "from an existing Admin." &
-                            Environment.NewLine &
-                            Environment.NewLine &
-                            "You cannot login until your request " &
-                            "is approved.",
-                            "Admin Approval Required",
-                            MessageBoxButtons.OK,
-                            MessageBoxIcon.Information
-                        )
+                                "Admin access request submitted!" &
+                                Environment.NewLine &
+                                Environment.NewLine &
+                                "Your account is waiting for approval " &
+                                "from an existing Admin." &
+                                Environment.NewLine &
+                                Environment.NewLine &
+                                "You cannot login until your request " &
+                                "is approved.",
+                                "Admin Approval Required",
+                                MessageBoxButtons.OK,
+                                MessageBoxIcon.Information
+                            )
 
                         Else
 
-                            '=================================================
+                            '=========================================
                             ' NORMAL ACCOUNT
-                            '=================================================
+                            '=========================================
 
                             MessageBox.Show(
-                            "Account created successfully!" &
-                            Environment.NewLine &
-                            Environment.NewLine &
-                            "You can now login.",
-                            "Registration Successful",
-                            MessageBoxButtons.OK,
-                            MessageBoxIcon.Information
-                        )
+                                "Account created successfully!" &
+                                Environment.NewLine &
+                                Environment.NewLine &
+                                "You can now login.",
+                                "Registration Successful",
+                                MessageBoxButtons.OK,
+                                MessageBoxIcon.Information
+                            )
 
                         End If
 
@@ -744,8 +871,8 @@ Public Class FrmLogin
                     Else
 
                         SendMessageToWeb(
-                        "Unable to create account."
-                    )
+                            "Unable to create account."
+                        )
 
                     End If
 
@@ -759,13 +886,28 @@ Public Class FrmLogin
             If ex.Number = 1062 Then
 
                 SendMessageToWeb(
-                "Username already exists."
-            )
+                    "Username already exists."
+                )
 
             Else
 
                 MessageBox.Show(
-                "Database error during registration." &
+                    "Database error during registration." &
+                    Environment.NewLine &
+                    Environment.NewLine &
+                    ex.Message,
+                    "Registration Error",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Error
+                )
+
+            End If
+
+
+        Catch ex As Exception
+
+            MessageBox.Show(
+                "Unable to create account." &
                 Environment.NewLine &
                 Environment.NewLine &
                 ex.Message,
@@ -774,24 +916,10 @@ Public Class FrmLogin
                 MessageBoxIcon.Error
             )
 
-            End If
-
-
-        Catch ex As Exception
-
-            MessageBox.Show(
-            "Unable to create account." &
-            Environment.NewLine &
-            Environment.NewLine &
-            ex.Message,
-            "Registration Error",
-            MessageBoxButtons.OK,
-            MessageBoxIcon.Error
-        )
-
         End Try
 
     End Sub
+
 
     '=========================================================
     ' LOAD LOGIN PAGE
@@ -801,24 +929,24 @@ Public Class FrmLogin
         Try
 
             Dim loginPath As String =
-            Path.Combine(
-                Application.StartupPath,
-                "WebUI",
-                "login.html"
-            )
+                Path.Combine(
+                    Application.StartupPath,
+                    "WebUI",
+                    "login.html"
+                )
 
 
             If Not File.Exists(loginPath) Then
 
                 MessageBox.Show(
-                "Login page was not found." &
-                Environment.NewLine &
-                Environment.NewLine &
-                loginPath,
-                "WebUI Error",
-                MessageBoxButtons.OK,
-                MessageBoxIcon.Error
-            )
+                    "Login page was not found." &
+                    Environment.NewLine &
+                    Environment.NewLine &
+                    loginPath,
+                    "WebUI Error",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Error
+                )
 
                 Return
 
@@ -826,20 +954,20 @@ Public Class FrmLogin
 
 
             WebViewLogin.Source =
-            New Uri(loginPath)
+                New Uri(loginPath)
 
 
         Catch ex As Exception
 
             MessageBox.Show(
-            "Unable to load Login page." &
-            Environment.NewLine &
-            Environment.NewLine &
-            ex.Message,
-            "Login Error",
-            MessageBoxButtons.OK,
-            MessageBoxIcon.Error
-        )
+                "Unable to load Login page." &
+                Environment.NewLine &
+                Environment.NewLine &
+                ex.Message,
+                "Login Error",
+                MessageBoxButtons.OK,
+                MessageBoxIcon.Error
+            )
 
         End Try
 
@@ -911,6 +1039,7 @@ Public Class FrmLogin
 
     End Sub
 
+
     '=========================================================
     ' LOAD REGISTER PAGE
     '=========================================================
@@ -962,4 +1091,5 @@ Public Class FrmLogin
         End Try
 
     End Sub
+
 End Class
