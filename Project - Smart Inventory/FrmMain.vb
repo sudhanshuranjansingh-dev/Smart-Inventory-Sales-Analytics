@@ -192,6 +192,9 @@ Public Class FrmMain
                 '=================================================
                 Select Case action
 
+                    Case "loadDashboard"
+                        LoadDashboardToWeb()
+
                     Case "loadProducts"
 
                         LoadProductsToWeb()
@@ -312,6 +315,9 @@ Public Class FrmMain
         End Try
 
     End Sub
+
+
+
 
 
     '=========================================================
@@ -472,7 +478,318 @@ Public Class FrmMain
 
 
 
+    '=========================================================
+    ' LOAD DASHBOARD DATA TO WEB UI
+    '=========================================================
+    Private Sub LoadDashboardToWeb()
 
+        Try
+
+            Using conn As MySqlConnection =
+            DBConnection.GetConnection()
+
+                conn.Open()
+
+
+                '=================================================
+                ' SUMMARY VALUES
+                '=================================================
+
+                Dim totalProducts As Integer = 0
+
+                Dim totalSales As Decimal = 0D
+
+                Dim lowStock As Integer = 0
+
+                Dim totalUnits As Integer = 0
+
+                Dim inStock As Integer = 0
+
+                Dim lowStockItems As Integer = 0
+
+                Dim outOfStock As Integer = 0
+
+
+                '=================================================
+                ' TOTAL PRODUCTS
+                '=================================================
+
+                Dim productQuery As String =
+                "SELECT COUNT(*) " &
+                "FROM Products"
+
+
+                Using cmd As New MySqlCommand(
+                productQuery,
+                conn
+            )
+
+                    totalProducts =
+                    Convert.ToInt32(
+                        cmd.ExecuteScalar()
+                    )
+
+                End Using
+
+
+                '=================================================
+                ' TOTAL SALES
+                '=================================================
+
+                Dim salesQuery As String =
+                "SELECT COALESCE(SUM(TotalAmount), 0) " &
+                "FROM Sales"
+
+
+                Using cmd As New MySqlCommand(
+                salesQuery,
+                conn
+            )
+
+                    totalSales =
+                    Convert.ToDecimal(
+                        cmd.ExecuteScalar()
+                    )
+
+                End Using
+
+
+                '=================================================
+                ' TOTAL UNITS
+                '=================================================
+
+                Dim unitsQuery As String =
+                "SELECT COALESCE(SUM(StockQuantity), 0) " &
+                "FROM Products"
+
+
+                Using cmd As New MySqlCommand(
+                unitsQuery,
+                conn
+            )
+
+                    totalUnits =
+                    Convert.ToInt32(
+                        cmd.ExecuteScalar()
+                    )
+
+                End Using
+
+
+                '=================================================
+                ' LOW STOCK
+                '
+                ' Stock > 0 AND Stock <= MinimumStock
+                '=================================================
+
+                Dim lowStockQuery As String =
+                "SELECT COUNT(*) " &
+                "FROM Products " &
+                "WHERE StockQuantity > 0 " &
+                "AND StockQuantity <= MinimumStock"
+
+
+                Using cmd As New MySqlCommand(
+                lowStockQuery,
+                conn
+            )
+
+                    lowStock =
+                    Convert.ToInt32(
+                        cmd.ExecuteScalar()
+                    )
+
+                End Using
+
+
+                lowStockItems =
+                lowStock
+
+
+                '=================================================
+                ' IN STOCK
+                '
+                ' Stock greater than MinimumStock
+                '=================================================
+
+                Dim inStockQuery As String =
+                "SELECT COUNT(*) " &
+                "FROM Products " &
+                "WHERE StockQuantity > MinimumStock"
+
+
+                Using cmd As New MySqlCommand(
+                inStockQuery,
+                conn
+            )
+
+                    inStock =
+                    Convert.ToInt32(
+                        cmd.ExecuteScalar()
+                    )
+
+                End Using
+
+
+                '=================================================
+                ' OUT OF STOCK
+                '=================================================
+
+                Dim outOfStockQuery As String =
+                "SELECT COUNT(*) " &
+                "FROM Products " &
+                "WHERE StockQuantity <= 0"
+
+
+                Using cmd As New MySqlCommand(
+                outOfStockQuery,
+                conn
+            )
+
+                    outOfStock =
+                    Convert.ToInt32(
+                        cmd.ExecuteScalar()
+                    )
+
+                End Using
+
+
+                '=================================================
+                ' MONTHLY SALES
+                ' CURRENT YEAR
+                '=================================================
+
+                Dim months As New List(Of String)
+
+                Dim monthlySales As New List(Of Decimal)
+
+
+                For monthNumber As Integer = 1 To 12
+
+                    months.Add(
+                    Globalization.CultureInfo.CurrentCulture.
+                    DateTimeFormat.
+                    GetAbbreviatedMonthName(
+                        monthNumber
+                    )
+                )
+
+                    monthlySales.Add(0D)
+
+                Next
+
+
+                Dim monthlyQuery As String =
+                "SELECT " &
+                "MONTH(SaleDate) AS SaleMonth, " &
+                "COALESCE(SUM(TotalAmount), 0) AS Amount " &
+                "FROM Sales " &
+                "WHERE YEAR(SaleDate) = @Year " &
+                "GROUP BY MONTH(SaleDate) " &
+                "ORDER BY MONTH(SaleDate)"
+
+
+                Using cmd As New MySqlCommand(
+                monthlyQuery,
+                conn
+            )
+
+                    cmd.Parameters.AddWithValue(
+                    "@Year",
+                    Date.Today.Year
+                )
+
+
+                    Using reader As MySqlDataReader =
+                    cmd.ExecuteReader()
+
+                        While reader.Read()
+
+                            Dim monthNumber As Integer =
+                            Convert.ToInt32(
+                                reader("SaleMonth")
+                            )
+
+
+                            Dim amount As Decimal =
+                            Convert.ToDecimal(
+                                reader("Amount")
+                            )
+
+
+                            If monthNumber >= 1 AndAlso
+                           monthNumber <= 12 Then
+
+                                monthlySales(
+                                monthNumber - 1
+                            ) = amount
+
+                            End If
+
+                        End While
+
+                    End Using
+
+                End Using
+
+
+                '=================================================
+                ' BUILD DASHBOARD RESPONSE
+                '=================================================
+
+                Dim dashboardData =
+                      New With {
+                         .type = "dashboard",
+                         .totalProducts = totalProducts,
+                         .totalSales = totalSales,
+                         .lowStock = lowStock,
+                         .totalUnits = totalUnits,
+                         .inStock = inStock,
+                         .lowStockItems = lowStockItems,
+                         .outOfStock = outOfStock,
+                         .months = months,
+                         .sales = monthlySales
+                     }
+
+
+                '=================================================
+                ' SEND DASHBOARD DATA TO WEB UI
+                '=================================================
+
+                SendToWeb(dashboardData)
+
+
+            End Using
+
+
+        Catch ex As Exception
+
+            '=================================================
+            ' SEND ERROR TO WEB UI
+            '=================================================
+
+            Dim dashboardError =
+    New With {
+        .type = "dashboardError",
+        .message = "Unable to load dashboard: " & ex.Message
+    }
+
+            SendToWeb(dashboardError)
+
+
+            MessageBox.Show(
+            "Unable to load dashboard:" &
+            Environment.NewLine &
+            Environment.NewLine &
+            ex.Message,
+            "Dashboard Error",
+            MessageBoxButtons.OK,
+            MessageBoxIcon.Error
+        )
+
+        End Try
+
+    End Sub
 
 
     '=========================================================
@@ -1592,9 +1909,10 @@ Public Class FrmMain
                 ' LOAD CATEGORIES
                 '-------------------------------------------------
                 Dim query As String =
-                "SELECT CategoryID, CategoryName " &
+                "SELECT CategoryID,
+                CategoryName " &
                 "FROM Categories " &
-                "ORDER BY CategoryName"
+                "ORDER BY CategoryID ASC"
 
 
                 Using cmd As New MySqlCommand(

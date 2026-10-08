@@ -262,6 +262,8 @@ const supportedActions = [
     /* -----------------------------------------------------
        Products
     ----------------------------------------------------- */
+
+    "loadDashboard",
     "loadProductAnalysis",
     "loadProducts",
     "addProduct",

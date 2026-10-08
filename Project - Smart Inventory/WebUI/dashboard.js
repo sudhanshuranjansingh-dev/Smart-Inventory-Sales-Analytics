@@ -2,13 +2,7 @@
    SMART INVENTORY - DASHBOARD JAVASCRIPT
    ========================================================= */
 
-
-/* =========================================================
-   CHART VARIABLES
-   ========================================================= */
-
 let monthlySalesChart = null;
-
 let inventoryStatusChart = null;
 
 
@@ -39,82 +33,164 @@ document.addEventListener(
                 "click",
                 function () {
 
-                    requestDashboardRefresh();
+                    requestDashboardData();
 
                 }
             );
 
         }
 
+
+        /* -------------------------------------------------
+           LOAD DASHBOARD DATA AUTOMATICALLY
+           ------------------------------------------------- */
+
+        requestDashboardData();
+
     }
 );
 
 
 /* =========================================================
-   REQUEST REFRESH FROM VB.NET
+   REQUEST DASHBOARD DATA
    ========================================================= */
 
-function requestDashboardRefresh() {
+function requestDashboardData() {
+
+    const message = {
+
+        action: "loadDashboard"
+
+    };
+
+
+    console.log(
+        "Requesting dashboard data:",
+        message
+    );
+
+
+    /*
+       Dashboard is inside page-frame iframe.
+
+       Send request to main.js.
+    */
+
+    if (
+        window.parent &&
+        window.parent !== window
+    ) {
+
+        window.parent.postMessage(
+            message,
+            "*"
+        );
+
+        return;
+
+    }
+
+
+    /*
+       Fallback for direct WebView2.
+    */
 
     if (
         window.chrome &&
         window.chrome.webview
     ) {
 
-        window.chrome.webview.postMessage({
-
-            action: "refreshDashboard"
-
-        });
-
-    }
-    else {
-
-        console.warn(
-            "WebView2 communication is not available."
+        window.chrome.webview.postMessage(
+            JSON.stringify(message)
         );
 
+        return;
+
     }
+
+
+    console.warn(
+        "WebView2 communication is not available."
+    );
 
 }
 
 
 /* =========================================================
-   RECEIVE DATA FROM VB.NET
+   RECEIVE DATA FROM MAIN.JS / VB.NET
    ========================================================= */
 
-if (
-    window.chrome &&
-    window.chrome.webview
-) {
+window.addEventListener(
+    "message",
+    function (event) {
 
-    window.chrome.webview.addEventListener(
-        "message",
-        function (event) {
+        if (!event.data) {
 
-            console.log(
-                "Dashboard data received:",
-                event.data
+            return;
+
+        }
+
+
+        let data;
+
+
+        try {
+
+            data =
+                typeof event.data === "string"
+                    ? JSON.parse(event.data)
+                    : event.data;
+
+        }
+        catch (error) {
+
+            console.error(
+                "Invalid dashboard message:",
+                error
             );
 
+            return;
 
-            const data =
-                event.data;
+        }
 
 
-            if (!data) {
+        console.log(
+            "Dashboard data received:",
+            data
+        );
 
-                return;
 
-            }
+        /* -------------------------------------------------
+           DASHBOARD DATA
+           ------------------------------------------------- */
 
+        if (
+            data.type === "dashboard" ||
+            data.type === "dashboardData"
+        ) {
 
             updateDashboard(data);
 
         }
-    );
 
-}
+
+        /* -------------------------------------------------
+           DASHBOARD ERROR
+           ------------------------------------------------- */
+
+        if (
+            data.type === "dashboardError"
+        ) {
+
+            console.error(
+                "Dashboard error:",
+                data.message
+            );
+
+        }
+
+    }
+);
 
 
 /* =========================================================
@@ -130,88 +206,109 @@ function updateDashboard(data) {
     }
 
 
-    /* -----------------------------------------------------
+    /*
+       Some backend responses may place values directly
+       inside the response, while others may place them
+       inside data.data.
+
+       Support both.
+    */
+
+    const dashboard =
+        data.data &&
+        typeof data.data === "object"
+            ? data.data
+            : data;
+
+
+    /* =====================================================
        SUMMARY CARDS
-       ----------------------------------------------------- */
+       ===================================================== */
 
     setValue(
         "totalProducts",
-        data.totalProducts
+        dashboard.totalProducts
     );
 
 
     setValue(
         "totalSales",
-        data.totalSales
+        formatCurrency(
+            dashboard.totalSales
+        )
     );
 
 
     setValue(
         "lowStock",
-        data.lowStock
+        dashboard.lowStock
     );
 
 
     setValue(
         "totalUnits",
-        data.totalUnits
+        dashboard.totalUnits
     );
 
 
-    /* -----------------------------------------------------
+    /* =====================================================
        INVENTORY STATUS
-       ----------------------------------------------------- */
+       ===================================================== */
 
     setValue(
         "inStock",
-        data.inStock
+        dashboard.inStock
     );
 
 
     setValue(
         "lowStockItems",
-        data.lowStockItems
+        dashboard.lowStockItems
     );
 
 
     setValue(
         "outOfStock",
-        data.outOfStock
+        dashboard.outOfStock
     );
 
 
-    /* -----------------------------------------------------
-       MONTHLY SALES CHART
-       ----------------------------------------------------- */
+    /* =====================================================
+       MONTHLY SALES
+       ===================================================== */
 
     if (
-        Array.isArray(data.months) &&
-        Array.isArray(data.sales)
+        Array.isArray(dashboard.months) &&
+        Array.isArray(dashboard.sales)
     ) {
 
         createMonthlySalesChart(
-            data.months,
-            data.sales
+            dashboard.months,
+            dashboard.sales
         );
 
     }
 
 
-    /* -----------------------------------------------------
+    /* =====================================================
        INVENTORY STATUS CHART
-       ----------------------------------------------------- */
+       ===================================================== */
 
     createInventoryStatusChart(
-        data.inStock,
-        data.lowStockItems,
-        data.outOfStock
+
+        dashboard.inStock,
+
+        dashboard.lowStockItems,
+
+        dashboard.outOfStock
+
     );
 
 }
 
 
 /* =========================================================
-   SET HTML ELEMENT VALUE
+   SET HTML VALUE
    ========================================================= */
 
 function setValue(
@@ -225,12 +322,54 @@ function setValue(
         );
 
 
-    if (element) {
+    if (!element) {
 
-        element.textContent =
-            value ?? "0";
+        console.warn(
+            "Dashboard element not found:",
+            elementId
+        );
+
+        return;
 
     }
+
+
+    if (
+        value === null ||
+        value === undefined ||
+        value === ""
+    ) {
+
+        element.textContent = "0";
+
+    }
+    else {
+
+        element.textContent = value;
+
+    }
+
+}
+
+
+/* =========================================================
+   FORMAT CURRENCY
+   ========================================================= */
+
+function formatCurrency(value) {
+
+    const number =
+        Number(value) || 0;
+
+
+    return "₹" +
+        number.toLocaleString(
+            "en-IN",
+            {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            }
+        );
 
 }
 
@@ -252,7 +391,7 @@ function createMonthlySalesChart(
 
     if (!canvas) {
 
-        console.error(
+        console.warn(
             "Sales chart canvas not found."
         );
 
@@ -261,20 +400,12 @@ function createMonthlySalesChart(
     }
 
 
-    /* -----------------------------------------------------
-       Destroy Previous Chart
-       ----------------------------------------------------- */
-
     if (monthlySalesChart) {
 
         monthlySalesChart.destroy();
 
     }
 
-
-    /* -----------------------------------------------------
-       Create Chart
-       ----------------------------------------------------- */
 
     monthlySalesChart =
         new Chart(
@@ -288,7 +419,6 @@ function createMonthlySalesChart(
 
                     labels: months,
 
-
                     datasets: [
 
                         {
@@ -296,13 +426,10 @@ function createMonthlySalesChart(
                             label:
                                 "Monthly Sales",
 
-
                             data:
                                 sales,
 
-
                             borderWidth: 1,
-
 
                             borderRadius: 6
 
@@ -338,7 +465,7 @@ function createMonthlySalesChart(
 
                                         return " ₹" +
                                             Number(
-                                                context.raw
+                                                context.raw || 0
                                             ).toLocaleString(
                                                 "en-IN",
                                                 {
@@ -419,7 +546,7 @@ function createInventoryStatusChart(
 
     if (!canvas) {
 
-        console.error(
+        console.warn(
             "Inventory chart canvas not found."
         );
 
@@ -428,20 +555,12 @@ function createInventoryStatusChart(
     }
 
 
-    /* -----------------------------------------------------
-       Destroy Previous Chart
-       ----------------------------------------------------- */
-
     if (inventoryStatusChart) {
 
         inventoryStatusChart.destroy();
 
     }
 
-
-    /* -----------------------------------------------------
-       Convert Values
-       ----------------------------------------------------- */
 
     const inStockValue =
         Number(inStock) || 0;
@@ -454,10 +573,6 @@ function createInventoryStatusChart(
     const outOfStockValue =
         Number(outOfStock) || 0;
 
-
-    /* -----------------------------------------------------
-       Create Doughnut Chart
-       ----------------------------------------------------- */
 
     inventoryStatusChart =
         new Chart(
@@ -493,7 +608,6 @@ function createInventoryStatusChart(
                                 outOfStockValue
 
                             ],
-
 
                             borderWidth: 2
 
