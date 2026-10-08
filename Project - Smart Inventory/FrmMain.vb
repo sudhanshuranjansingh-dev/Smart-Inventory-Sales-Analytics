@@ -13,6 +13,14 @@ Public Class FrmMain
         e As EventArgs
     ) Handles MyBase.Load
 
+        Me.FormBorderStyle = FormBorderStyle.Sizable
+
+        Me.MinimizeBox = True
+        Me.MaximizeBox = True
+        Me.ControlBox = True
+
+        Me.Text = "Smart Inventory"
+
         Try
 
 

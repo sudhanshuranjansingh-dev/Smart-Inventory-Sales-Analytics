@@ -5,6 +5,7 @@ Imports Microsoft.Web.WebView2.Core
 
 Public Class FrmLogin
 
+
     '=========================================================
     ' FORM LOAD
     '=========================================================
@@ -12,6 +13,8 @@ Public Class FrmLogin
         sender As Object,
         e As EventArgs
     ) Handles MyBase.Load
+
+        Me.FormBorderStyle = FormBorderStyle.None
 
         Try
 
