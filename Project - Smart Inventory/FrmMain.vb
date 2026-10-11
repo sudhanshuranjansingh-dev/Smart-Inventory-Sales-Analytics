@@ -511,6 +511,13 @@ Public Class FrmMain
 
 
                 '=================================================
+                ' CATEGORY-WISE PRODUCT DATA
+                '=================================================
+
+                Dim categoryNames As New List(Of String)
+                Dim categoryCounts As New List(Of Integer)
+
+                '=================================================
                 ' TOTAL PRODUCTS
                 '=================================================
 
@@ -733,6 +740,40 @@ Public Class FrmMain
                 End Using
 
 
+
+                '=================================================
+                ' CATEGORY-WISE PRODUCT COUNTS
+                '=================================================
+
+                Dim categoryQuery As String =
+    "SELECT c.CategoryName, COUNT(p.ProductID) AS ProductCount " &
+    "FROM Categories c " &
+    "LEFT JOIN Products p ON c.CategoryID = p.CategoryID " &
+    "GROUP BY c.CategoryID, c.CategoryName " &
+    "HAVING COUNT(p.ProductID) > 0 " &
+    "ORDER BY c.CategoryName"
+
+                Using cmd As New MySqlCommand(categoryQuery, conn)
+
+                    Using reader As MySqlDataReader = cmd.ExecuteReader()
+
+                        While reader.Read()
+
+                            categoryNames.Add(
+                Convert.ToString(reader("CategoryName"))
+            )
+
+                            categoryCounts.Add(
+                Convert.ToInt32(reader("ProductCount"))
+            )
+
+                        End While
+
+                    End Using
+
+                End Using
+
+
                 '=================================================
                 ' BUILD DASHBOARD RESPONSE
                 '=================================================
@@ -747,6 +788,8 @@ Public Class FrmMain
                          .inStock = inStock,
                          .lowStockItems = lowStockItems,
                          .outOfStock = outOfStock,
+                         .categoryNames = categoryNames,
+                         .categoryCounts = categoryCounts,
                          .months = months,
                          .sales = monthlySales
                      }
