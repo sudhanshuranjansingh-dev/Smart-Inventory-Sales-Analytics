@@ -8,7 +8,7 @@ let categories = [];
 let suppliers = [];
 
 let editingProductId = null;
-
+let currentUserRole = "";
 
 /* =========================================================
    PAGE LOAD
@@ -17,6 +17,8 @@ let editingProductId = null;
 document.addEventListener("DOMContentLoaded", function () {
 
     console.log("Products page loaded.");
+
+    requestCurrentUser();
 
     requestProducts();
     requestCategories();
@@ -113,6 +115,18 @@ function requestSuppliers() {
 
 }
 
+/* =========================================================
+   REQUEST CURRENT USER
+   ========================================================= */
+
+function requestCurrentUser() {
+
+    sendToVB({
+        action: "getCurrentUser"
+    });
+
+}
+
 
 /* =========================================================
    RECEIVE DATA FROM MAIN.JS / VB.NET
@@ -155,6 +169,27 @@ window.addEventListener(
             data
         );
 
+        /* =========================================================
+   CURRENT USER ROLE
+   ========================================================= */
+
+        if (data.type === "currentUser") {
+
+            currentUserRole =
+                String(data.role || "")
+                    .trim().toLowerCase();
+
+            console.log(
+                "Products page user role:",
+                currentUserRole
+            );
+
+            // Refresh product table after receiving the role
+            renderProducts(products);
+
+            return;
+
+        }
 
         /* =================================================
            PRODUCTS
@@ -700,7 +735,26 @@ function saveProduct(event) {
    EDIT PRODUCT
    ========================================================= */
 
+/* =========================================================
+   EDIT PRODUCT
+   ========================================================= */
+
 function editProduct(id) {
+
+    if (
+        String(currentUserRole || "")
+            .trim()
+            .toLowerCase() === "staff"
+    ) {
+
+        alert(
+            "Staff accounts are not allowed to modify products."
+        );
+
+        return;
+
+    }
+
 
     const product =
         products.find(
@@ -743,19 +797,11 @@ function editProduct(id) {
         product.ProductName || "";
 
 
-    /*
-       Category
-    */
-
     document.getElementById(
         "product-category"
     ).value =
         product.CategoryID || "";
 
-
-    /*
-       Supplier
-    */
 
     document.getElementById(
         "product-supplier"
@@ -793,12 +839,86 @@ function editProduct(id) {
 
 }
 
-
 /* =========================================================
    DELETE PRODUCT
    ========================================================= */
 
 function deleteProduct(id) {
+
+    if (
+        String(currentUserRole || "")
+            .trim()
+            .toLowerCase() === "staff"
+    ) {
+
+        alert(
+            "Staff accounts are not allowed to delete products."
+        );
+
+        return;
+
+    }
+
+
+    const product =
+        products.find(
+            p =>
+                Number(p.ProductID) ===
+                Number(id)
+        );
+
+
+    if (!product) {
+
+        return;
+
+    }
+
+
+    const result =
+        confirm(
+            `Delete "${product.ProductName}"?`
+        );
+
+
+    if (!result) {
+
+        return;
+
+    }
+
+
+    sendToVB({
+
+        action:
+            "deleteProduct",
+
+        ProductID:
+            Number(id)
+
+    });
+
+}
+/* =========================================================
+   DELETE PRODUCT
+   ========================================================= */
+
+function deleteProduct(id) {
+
+    if (
+        String(currentUserRole || "")
+            .trim()
+            .toLowerCase() === "staff"
+    ) {
+
+        alert(
+            "Staff accounts are not allowed to delete products."
+        );
+
+        return;
+
+    }
+
 
     const product =
         products.find(
@@ -840,202 +960,137 @@ function deleteProduct(id) {
 
 }
 
-
 /* =========================================================
    RENDER PRODUCTS
    ========================================================= */
 
-function renderProducts(
-    list = products
-) {
+function renderProducts(list = products) {
 
     const tbody =
-        document.getElementById(
-            "product-table-body"
-        );
-
+        document.getElementById("product-table-body");
 
     if (!tbody) {
-
-        console.error(
-            "Product table body not found."
-        );
-
+        console.error("Product table body not found.");
         return;
-
     }
 
+    const role =
+        String(currentUserRole || "")
+            .trim()
+            .toLowerCase();
 
-    if (
-        !list ||
-        list.length === 0
-    ) {
+    const isStaff =
+        role === "staff";
 
+    const table =
+        tbody.closest("table");
+
+    if (table) {
+        const headers =
+            table.querySelectorAll("thead th");
+
+        if (headers.length > 0) {
+            headers[headers.length - 1].style.display =
+                isStaff ? "none" : "";
+        }
+    }
+
+    if (!list || list.length === 0) {
         tbody.innerHTML = `
-
             <tr>
-
-                <td
-                    colspan="10"
-                    class="empty-state">
-
+                <td colspan="${isStaff ? 9 : 10}" class="empty-state">
                     No products available
-
                 </td>
-
             </tr>
-
         `;
 
         return;
-
     }
 
-
     tbody.innerHTML = "";
-
 
     list.forEach(function (product) {
 
         const stock =
-            Number(
-                product.StockQuantity || 0
-            );
-
+            Number(product.StockQuantity || 0);
 
         const minimum =
-            Number(
-                product.MinimumStock || 10
-            );
-
+            Number(product.MinimumStock || 10);
 
         let status = "";
-
         let statusClass = "";
 
-
         if (stock === 0) {
-
-            status =
-                "Out of Stock";
-
-            statusClass =
-                "status-out";
-
+            status = "Out of Stock";
+            statusClass = "status-out";
         }
         else if (stock <= minimum) {
-
-            status =
-                "Low Stock";
-
-            statusClass =
-                "status-low";
-
+            status = "Low Stock";
+            statusClass = "status-low";
         }
         else {
-
-            status =
-                "In Stock";
-
-            statusClass =
-                "status-good";
-
+            status = "In Stock";
+            statusClass = "status-good";
         }
-
 
         const row =
             document.createElement("tr");
 
+        const actionsHtml =
+            isStaff
+                ? ""
+                : `
+                    <td>
+                        <div class="action-buttons">
+                            <button
+                                type="button"
+                                class="action-button"
+                                onclick="editProduct(${Number(product.ProductID)})"
+                                title="Edit">
+                                ✏️
+                            </button>
+
+                            <button
+                                type="button"
+                                class="action-button"
+                                onclick="deleteProduct(${Number(product.ProductID)})"
+                                title="Delete">
+                                🗑️
+                            </button>
+                        </div>
+                    </td>
+                `;
 
         row.innerHTML = `
+            <td>${product.ProductID}</td>
+            <td>${product.ProductCode || "-"}</td>
 
             <td>
-                ${product.ProductID}
+                <strong>${product.ProductName || "-"}</strong>
             </td>
 
-            <td>
-                ${product.ProductCode || "-"}
-            </td>
+            <td>${product.CategoryName || "-"}</td>
+            <td>${product.SupplierName || "-"}</td>
+
+            <td>₹${Number(product.PurchasePrice || 0).toFixed(2)}</td>
+            <td>₹${Number(product.SellingPrice || 0).toFixed(2)}</td>
+
+            <td>${stock}</td>
 
             <td>
-
-                <strong>
-                    ${product.ProductName || "-"}
-                </strong>
-
-            </td>
-
-            <td>
-                ${product.CategoryName || "-"}
-            </td>
-
-            <td>
-                ${product.SupplierName || "-"}
-            </td>
-
-            <td>
-                ₹${Number(
-                    product.PurchasePrice || 0
-                ).toFixed(2)}
-            </td>
-
-            <td>
-                ₹${Number(
-                    product.SellingPrice || 0
-                ).toFixed(2)}
-            </td>
-
-            <td>
-                ${stock}
-            </td>
-
-            <td>
-
-                <span
-                    class="status ${statusClass}">
-
+                <span class="status ${statusClass}">
                     ${status}
-
                 </span>
-
             </td>
 
-            <td>
-
-                <div class="action-buttons">
-
-                    <button
-                        class="action-button"
-                        onclick="editProduct(${product.ProductID})"
-                        title="Edit">
-
-                        ✏️
-
-                    </button>
-
-
-                    <button
-                        class="action-button"
-                        onclick="deleteProduct(${product.ProductID})"
-                        title="Delete">
-
-                        🗑️
-
-                    </button>
-
-                </div>
-
-            </td>
-
+            ${actionsHtml}
         `;
-
 
         tbody.appendChild(row);
 
     });
 
 }
-
 
 /* =========================================================
    SEARCH

@@ -1,6 +1,6 @@
-﻿/* =========================================================
-   SMART INVENTORY
-   MAIN NAVIGATION
+﻿
+/* =========================================================
+   SMART INVENTORY - MAIN NAVIGATION
    ========================================================= */
 
 
@@ -86,136 +86,140 @@ const pages = {
 
 
 /* =========================================================
+   CURRENT USER
+   ========================================================= */
+
+let currentUserRole = "";
+
+
+/* =========================================================
+   STAFF RESTRICTED PAGES
+   ========================================================= */
+
+const staffRestrictedPages = [
+    "products",
+    "categories",
+    "suppliers",
+    "product-analysis",
+    "sales-analytics",
+    "reports",
+    "admin-approval"
+];
+
+
+function isStaffRestrictedPage(pageName) {
+
+    return (
+        currentUserRole === "staff" &&
+        staffRestrictedPages.includes(pageName)
+    );
+
+}
+
+
+/* =========================================================
+   APPLY ROLE-BASED NAVIGATION
+   ========================================================= */
+
+function applyRoleBasedNavigation(role) {
+
+    currentUserRole = String(role || "")
+        .trim()
+        .toLowerCase();
+
+    document.querySelectorAll(".nav-item").forEach(
+        function (button) {
+
+            const command =
+                button.getAttribute("onclick") || "";
+
+            const restricted = staffRestrictedPages.some(
+                function (pageName) {
+                    return command.includes(
+                        "'" + pageName + "'"
+                    );
+                }
+            );
+
+            button.style.display =
+                currentUserRole === "staff" && restricted
+                    ? "none"
+                    : "";
+
+        }
+    );
+
+    console.log(
+        "Navigation applied for role:",
+        currentUserRole
+    );
+
+}
+
+
+/* =========================================================
    NAVIGATE TO PAGE
    ========================================================= */
 
 function navigate(pageName) {
 
-    const page = pages[pageName];
+    if (isStaffRestrictedPage(pageName)) {
 
-
-    /* -----------------------------------------------------
-       Check page configuration
-    ----------------------------------------------------- */
-
-    if (!page) {
-
-        console.error(
-            "Page not found:",
-            pageName
+        alert(
+            "You do not have permission to access this page."
         );
 
         return;
-
     }
 
+    const page = pages[pageName];
 
-    /* -----------------------------------------------------
-       Get iframe
-    ----------------------------------------------------- */
+    if (!page) {
+
+        console.error("Page not found:", pageName);
+
+        return;
+    }
 
     const pageFrame =
-        document.getElementById(
-            "page-frame"
-        );
-
-
-    /* -----------------------------------------------------
-       Load page
-    ----------------------------------------------------- */
+        document.getElementById("page-frame");
 
     if (pageFrame) {
 
-        pageFrame.src =
-            page.file;
+        pageFrame.src = page.file;
+
+    } else {
+
+        console.error("page-frame was not found.");
 
     }
-    else {
-
-        console.error(
-            "page-frame was not found."
-        );
-
-    }
-
-
-    /* -----------------------------------------------------
-       Update page title
-    ----------------------------------------------------- */
 
     const pageTitle =
-        document.getElementById(
-            "page-title"
-        );
-
+        document.getElementById("page-title");
 
     if (pageTitle) {
-
-        pageTitle.textContent =
-            page.title;
-
+        pageTitle.textContent = page.title;
     }
-
-
-    /* -----------------------------------------------------
-       Update page subtitle
-    ----------------------------------------------------- */
 
     const pageSubtitle =
-        document.getElementById(
-            "page-subtitle"
-        );
-
+        document.getElementById("page-subtitle");
 
     if (pageSubtitle) {
-
-        pageSubtitle.textContent =
-            page.subtitle;
-
+        pageSubtitle.textContent = page.subtitle;
     }
 
-
-    /* -----------------------------------------------------
-       Update active navigation item
-    ----------------------------------------------------- */
-
-    const buttons =
-        document.querySelectorAll(
-            ".nav-item"
-        );
-
-
-    buttons.forEach(
+    document.querySelectorAll(".nav-item").forEach(
         function (button) {
 
-            button.classList.remove(
-                "active"
-            );
-
-        }
-    );
-
-
-    buttons.forEach(
-        function (button) {
+            button.classList.remove("active");
 
             const command =
-                button.getAttribute(
-                    "onclick"
-                );
-
+                button.getAttribute("onclick") || "";
 
             if (
-                command &&
-                command.includes(
-                    "'" + pageName + "'"
-                )
+                command.includes("'" + pageName + "'")
             ) {
-
-                button.classList.add(
-                    "active"
-                );
-
+                button.classList.add("active");
             }
 
         }
@@ -235,20 +239,15 @@ function logout() {
         window.chrome.webview
     ) {
 
-        window.chrome.webview.postMessage(
-            {
-                action: "logout"
-            }
-        );
+        window.chrome.webview.postMessage({
+            action: "logout"
+        });
 
-        return;
+    } else {
+
+        console.error("WebView2 is not available.");
 
     }
-
-
-    console.error(
-        "WebView2 is not available."
-    );
 
 }
 
@@ -259,60 +258,33 @@ function logout() {
 
 const supportedActions = [
 
-    /* -----------------------------------------------------
-       Products
-    ----------------------------------------------------- */
+    "getCurrentUser",
 
     "loadDashboard",
-    "loadProductAnalysis",
+
     "loadProducts",
     "addProduct",
     "updateProduct",
     "deleteProduct",
 
-
-    /* -----------------------------------------------------
-       Categories
-    ----------------------------------------------------- */
-
     "loadCategories",
     "addCategory",
     "deleteCategory",
 
-
-    /* -----------------------------------------------------
-       Suppliers
-    ----------------------------------------------------- */
-
     "loadSuppliers",
     "addSupplier",
-
-
-    /* -----------------------------------------------------
-       Purchases
-    ----------------------------------------------------- */
 
     "loadPurchases",
     "addPurchase",
 
-    /* ----------------------------------
-    Inventory
-    ----------------------------------*/
     "loadInventory",
-   
 
-    /* -----------------------------------------------------
-       Sales Analytics
-    ----------------------------------------------------- */
     "loadSales",
     "addSale",
+
+    "loadProductAnalysis",
     "loadSalesAnalytics",
     "loadReports",
-
-
-    /* -----------------------------------------------------
-       Admin Approval
-    ----------------------------------------------------- */
 
     "loadPendingAdmins",
     "approveAdmin",
@@ -329,44 +301,20 @@ window.addEventListener(
     "message",
     function (event) {
 
-        /* -------------------------------------------------
-           Ignore empty messages
-        ------------------------------------------------- */
-
         if (!event.data) {
-
             return;
-
         }
 
-
-        const data =
-            event.data;
-
-
-        /* -------------------------------------------------
-           Ignore messages without action
-        ------------------------------------------------- */
+        const data = event.data;
 
         if (
             typeof data !== "object" ||
             !data.action
         ) {
-
             return;
-
         }
 
-
-        /* -------------------------------------------------
-           Check supported action
-        ------------------------------------------------- */
-
-        if (
-            !supportedActions.includes(
-                data.action
-            )
-        ) {
+        if (!supportedActions.includes(data.action)) {
 
             console.warn(
                 "Unsupported WebUI action:",
@@ -374,29 +322,18 @@ window.addEventListener(
             );
 
             return;
-
         }
-
-
-        /* -------------------------------------------------
-           Forward message to VB.NET
-        ------------------------------------------------- */
 
         if (
             window.chrome &&
             window.chrome.webview
         ) {
 
-            window.chrome.webview.postMessage(
-                data
-            );
+            window.chrome.webview.postMessage(data);
 
-        }
-        else {
+        } else {
 
-            console.error(
-                "WebView2 is not available."
-            );
+            console.error("WebView2 is not available.");
 
         }
 
@@ -405,14 +342,67 @@ window.addEventListener(
 
 
 /* =========================================================
+   RECEIVE MESSAGES FROM VB.NET
+   ========================================================= */
+
+if (
+    window.chrome &&
+    window.chrome.webview
+) {
+
+    window.chrome.webview.addEventListener(
+        "message",
+        function (event) {
+
+            const data = event.data;
+
+            if (!data) {
+                return;
+            }
+
+            // Handle current-user response.
+            if (
+                data.type === "currentUser" ||
+                data.action === "currentUser"
+            ) {
+
+                const role =
+                    data.role ||
+                    data.currentUserRole ||
+                    (
+                        data.currentUser &&
+                        data.currentUser.role
+                    ) ||
+                    "";
+
+                applyRoleBasedNavigation(role);
+
+                if (
+                    pageFrame &&
+                    pageFrame.contentWindow
+                ) {
+
+                    pageFrame.contentWindow.postMessage(
+                        data,
+                        "*"
+                    );
+
+                }
+
+            }
+
+        }
+    );
+
+}
+
+
+/* =========================================================
    PAGE FRAME LOAD EVENT
    ========================================================= */
 
 const pageFrame =
-    document.getElementById(
-        "page-frame"
-    );
-
+    document.getElementById("page-frame");
 
 if (pageFrame) {
 
@@ -420,10 +410,7 @@ if (pageFrame) {
         "load",
         function () {
 
-            console.log(
-                "Page loaded:",
-                pageFrame.src
-            );
+            console.log("Page loaded:", pageFrame.src);
 
         }
     );
@@ -439,11 +426,18 @@ document.addEventListener(
     "DOMContentLoaded",
     function () {
 
-        /*
-         * Load Dashboard when the main WebUI starts.
-         */
-
         navigate("dashboard");
+
+        if (
+            window.chrome &&
+            window.chrome.webview
+        ) {
+
+            window.chrome.webview.postMessage({
+                action: "getCurrentUser"
+            });
+
+        }
 
     }
 );

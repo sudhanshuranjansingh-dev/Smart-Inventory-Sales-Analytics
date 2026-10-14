@@ -645,11 +645,11 @@ Public Class FrmLogin
     ' REGISTER USER
     '=========================================================
     Private Sub RegisterUserFromWeb(
-        fullName As String,
-        username As String,
-        password As String,
-        role As String
-    )
+    fullName As String,
+    username As String,
+    password As String,
+    role As String
+)
 
         Try
 
@@ -658,43 +658,23 @@ Public Class FrmLogin
             '=====================================================
 
             If String.IsNullOrWhiteSpace(fullName) Then
-
-                SendMessageToWeb(
-                    "Please enter your full name."
-                )
-
+                SendMessageToWeb("Please enter your full name.")
                 Return
-
             End If
 
             If String.IsNullOrWhiteSpace(username) Then
-
-                SendMessageToWeb(
-                    "Please enter a username."
-                )
-
+                SendMessageToWeb("Please enter a username.")
                 Return
-
             End If
 
             If String.IsNullOrWhiteSpace(password) Then
-
-                SendMessageToWeb(
-                    "Please enter a password."
-                )
-
+                SendMessageToWeb("Please enter a password.")
                 Return
-
             End If
 
             If String.IsNullOrWhiteSpace(role) Then
-
-                SendMessageToWeb(
-                    "Please select a role."
-                )
-
+                SendMessageToWeb("Please select a role.")
                 Return
-
             End If
 
 
@@ -703,13 +683,10 @@ Public Class FrmLogin
             '=====================================================
 
             If role <> "Staff" AndAlso
-               role <> "Manager" AndAlso
-               role <> "Admin" Then
+           role <> "Manager" AndAlso
+           role <> "Admin" Then
 
-                SendMessageToWeb(
-                    "Invalid role selected."
-                )
-
+                SendMessageToWeb("Invalid role selected.")
                 Return
 
             End If
@@ -717,19 +694,10 @@ Public Class FrmLogin
 
             '=====================================================
             ' DETERMINE ACCOUNT STATUS
+            ' New Admin, Manager, and Staff accounts must be approved.
             '=====================================================
 
-            Dim accountStatus As String
-
-            If role = "Admin" Then
-
-                accountStatus = "Pending"
-
-            Else
-
-                accountStatus = "Approved"
-
-            End If
+            Dim accountStatus As String = "Pending"
 
 
             '=====================================================
@@ -737,7 +705,7 @@ Public Class FrmLogin
             '=====================================================
 
             Using con As MySqlConnection =
-                DBConnection.GetConnection()
+            DBConnection.GetConnection()
 
                 con.Open()
 
@@ -747,35 +715,20 @@ Public Class FrmLogin
                 '=================================================
 
                 Dim checkQuery As String =
-                    "SELECT COUNT(*) " &
-                    "FROM Users " &
-                    "WHERE Username = @username"
+                "SELECT COUNT(*) " &
+                "FROM Users " &
+                "WHERE Username = @username"
 
+                Using checkCmd As New MySqlCommand(checkQuery, con)
 
-                Using checkCmd As New MySqlCommand(
-                    checkQuery,
-                    con
-                )
-
-                    checkCmd.Parameters.AddWithValue(
-                        "@username",
-                        username
-                    )
+                    checkCmd.Parameters.AddWithValue("@username", username)
 
                     Dim userCount As Integer =
-                        Convert.ToInt32(
-                            checkCmd.ExecuteScalar()
-                        )
-
+                    Convert.ToInt32(checkCmd.ExecuteScalar())
 
                     If userCount > 0 Then
-
-                        SendMessageToWeb(
-                            "Username already exists."
-                        )
-
+                        SendMessageToWeb("Username already exists.")
                         Return
-
                     End If
 
                 End Using
@@ -786,96 +739,44 @@ Public Class FrmLogin
                 '=================================================
 
                 Dim insertQuery As String =
-                    "INSERT INTO Users " &
-                    "(Username, Password, FullName, Role, AccountStatus) " &
-                    "VALUES " &
-                    "(@username, @password, @fullName, @role, @accountStatus)"
+                "INSERT INTO Users " &
+                "(Username, Password, FullName, Role, AccountStatus) " &
+                "VALUES " &
+                "(@username, @password, @fullName, @role, @accountStatus)"
 
+                Using cmd As New MySqlCommand(insertQuery, con)
 
-                Using cmd As New MySqlCommand(
-                    insertQuery,
-                    con
-                )
-
-                    cmd.Parameters.AddWithValue(
-                        "@username",
-                        username
-                    )
-
-                    cmd.Parameters.AddWithValue(
-                        "@password",
-                        password
-                    )
-
-                    cmd.Parameters.AddWithValue(
-                        "@fullName",
-                        fullName
-                    )
-
-                    cmd.Parameters.AddWithValue(
-                        "@role",
-                        role
-                    )
-
-                    cmd.Parameters.AddWithValue(
-                        "@accountStatus",
-                        accountStatus
-                    )
-
+                    cmd.Parameters.AddWithValue("@username", username)
+                    cmd.Parameters.AddWithValue("@password", password)
+                    cmd.Parameters.AddWithValue("@fullName", fullName)
+                    cmd.Parameters.AddWithValue("@role", role)
+                    cmd.Parameters.AddWithValue("@accountStatus", accountStatus)
 
                     Dim rowsAffected As Integer =
-                        cmd.ExecuteNonQuery()
-
+                    cmd.ExecuteNonQuery()
 
                     If rowsAffected > 0 Then
 
-                        '=========================================
-                        ' ADMIN REQUEST
-                        '=========================================
-
-                        If role = "Admin" Then
-
-                            MessageBox.Show(
-                                "Admin access request submitted!" &
-                                Environment.NewLine &
-                                Environment.NewLine &
-                                "Your account is waiting for approval " &
-                                "from an existing Admin." &
-                                Environment.NewLine &
-                                Environment.NewLine &
-                                "You cannot login until your request " &
-                                "is approved.",
-                                "Admin Approval Required",
-                                MessageBoxButtons.OK,
-                                MessageBoxIcon.Information
-                            )
-
-                        Else
-
-                            '=========================================
-                            ' NORMAL ACCOUNT
-                            '=========================================
-
-                            MessageBox.Show(
-                                "Account created successfully!" &
-                                Environment.NewLine &
-                                Environment.NewLine &
-                                "You can now login.",
-                                "Registration Successful",
-                                MessageBoxButtons.OK,
-                                MessageBoxIcon.Information
-                            )
-
-                        End If
-
+                        MessageBox.Show(
+                        role & " account request submitted!" &
+                        Environment.NewLine &
+                        Environment.NewLine &
+                        "Your account is waiting for approval " &
+                        "from an Admin." &
+                        Environment.NewLine &
+                        Environment.NewLine &
+                        "You cannot login until your request " &
+                        "is approved.",
+                        "Approval Required",
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Information
+                    )
 
                         LoadLoginPage()
 
                     Else
 
-                        SendMessageToWeb(
-                            "Unable to create account."
-                        )
+                        SendMessageToWeb("Unable to create account.")
 
                     End If
 
@@ -888,29 +789,12 @@ Public Class FrmLogin
 
             If ex.Number = 1062 Then
 
-                SendMessageToWeb(
-                    "Username already exists."
-                )
+                SendMessageToWeb("Username already exists.")
 
             Else
 
                 MessageBox.Show(
-                    "Database error during registration." &
-                    Environment.NewLine &
-                    Environment.NewLine &
-                    ex.Message,
-                    "Registration Error",
-                    MessageBoxButtons.OK,
-                    MessageBoxIcon.Error
-                )
-
-            End If
-
-
-        Catch ex As Exception
-
-            MessageBox.Show(
-                "Unable to create account." &
+                "Database error during registration." &
                 Environment.NewLine &
                 Environment.NewLine &
                 ex.Message,
@@ -918,6 +802,21 @@ Public Class FrmLogin
                 MessageBoxButtons.OK,
                 MessageBoxIcon.Error
             )
+
+            End If
+
+
+        Catch ex As Exception
+
+            MessageBox.Show(
+            "Unable to create account." &
+            Environment.NewLine &
+            Environment.NewLine &
+            ex.Message,
+            "Registration Error",
+            MessageBoxButtons.OK,
+            MessageBoxIcon.Error
+        )
 
         End Try
 

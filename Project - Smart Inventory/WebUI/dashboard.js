@@ -1,9 +1,12 @@
-﻿/* =========================================================
+﻿
+/* =========================================================
    SMART INVENTORY - DASHBOARD JAVASCRIPT
    ========================================================= */
 
 let monthlySalesChart = null;
 let inventoryStatusChart = null;
+let currentUserRole = "";
+let currentUserName = "";
 
 
 /* =========================================================
@@ -18,14 +21,9 @@ document.addEventListener(
             "Smart Inventory Dashboard Loaded"
         );
 
-
-        /* -------------------------------------------------
-           REFRESH BUTTON
-           ------------------------------------------------- */
-
+        // Refresh Dashboard Button
         const refreshButton =
             document.getElementById("refreshBtn");
-
 
         if (refreshButton) {
 
@@ -40,15 +38,27 @@ document.addEventListener(
 
         }
 
+        // Request logged-in user details
+        requestCurrentUser();
 
-        /* -------------------------------------------------
-           LOAD DASHBOARD DATA AUTOMATICALLY
-           ------------------------------------------------- */
-
+        // Request dashboard statistics
         requestDashboardData();
 
     }
 );
+
+
+/* =========================================================
+   REQUEST CURRENT USER
+   ========================================================= */
+
+function requestCurrentUser() {
+
+    sendMessageToHost({
+        action: "getCurrentUser"
+    });
+
+}
 
 
 /* =========================================================
@@ -57,25 +67,20 @@ document.addEventListener(
 
 function requestDashboardData() {
 
-    const message = {
-
+    sendMessageToHost({
         action: "loadDashboard"
+    });
 
-    };
-
-
-    console.log(
-        "Requesting dashboard data:",
-        message
-    );
+}
 
 
-    /*
-       Dashboard is inside page-frame iframe.
+/* =========================================================
+   SEND MESSAGE TO HOST
+   ========================================================= */
 
-       Send request to main.js.
-    */
+function sendMessageToHost(message) {
 
+    // Communication through parent main.js
     if (
         window.parent &&
         window.parent !== window
@@ -90,24 +95,19 @@ function requestDashboardData() {
 
     }
 
-
-    /*
-       Fallback for direct WebView2.
-    */
-
+    // Direct WebView2 communication
     if (
         window.chrome &&
         window.chrome.webview
     ) {
 
         window.chrome.webview.postMessage(
-            JSON.stringify(message)
+            message
         );
 
         return;
 
     }
-
 
     console.warn(
         "WebView2 communication is not available."
@@ -125,14 +125,10 @@ window.addEventListener(
     function (event) {
 
         if (!event.data) {
-
             return;
-
         }
 
-
         let data;
-
 
         try {
 
@@ -153,7 +149,6 @@ window.addEventListener(
 
         }
 
-
         console.log(
             "Dashboard data received:",
             data
@@ -161,7 +156,30 @@ window.addEventListener(
 
 
         /* -------------------------------------------------
-           DASHBOARD DATA
+           CURRENT USER RESPONSE
+           ------------------------------------------------- */
+
+        if (data.type === "currentUser") {
+
+            currentUserRole =
+                String(data.role || "").trim();
+
+            currentUserName =
+                String(
+                    data.fullName || data.name || ""
+                ).trim();
+
+            if (currentUserRole.toLowerCase() === "staff") {
+
+                applyStaffRestrictions();
+
+            }
+
+        }
+
+
+        /* -------------------------------------------------
+           DASHBOARD DATA RESPONSE
            ------------------------------------------------- */
 
         if (
@@ -175,12 +193,10 @@ window.addEventListener(
 
 
         /* -------------------------------------------------
-           DASHBOARD ERROR
+           DASHBOARD ERROR RESPONSE
            ------------------------------------------------- */
 
-        if (
-            data.type === "dashboardError"
-        ) {
+        if (data.type === "dashboardError") {
 
             console.error(
                 "Dashboard error:",
@@ -193,6 +209,203 @@ window.addEventListener(
 );
 
 
+
+/* =========================================================
+   STAFF RESTRICTIONS
+   ========================================================= */
+
+function applyStaffRestrictions() {
+
+    const restrictedMenuTexts = [
+        "Categories",
+        "Suppliers",
+        "Product Analysis",
+        "Sales Analytics",
+        "Reports",
+        "Admin Approval"
+    ];
+
+    function applyRestrictions() {
+
+        // Hide restricted sidebar items in dashboard document
+        hideRestrictedItems(
+            document,
+            restrictedMenuTexts
+        );
+
+        // Hide the complete dashboard data panels for Staff
+        hideDashboardDataForStaff();
+
+        // Hide restricted sidebar items in parent layout
+        try {
+
+            if (
+                window.parent &&
+                window.parent !== window
+            ) {
+
+                hideRestrictedItems(
+                    window.parent.document,
+                    restrictedMenuTexts
+                );
+
+            }
+
+        }
+        catch (error) {
+
+            console.warn(
+                "Unable to access parent layout:",
+                error
+            );
+
+        }
+
+    }
+
+    // Apply immediately
+    applyRestrictions();
+
+    // Apply again after parent layout renders
+    setTimeout(
+        applyRestrictions,
+        500
+    );
+
+}
+
+
+/* =========================================================
+   HIDE DASHBOARD DATA PANELS FOR STAFF
+   ========================================================= */
+
+function hideDashboardDataForStaff() {
+
+    const dashboardPanels = [
+        ".cards",
+        ".sales-section",
+        ".inventory-section",
+        ".dashboard-footer"
+    ];
+
+    dashboardPanels.forEach(function (selector) {
+
+        const panel =
+            document.querySelector(selector);
+
+        if (panel) {
+
+            panel.style.setProperty(
+                "display",
+                "none",
+                "important"
+            );
+
+        }
+
+    });
+
+    console.log(
+        "Staff dashboard data panels hidden."
+    );
+
+}
+
+
+/* =========================================================
+   HIDE RESTRICTED ITEMS AND PROFILE ELEMENTS
+   ========================================================= */
+
+function hideRestrictedItems(
+    targetDocument,
+    restrictedMenuTexts
+) {
+
+    if (!targetDocument) {
+        return;
+    }
+
+    const restrictedLower =
+        restrictedMenuTexts.map(function (text) {
+
+            return text.toLowerCase();
+
+        });
+
+    // Hide restricted navigation items
+    targetDocument
+        .querySelectorAll(
+            "a, button, li, " +
+            ".nav-item, " +
+            ".sidebar-item, " +
+            ".menu-item"
+        )
+        .forEach(function (item) {
+
+            const text =
+                (item.textContent || "")
+                    .replace(/\s+/g, " ")
+                    .trim()
+                    .toLowerCase();
+
+            const shouldHide =
+                restrictedLower.some(function (restrictedText) {
+
+                    return text.includes(restrictedText);
+
+                });
+
+            if (shouldHide) {
+
+                const parentItem =
+                    item.closest(
+                        "li, " +
+                        ".nav-item, " +
+                        ".sidebar-item, " +
+                        ".menu-item"
+                    );
+
+                if (parentItem) {
+
+                    parentItem.style.display = "none";
+
+                }
+                else {
+
+                    item.style.display = "none";
+
+                }
+
+            }
+
+        });
+
+    // Hide notification and profile elements for Staff
+    targetDocument
+        .querySelectorAll(
+            ".notification, " +
+            ".notification-icon, " +
+            ".bell-icon, " +
+            ".user-profile, " +
+            ".user-area, " +
+            ".profile-area, " +
+            ".avatar, " +
+            ".top-user, " +
+            ".username, " +
+            ".header-user, " +
+            ".user-info, " +
+            ".user-menu"
+        )
+        .forEach(function (item) {
+
+            item.style.display = "none";
+
+        });
+
+}
+
+
+
 /* =========================================================
    UPDATE DASHBOARD
    ========================================================= */
@@ -200,20 +413,10 @@ window.addEventListener(
 function updateDashboard(data) {
 
     if (!data) {
-
         return;
-
     }
 
-
-    /*
-       Some backend responses may place values directly
-       inside the response, while others may place them
-       inside data.data.
-
-       Support both.
-    */
-
+    // Support both wrapped and unwrapped responses
     const dashboard =
         data.data &&
         typeof data.data === "object"
@@ -221,15 +424,14 @@ function updateDashboard(data) {
             : data;
 
 
-    /* =====================================================
-       SUMMARY CARDS
-       ===================================================== */
+    /* -----------------------------------------------------
+       DASHBOARD CARDS
+       ----------------------------------------------------- */
 
     setValue(
         "totalProducts",
         dashboard.totalProducts
     );
-
 
     setValue(
         "totalSales",
@@ -238,12 +440,10 @@ function updateDashboard(data) {
         )
     );
 
-
     setValue(
         "lowStock",
         dashboard.lowStock
     );
-
 
     setValue(
         "totalUnits",
@@ -251,21 +451,19 @@ function updateDashboard(data) {
     );
 
 
-    /* =====================================================
+    /* -----------------------------------------------------
        INVENTORY STATUS
-       ===================================================== */
+       ----------------------------------------------------- */
 
     setValue(
         "inStock",
         dashboard.inStock
     );
 
-
     setValue(
         "lowStockItems",
         dashboard.lowStockItems
     );
-
 
     setValue(
         "outOfStock",
@@ -273,9 +471,9 @@ function updateDashboard(data) {
     );
 
 
-    /* =====================================================
-       MONTHLY SALES
-       ===================================================== */
+    /* -----------------------------------------------------
+       MONTHLY SALES CHART
+       ----------------------------------------------------- */
 
     if (
         Array.isArray(dashboard.months) &&
@@ -290,18 +488,14 @@ function updateDashboard(data) {
     }
 
 
-    /* =====================================================
+    /* -----------------------------------------------------
        INVENTORY STATUS CHART
-       ===================================================== */
+       ----------------------------------------------------- */
 
     createInventoryStatusChart(
-
         dashboard.inStock,
-
         dashboard.lowStockItems,
-
         dashboard.outOfStock
-
     );
 
 }
@@ -321,7 +515,6 @@ function setValue(
             elementId
         );
 
-
     if (!element) {
 
         console.warn(
@@ -332,7 +525,6 @@ function setValue(
         return;
 
     }
-
 
     if (
         value === null ||
@@ -353,14 +545,13 @@ function setValue(
 
 
 /* =========================================================
-   FORMAT CURRENCY
+   FORMAT CURRENCY - INDIAN RUPEES
    ========================================================= */
 
 function formatCurrency(value) {
 
     const number =
         Number(value) || 0;
-
 
     return "₹" +
         number.toLocaleString(
@@ -388,7 +579,6 @@ function createMonthlySalesChart(
             "salesChart"
         );
 
-
     if (!canvas) {
 
         console.warn(
@@ -399,10 +589,12 @@ function createMonthlySalesChart(
 
     }
 
-
+    // Prevent duplicate chart instances
     if (monthlySalesChart) {
 
         monthlySalesChart.destroy();
+
+        monthlySalesChart = null;
 
     }
 
@@ -411,34 +603,25 @@ function createMonthlySalesChart(
         new Chart(
             canvas,
             {
-
                 type: "bar",
-
 
                 data: {
 
                     labels: months,
 
                     datasets: [
-
                         {
+                            label: "Monthly Sales",
 
-                            label:
-                                "Monthly Sales",
-
-                            data:
-                                sales,
+                            data: sales,
 
                             borderWidth: 1,
 
                             borderRadius: 6
-
                         }
-
                     ]
 
                 },
-
 
                 options: {
 
@@ -446,34 +629,30 @@ function createMonthlySalesChart(
 
                     maintainAspectRatio: false,
 
-
                     plugins: {
 
                         legend: {
-
                             display: true
-
                         },
-
 
                         tooltip: {
 
                             callbacks: {
 
-                                label:
-                                    function (context) {
+                                label: function (context) {
 
-                                        return " ₹" +
-                                            Number(
-                                                context.raw || 0
-                                            ).toLocaleString(
-                                                "en-IN",
-                                                {
-                                                    minimumFractionDigits: 2
-                                                }
-                                            );
+                                    return " ₹" +
+                                        Number(
+                                            context.raw || 0
+                                        ).toLocaleString(
+                                            "en-IN",
+                                            {
+                                                minimumFractionDigits: 2,
+                                                maximumFractionDigits: 2
+                                            }
+                                        );
 
-                                    }
+                                }
 
                             }
 
@@ -481,32 +660,28 @@ function createMonthlySalesChart(
 
                     },
 
-
                     scales: {
 
                         y: {
 
                             beginAtZero: true,
 
-
                             ticks: {
 
-                                callback:
-                                    function (value) {
+                                callback: function (value) {
 
-                                        return "₹" +
-                                            Number(
-                                                value
-                                            ).toLocaleString(
-                                                "en-IN"
-                                            );
+                                    return "₹" +
+                                        Number(
+                                            value
+                                        ).toLocaleString(
+                                            "en-IN"
+                                        );
 
-                                    }
+                                }
 
                             }
 
                         },
-
 
                         x: {
 
@@ -543,7 +718,6 @@ function createInventoryStatusChart(
             "inventoryChart"
         );
 
-
     if (!canvas) {
 
         console.warn(
@@ -554,76 +728,51 @@ function createInventoryStatusChart(
 
     }
 
-
+    // Prevent duplicate chart instances
     if (inventoryStatusChart) {
 
         inventoryStatusChart.destroy();
 
+        inventoryStatusChart = null;
+
     }
-
-
-    const inStockValue =
-        Number(inStock) || 0;
-
-
-    const lowStockValue =
-        Number(lowStock) || 0;
-
-
-    const outOfStockValue =
-        Number(outOfStock) || 0;
 
 
     inventoryStatusChart =
         new Chart(
             canvas,
             {
-
                 type: "doughnut",
-
 
                 data: {
 
                     labels: [
-
                         "In Stock",
-
                         "Low Stock",
-
                         "Out of Stock"
-
                     ],
 
-
                     datasets: [
-
                         {
 
                             data: [
-
-                                inStockValue,
-
-                                lowStockValue,
-
-                                outOfStockValue
-
+                                Number(inStock) || 0,
+                                Number(lowStock) || 0,
+                                Number(outOfStock) || 0
                             ],
 
                             borderWidth: 2
 
                         }
-
                     ]
 
                 },
-
 
                 options: {
 
                     responsive: true,
 
                     maintainAspectRatio: false,
-
 
                     plugins: {
 
@@ -633,21 +782,19 @@ function createInventoryStatusChart(
 
                         },
 
-
                         tooltip: {
 
                             callbacks: {
 
-                                label:
-                                    function (context) {
+                                label: function (context) {
 
-                                        return " " +
-                                            context.label +
-                                            ": " +
-                                            context.raw +
-                                            " items";
+                                    return " " +
+                                        context.label +
+                                        ": " +
+                                        context.raw +
+                                        " items";
 
-                                    }
+                                }
 
                             }
 
