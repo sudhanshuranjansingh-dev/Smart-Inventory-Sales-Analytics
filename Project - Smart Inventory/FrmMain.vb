@@ -248,15 +248,19 @@ Public Class FrmMain
                         AddSupplier(root)
 
                     Case "loadPurchases"
+                        Debug.WriteLine("Staff/Role requested: loadPurchases")
                         LoadPurchasesToWeb()
 
                     Case "addPurchase"
+                        Debug.WriteLine("Staff/Role requested: addPurchase")
                         AddPurchase(root)
 
                     Case "loadSales"
+                        Debug.WriteLine("Staff/Role requested: loadSales")
                         LoadSalesToWeb()
 
                     Case "addSale"
+                        Debug.WriteLine("Staff/Role requested: addSale")
                         AddSale(root)
 
                     Case "addProduct"
@@ -2547,6 +2551,8 @@ Public Class FrmMain
             DBConnection.GetConnection()
 
                 con.Open()
+                Debug.WriteLine("LoadPurchasesToWeb called")
+                Debug.WriteLine("Current role: " & If(Session.CurrentRole, "(empty)"))
 
                 Dim query As String =
                 "SELECT " &
@@ -2571,61 +2577,35 @@ Public Class FrmMain
 
                         While reader.Read()
 
-                            Dim purchase As New Dictionary(
-                            Of String, Object
-                        )()
+                            Dim purchase As New Dictionary(Of String, Object)()
 
-                            purchase("PurchaseID") =
-                            GetDbInt(
-                                reader,
-                                "PurchaseID"
-                            )
+                            purchase("PurchaseID") = GetDbInt(reader, "PurchaseID")
+                            purchase("SupplierID") = GetDbNullableInt(reader, "SupplierID")
+                            purchase("SupplierName") = GetDbString(reader, "SupplierName")
 
-                            purchase("SupplierID") =
-                            GetDbNullableInt(
-                                reader,
-                                "SupplierID"
-                            )
-
-                            purchase("SupplierName") =
-                            GetDbString(
-                                reader,
-                                "SupplierName"
-                            )
-
-                            If IsDBNull(
-                            reader("PurchaseDate")
-                        ) Then
-
+                            If IsDBNull(reader("PurchaseDate")) Then
                                 purchase("PurchaseDate") = ""
-
                             Else
-
                                 purchase("PurchaseDate") =
-                                Convert.ToDateTime(
-                                    reader("PurchaseDate")
-                                ).ToString(
-                                    "yyyy-MM-dd HH:mm:ss"
-                                )
-
+                                Convert.ToDateTime(reader("PurchaseDate")).
+                                ToString("yyyy-MM-dd HH:mm:ss")
                             End If
 
-                            purchase("TotalAmount") =
-                            GetDbDecimal(
-                                reader,
-                                "TotalAmount"
-                            )
+                            purchase("TotalAmount") = GetDbDecimal(reader, "TotalAmount")
 
                             purchases.Add(purchase)
 
                         End While
 
+                        ' Debug line: purchases is declared earlier in this same method
+                        Debug.WriteLine("Purchases loaded: " & purchases.Count.ToString())
+
                         SendToWeb(
-                        New With {
-                            .type = "purchases",
-                            .data = purchases
-                        }
-                    )
+                                    New With {
+                                        .type = "purchases",
+                                        .data = purchases
+                                    }
+                                )
 
                     End Using
 
@@ -2635,14 +2615,14 @@ Public Class FrmMain
 
         Catch ex As Exception
 
+            Debug.WriteLine("Error loading purchases: " & ex.ToString())
+
             SendToWeb(
-            New With {
-                .type = "purchaseError",
-                .message =
-                    "Error loading purchases: " &
-                    ex.Message
-            }
-        )
+        New With {
+            .type = "purchaseError",
+            .message = "Error loading purchases: " & ex.Message
+        }
+    )
 
         End Try
 
@@ -5343,18 +5323,17 @@ Public Class FrmMain
     End Function
 
 
+
     Private Function IsStaffRestrictedAction(action As String) As Boolean
 
         Select Case action
 
-            Case "loadProducts",
-             "addProduct",
+            Case "addProduct",
              "updateProduct",
              "deleteProduct",
              "loadCategories",
              "addCategory",
              "deleteCategory",
-             "loadSuppliers",
              "addSupplier",
              "loadProductAnalysis",
              "loadSalesAnalytics",
@@ -5372,6 +5351,7 @@ Public Class FrmMain
         End Select
 
     End Function
+
     Private Sub SendCurrentUserToWeb()
 
         SendToWeb(
