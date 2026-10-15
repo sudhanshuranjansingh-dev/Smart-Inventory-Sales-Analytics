@@ -4531,7 +4531,7 @@ Public Class FrmMain
                 con.Open()
 
                 Dim query As String =
-                "UPDATE Users SET " &
+                "UPDATE users SET " &
                 "AccountStatus = 'Approved', " &
                 "ApprovedBy = @ApprovedBy, " &
                 "ApprovedAt = NOW() " &

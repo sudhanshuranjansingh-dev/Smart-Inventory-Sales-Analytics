@@ -116,17 +116,11 @@ body {
     overflow-y: auto;
 }
 
+
 .section-title {
-    padding: 14px 11px 7px;
-
-    font-size: 10px;
-
-    font-weight: 700;
-
-    color: #6b7280;
-
-    letter-spacing: 1px;
+    display: none !important;
 }
+
 
 
 /* =========================================================
@@ -428,4 +422,40 @@ body {
         padding: 10px;
     }
 
+}
+
+/* Logged-in user information */
+.user {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.user-details {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+#username {
+    font-size: 14px;
+    font-weight: 600;
+}
+
+#user-role {
+    font-size: 12px;
+    opacity: 0.75;
+    text-transform: capitalize;
+}
+
+/* Hide notification bell if another script renders it */
+.notification,
+.notification-btn,
+.notification-button,
+.notification-icon,
+#notification,
+#notifications,
+#notificationBtn,
+#notification-button {
+    display: none !important;
 }

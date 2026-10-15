@@ -1,4 +1,5 @@
-﻿/* =========================================================
+﻿
+/* =========================================================
    SMART INVENTORY
    ADMIN APPROVAL
    ========================================================= */
@@ -24,11 +25,9 @@ document.addEventListener("DOMContentLoaded", function () {
        ===================================================== */
 
     function showMessage(text) {
-
         if (message) {
             message.textContent = text;
         }
-
     }
 
 
@@ -37,7 +36,6 @@ document.addEventListener("DOMContentLoaded", function () {
        ===================================================== */
 
     function showLoading() {
-
         if (!tableBody) {
             return;
         }
@@ -49,7 +47,6 @@ document.addEventListener("DOMContentLoaded", function () {
                 </td>
             </tr>
         `;
-
     }
 
 
@@ -58,7 +55,6 @@ document.addEventListener("DOMContentLoaded", function () {
        ===================================================== */
 
     function showEmpty() {
-
         if (!tableBody) {
             return;
         }
@@ -66,20 +62,18 @@ document.addEventListener("DOMContentLoaded", function () {
         tableBody.innerHTML = `
             <tr>
                 <td colspan="7" class="empty-message">
-                    No pending Admin requests.
+                    No pending requests.
                 </td>
             </tr>
         `;
-
     }
 
 
     /* =====================================================
-       LOAD PENDING ADMIN REQUESTS
+       LOAD PENDING REQUESTS
        ===================================================== */
 
     function loadPendingAdmins() {
-
         showLoading();
         showMessage("");
 
@@ -87,33 +81,31 @@ document.addEventListener("DOMContentLoaded", function () {
             window.parent &&
             window.parent !== window
         ) {
-
             window.parent.postMessage(
                 {
                     action: "loadPendingAdmins"
                 },
                 "*"
             );
-
         }
-
     }
 
 
     /* =====================================================
-       APPROVE ADMIN
+       APPROVE REQUEST
        ===================================================== */
 
-    function approveAdmin(userID) {
+    function approveAdmin(userID, userRole) {
 
         if (!userID) {
             return;
         }
 
-        const confirmed =
-            confirm(
-                "Are you sure you want to approve this Admin request?"
-            );
+        const role = String(userRole || "User").trim();
+
+        const confirmed = confirm(
+            `Are you sure you want to approve this ${role} request?`
+        );
 
         if (!confirmed) {
             return;
@@ -126,24 +118,24 @@ document.addEventListener("DOMContentLoaded", function () {
             },
             "*"
         );
-
     }
 
 
     /* =====================================================
-       REJECT ADMIN
+       REJECT REQUEST
        ===================================================== */
 
-    function rejectAdmin(userID) {
+    function rejectAdmin(userID, userRole) {
 
         if (!userID) {
             return;
         }
 
-        const confirmed =
-            confirm(
-                "Are you sure you want to reject this Admin request?"
-            );
+        const role = String(userRole || "User").trim();
+
+        const confirmed = confirm(
+            `Are you sure you want to reject this ${role} request?`
+        );
 
         if (!confirmed) {
             return;
@@ -156,7 +148,6 @@ document.addEventListener("DOMContentLoaded", function () {
             },
             "*"
         );
-
     }
 
 
@@ -172,58 +163,30 @@ document.addEventListener("DOMContentLoaded", function () {
 
         tableBody.innerHTML = "";
 
-        if (
-            !requests ||
-            requests.length === 0
-        ) {
-
+        if (!requests || requests.length === 0) {
             showEmpty();
-
             return;
         }
 
-
         requests.forEach(function (user) {
 
-            const row =
-                document.createElement("tr");
+            const row = document.createElement("tr");
 
-
-            const userID =
-                user.UserID ?? "-";
-
-            const username =
-                user.Username ?? "-";
-
-            const fullName =
-                user.FullName ?? "-";
-
-            const role =
-                user.Role ?? "-";
-
-            const accountStatus =
-                user.AccountStatus ?? "-";
-
-            const requested =
-                user.CreatedAt ?? "-";
-
+            const userID = user.UserID ?? "-";
+            const username = user.Username ?? "-";
+            const fullName = user.FullName ?? "-";
+            const role = user.Role ?? "User";
+            const accountStatus = user.AccountStatus ?? "-";
+            const requested = user.CreatedAt ?? "-";
 
             row.innerHTML = `
-                <td>
-                    ${escapeHtml(userID)}
-                </td>
+                <td>${escapeHtml(userID)}</td>
 
-                <td>
-                    ${escapeHtml(username)}
-                </td>
+                <td>${escapeHtml(username)}</td>
 
-                <td>
-                    ${escapeHtml(fullName)}
-                </td>
+                <td>${escapeHtml(fullName)}</td>
 
-                <td>
-                    ${escapeHtml(role)}
-                </td>
+                <td>${escapeHtml(role)}</td>
 
                 <td>
                     <span class="status pending">
@@ -231,9 +194,7 @@ document.addEventListener("DOMContentLoaded", function () {
                     </span>
                 </td>
 
-                <td>
-                    ${escapeHtml(requested)}
-                </td>
+                <td>${escapeHtml(requested)}</td>
 
                 <td>
                     <div class="action-buttons">
@@ -242,89 +203,65 @@ document.addEventListener("DOMContentLoaded", function () {
                             type="button"
                             class="btn-approve"
                             data-user-id="${escapeHtml(userID)}">
-
                             Approve
-
                         </button>
 
                         <button
                             type="button"
                             class="btn-reject"
                             data-user-id="${escapeHtml(userID)}">
-
                             Reject
-
                         </button>
 
                     </div>
                 </td>
             `;
 
-
             tableBody.appendChild(row);
 
-        });
 
+            /* =============================================
+               APPROVE BUTTON
+               ============================================= */
 
-        /* =================================================
-           APPROVE BUTTONS
-           ================================================= */
+            const approveButton =
+                row.querySelector(".btn-approve");
 
-        const approveButtons =
-            tableBody.querySelectorAll(
-                ".btn-approve"
-            );
-
-
-        approveButtons.forEach(function (button) {
-
-            button.addEventListener(
+            approveButton.addEventListener(
                 "click",
                 function () {
 
-                    const userID =
-                        parseInt(
-                            button.dataset.userId,
-                            10
-                        );
+                    const id = parseInt(
+                        this.dataset.userId,
+                        10
+                    );
 
-                    approveAdmin(userID);
+                    approveAdmin(id, role);
+                }
+            );
 
+
+            /* =============================================
+               REJECT BUTTON
+               ============================================= */
+
+            const rejectButton =
+                row.querySelector(".btn-reject");
+
+            rejectButton.addEventListener(
+                "click",
+                function () {
+
+                    const id = parseInt(
+                        this.dataset.userId,
+                        10
+                    );
+
+                    rejectAdmin(id, role);
                 }
             );
 
         });
-
-
-        /* =================================================
-           REJECT BUTTONS
-           ================================================= */
-
-        const rejectButtons =
-            tableBody.querySelectorAll(
-                ".btn-reject"
-            );
-
-
-        rejectButtons.forEach(function (button) {
-
-            button.addEventListener(
-                "click",
-                function () {
-
-                    const userID =
-                        parseInt(
-                            button.dataset.userId,
-                            10
-                        );
-
-                    rejectAdmin(userID);
-
-                }
-            );
-
-        });
-
     }
 
 
@@ -334,13 +271,8 @@ document.addEventListener("DOMContentLoaded", function () {
 
     function escapeHtml(value) {
 
-        if (
-            value === null ||
-            value === undefined
-        ) {
-
+        if (value === null || value === undefined) {
             return "";
-
         }
 
         return String(value)
@@ -349,7 +281,6 @@ document.addEventListener("DOMContentLoaded", function () {
             .replace(/>/g, "&gt;")
             .replace(/"/g, "&quot;")
             .replace(/'/g, "&#039;");
-
     }
 
 
@@ -365,75 +296,49 @@ document.addEventListener("DOMContentLoaded", function () {
                 return;
             }
 
-
-            const data =
-                event.data;
+            const data = event.data;
 
 
-            /* ---------------------------------------------
-               PENDING ADMIN DATA
-               --------------------------------------------- */
+            /* =============================================
+               PENDING REQUEST DATA
+               ============================================= */
 
-            if (
-                data.type === "pendingAdmins"
-            ) {
+            if (data.type === "pendingAdmins") {
 
-                renderRequests(
-                    data.data || []
-                );
-
+                renderRequests(data.data || []);
                 return;
             }
 
 
-            /* ---------------------------------------------
+            /* =============================================
                SUCCESS MESSAGE
-               --------------------------------------------- */
+               ============================================= */
 
-            if (
-                data.type === "adminApprovalMessage"
-            ) {
+            if (data.type === "adminApprovalMessage") {
 
-                showMessage(
-                    data.message || ""
-                );
-
+                showMessage(data.message || "");
 
                 if (
                     data.message &&
                     (
-                        data.message
-                            .toLowerCase()
-                            .includes("approved") ||
-
-                        data.message
-                            .toLowerCase()
-                            .includes("rejected")
+                        data.message.toLowerCase().includes("approved") ||
+                        data.message.toLowerCase().includes("rejected")
                     )
                 ) {
-
-                    setTimeout(
-                        function () {
-
-                            loadPendingAdmins();
-
-                        },
-                        300
-                    );
-
+                    setTimeout(function () {
+                        loadPendingAdmins();
+                    }, 300);
                 }
 
                 return;
             }
 
 
-            /* ---------------------------------------------
+            /* =============================================
                ERROR MESSAGE
-               --------------------------------------------- */
+               ============================================= */
 
-            if (
-                data.type === "adminApprovalError"
-            ) {
+            if (data.type === "adminApprovalError") {
 
                 showMessage(
                     data.message ||
@@ -456,12 +361,9 @@ document.addEventListener("DOMContentLoaded", function () {
         refreshButton.addEventListener(
             "click",
             function () {
-
                 loadPendingAdmins();
-
             }
         );
-
     }
 
 
