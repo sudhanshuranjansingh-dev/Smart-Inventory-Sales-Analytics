@@ -5,7 +5,6 @@ Imports Microsoft.Web.WebView2.Core
 
 Public Class FrmLogin
 
-
     '=========================================================
     ' FORM LOAD
     '=========================================================
@@ -583,25 +582,19 @@ Public Class FrmLogin
                         )
 
 
-                        '=========================================
-                        ' CLOSE/HIDE LOGIN FORM FIRST
-                        '=========================================
 
+                        ' Hide the login form.
                         Me.Hide()
 
-
-                        '=========================================
-                        ' OPEN MAIN FORM
-                        '=========================================
-
+                        ' Show the existing main form.
                         FrmMain.Show()
-
-                        FrmMain.WindowState =
-                            FormWindowState.Normal
-
+                        FrmMain.WindowState = FormWindowState.Normal
                         FrmMain.BringToFront()
-
                         FrmMain.Activate()
+
+                        ' Refresh the WebView2 UI with the newly logged-in user.
+                        FrmMain.RefreshUserSession()
+
 
 
                     End Using

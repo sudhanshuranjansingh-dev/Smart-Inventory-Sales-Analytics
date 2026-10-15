@@ -5,6 +5,46 @@ Imports MySql.Data.MySqlClient
 Imports Windows.Win32.System
 
 Public Class FrmMain
+    Public Sub RefreshUserSession()
+
+        If Session.CurrentUserID <= 0 OrElse
+       String.IsNullOrWhiteSpace(Session.CurrentRole) OrElse
+       String.IsNullOrWhiteSpace(Session.CurrentFullName) Then
+
+            Return
+        End If
+
+        Try
+            ' Request the current user through the existing WebView2 bridge.
+            If WebView21 Is Nothing OrElse
+           WebView21.CoreWebView2 Is Nothing Then
+
+                Return
+            End If
+
+            WebView21.CoreWebView2.PostWebMessageAsJson(
+            System.Text.Json.JsonSerializer.Serialize(
+                New With {
+                    .type = "currentUser",
+                    .role = Session.CurrentRole,
+                    .fullName = Session.CurrentFullName,
+                    .username = Session.CurrentUsername
+                }
+            )
+        )
+
+        Catch ex As Exception
+            MessageBox.Show(
+            "Unable to refresh user session: " & ex.Message,
+            "Session Error",
+            MessageBoxButtons.OK,
+            MessageBoxIcon.Error
+        )
+        End Try
+
+    End Sub
+
+
     '=========================================================
     ' FORM LOAD
     '=========================================================
@@ -113,139 +153,105 @@ Public Class FrmMain
     sender As Object,
     e As CoreWebView2WebMessageReceivedEventArgs
 )
-
         Try
+            Dim json As String = e.WebMessageAsJson
 
-            Dim json As String =
-            e.WebMessageAsJson
+            Using document As JsonDocument = JsonDocument.Parse(json)
+                Dim root As JsonElement = document.RootElement
 
+                ' Handle string messages
+                If root.ValueKind = JsonValueKind.String Then
+                    Dim stringAction As String = root.GetString()
 
-            Using document As JsonDocument =
-            JsonDocument.Parse(json)
-
-                Dim root As JsonElement =
-                document.RootElement
-
-
-                '=================================================
-                ' STRING MESSAGE
-                '=================================================
-                If root.ValueKind =
-                JsonValueKind.String Then
-
-                    Dim stringAction As String =
-                    root.GetString()
-
-                    Select Case stringAction
-
-                        Case "logout"
-
-                            LogoutFromMain()
-
-                    End Select
+                    If String.Equals(stringAction, "logout",
+                                 StringComparison.OrdinalIgnoreCase) Then
+                        LogoutFromMain()
+                    Else
+                        Debug.WriteLine("Unknown string message: " & stringAction)
+                    End If
 
                     Return
-
                 End If
 
-
-                '=================================================
-                ' OBJECT MESSAGE
-                '=================================================
-                If root.ValueKind <>
-                JsonValueKind.Object Then
-
+                ' Only object messages are supported beyond this point
+                If root.ValueKind <> JsonValueKind.Object Then
+                    Debug.WriteLine("Ignored non-object WebUI message.")
                     Return
-
                 End If
 
-
-                '-------------------------------------------------
-                ' GET ACTION
-                '-------------------------------------------------
+                ' Read action
                 Dim actionElement As JsonElement
 
-                If Not root.TryGetProperty(
-                "action",
-                actionElement
-            ) Then
-
+                If Not root.TryGetProperty("action", actionElement) OrElse
+               actionElement.ValueKind <> JsonValueKind.String Then
+                    Debug.WriteLine("WebUI message has no valid action: " & json)
                     Return
-
                 End If
 
+                Dim action As String = actionElement.GetString()
 
-                If actionElement.ValueKind <>
-                JsonValueKind.String Then
+                Debug.WriteLine("WebUI action received: " & action)
+                Debug.WriteLine("Session user ID: " & Session.CurrentUserID.ToString())
+                Debug.WriteLine("Session role: " & If(Session.CurrentRole, "(empty)"))
 
+                ' Validate session for protected actions
+                If action <> "getCurrentUser" AndAlso
+               action <> "logout" AndAlso
+               (Session.CurrentUserID <= 0 OrElse
+                String.IsNullOrWhiteSpace(Session.CurrentRole)) Then
+
+                    SendToWeb(New With {
+                    .type = "sessionInvalid",
+                    .message = "Your session is no longer active. Please log in again."
+                })
+
+                    Debug.WriteLine("Rejected action because session is invalid: " & action)
                     Return
-
                 End If
 
-
-                Dim action As String =
-                actionElement.GetString()
-
+                ' Staff permission check
                 If IsStaffUser() AndAlso IsStaffRestrictedAction(action) Then
+                    SendToWeb(New With {
+                    .type = "accessDenied",
+                    .message = "You do not have permission to access this feature."
+                })
 
-                    SendToWeb(
-        New With {
-            .type = "accessDenied",
-            .message = "You do not have permission to access this feature."
-        }
-    )
-
+                    Debug.WriteLine("Access denied for staff action: " & action)
                     Return
-
                 End If
 
-
-                '=================================================
-                ' PROCESS ACTION
-                '=================================================
+                ' Process actions
                 Select Case action
+
+                    Case "getCurrentUser"
+                        SendCurrentUserToWeb()
 
                     Case "loadDashboard"
                         LoadDashboardToWeb()
 
                     Case "loadProducts"
-
                         LoadProductsToWeb()
 
-
                     Case "loadCategories"
-
                         LoadCategoriesToWeb()
 
                     Case "addCategory"
-
                         AddCategory(root)
 
-
                     Case "deleteCategory"
-
                         DeleteCategory(root)
 
-
                     Case "loadSuppliers"
-
                         LoadSuppliersToWeb()
 
                     Case "addSupplier"
                         AddSupplier(root)
 
-
                     Case "loadPurchases"
-
                         LoadPurchasesToWeb()
 
                     Case "addPurchase"
-
                         AddPurchase(root)
-
-                    Case "getCurrentUser"
-
-                        SendCurrentUserToWeb()
 
                     Case "loadSales"
                         LoadSalesToWeb()
@@ -253,19 +259,13 @@ Public Class FrmMain
                     Case "addSale"
                         AddSale(root)
 
-
                     Case "addProduct"
-
                         AddProduct(root)
 
-
                     Case "updateProduct"
-
                         UpdateProduct(root)
 
-
                     Case "deleteProduct"
-
                         DeleteProduct(root)
 
                     Case "loadInventory"
@@ -274,64 +274,53 @@ Public Class FrmMain
                     Case "loadProductAnalysis"
                         LoadProductAnalysisToWeb()
 
-
                     Case "loadSalesAnalytics"
-
                         LoadSalesAnalyticsToWeb(root)
 
                     Case "loadReports"
                         LoadReportsToWeb(root)
 
-
                     Case "loadPendingAdmins"
-
                         LoadPendingAdminsToWeb()
 
-
                     Case "approveAdmin"
-
                         ApproveAdmin(root)
 
-
                     Case "rejectAdmin"
-
                         RejectAdmin(root)
 
-
                     Case "logout"
-
                         LogoutFromMain()
 
+                    Case "logoutConfirmed"
+                        ' Logout was already handled by LogoutFromMain().
+                        ' Do not initiate logout a second time.
+                        Debug.WriteLine("Ignoring redundant logoutConfirmed action.")
 
                     Case Else
+                        Debug.WriteLine("Unknown WebUI action: " & action)
 
-                        MessageBox.Show(
-                        "Unknown WebUI action: " & action,
-                        "WebUI",
-                        MessageBoxButtons.OK,
-                        MessageBoxIcon.Warning
-                    )
+                        SendToWeb(New With {
+                        .type = "webUIError",
+                        .message = "Unsupported action: " & action
+                    })
 
                 End Select
-
             End Using
 
-
         Catch ex As Exception
+            Debug.WriteLine("WebUI communication error: " & ex.ToString())
 
             MessageBox.Show(
-            "WebUI communication error:" &
-            Environment.NewLine &
-            Environment.NewLine &
+            "WebUI communication error:" & Environment.NewLine &
             ex.Message,
             "WebUI Error",
             MessageBoxButtons.OK,
             MessageBoxIcon.Error
         )
-
         End Try
-
     End Sub
+
 
 
 
@@ -4717,68 +4706,58 @@ Public Class FrmMain
     '=========================================================
     ' LOGOUT
     '=========================================================
+
     Private Sub LogoutFromMain()
 
         Try
-
             Dim result As DialogResult =
-                MessageBox.Show(
-                    "Are you sure you want to logout?",
-                    "Logout",
-                    MessageBoxButtons.YesNo,
-                    MessageBoxIcon.Question
-                )
-
+            MessageBox.Show(
+                "Are you sure you want to logout?",
+                "Logout",
+                MessageBoxButtons.YesNo,
+                MessageBoxIcon.Question
+            )
 
             If result <> DialogResult.Yes Then
+                ' Preserve the current session and screen.
+                SendToWeb(New With {
+                .type = "logoutCancelled"
+            })
                 Return
             End If
 
-
-            '-------------------------------------------------
-            ' Clear current user session
-            '-------------------------------------------------
+            ' Clear the VB.NET session.
             Session.ClearSession()
 
+            ' Tell JavaScript to clear the previous user's state.
+            SendToWeb(New With {
+            .type = "logoutComplete"
+        })
 
-            '-------------------------------------------------
-            ' Hide Main Form
-            '-------------------------------------------------
-            Me.Hide()
-
-
-            '-------------------------------------------------
-            ' Show Login Form
-            '-------------------------------------------------
+            ' Show the login form.
             If FrmLogin IsNot Nothing Then
-
                 FrmLogin.Show()
-
-                FrmLogin.WindowState =
-                    FormWindowState.Normal
-
+                FrmLogin.WindowState = FormWindowState.Normal
                 FrmLogin.BringToFront()
-
                 FrmLogin.Activate()
-
             End If
 
+            ' Hide the main form after initiating logout.
+            Me.Hide()
 
         Catch ex As Exception
-
             MessageBox.Show(
-                "Logout error:" &
-                Environment.NewLine &
-                Environment.NewLine &
-                ex.Message,
-                "Logout Error",
-                MessageBoxButtons.OK,
-                MessageBoxIcon.Error
-            )
-
+            "Logout error:" &
+            Environment.NewLine & Environment.NewLine &
+            ex.Message,
+            "Logout Error",
+            MessageBoxButtons.OK,
+            MessageBoxIcon.Error
+        )
         End Try
 
     End Sub
+
 
     '=========================================================
     ' LOAD REPORTS TO WEB
@@ -5393,29 +5372,29 @@ Public Class FrmMain
         End Select
 
     End Function
-
-
-
-
     Private Sub SendCurrentUserToWeb()
 
         SendToWeb(
             New With {
                 .type = "currentUser",
+                .userID = Session.CurrentUserID,
+                .username = If(Session.CurrentUsername, ""),
                 .role = If(Session.CurrentRole, ""),
                 .fullName = If(Session.CurrentFullName, "")
             }
         )
 
         Debug.WriteLine(
-            "Sent current user: Role=" &
+            "Sent current user: ID=" &
+            Session.CurrentUserID.ToString() &
+            ", Username=" &
+            If(Session.CurrentUsername, "(empty)") &
+            ", Role=" &
             If(Session.CurrentRole, "(empty)") &
             ", FullName=" &
             If(Session.CurrentFullName, "(empty)")
         )
 
     End Sub
-
-
 
 End Class

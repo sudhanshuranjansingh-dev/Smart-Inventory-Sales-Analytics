@@ -206,14 +206,12 @@ function resetUserHeader() {
    APPLY AUTHENTICATED USER
    Do not reload the dashboard for duplicate responses.
    ========================================================= */
-
 function updateUserHeader(response) {
     if (!response || typeof response !== "object") {
         console.error("Invalid current-user response:", response);
         return;
     }
 
-    // Ignore any user response received while logout is pending.
     if (logoutPending) {
         return;
     }
@@ -225,25 +223,33 @@ function updateUserHeader(response) {
         response;
 
     const name = String(
-        user.FullName ||
         user.fullName ||
-        user.Name ||
+        user.FullName ||
         user.name ||
-        user.Username ||
+        user.Name ||
         user.username ||
-        user.UserName ||
+        user.Username ||
         user.userName ||
+        user.UserName ||
         ""
     ).trim();
 
     const role = String(
-        user.Role ||
         user.role ||
+        user.Role ||
         response.currentUserRole ||
-        response.Role ||
-        response.role ||
         ""
     ).trim().toLowerCase();
+
+    const normalizedUsername = String(
+        user.username ||
+        user.Username ||
+        user.userName ||
+        user.UserName ||
+        name
+    ).trim();
+
+    const userID = Number(user.userID ?? user.UserID ?? user.userId ?? 0);
 
     if (!name || !role) {
         console.error(
@@ -253,18 +259,9 @@ function updateUserHeader(response) {
         return;
     }
 
-    const normalizedUsername = String(
-        user.Username ||
-        user.username ||
-        user.UserName ||
-        user.userName ||
-        name
-    ).trim();
-
     const sameUser =
         isLoggedIn &&
-        currentUsername.toLowerCase() ===
-            normalizedUsername.toLowerCase() &&
+        currentUsername.toLowerCase() === normalizedUsername.toLowerCase() &&
         currentUserRole === role;
 
     currentUserName = name;
@@ -275,7 +272,9 @@ function updateUserHeader(response) {
     const roleElement = document.getElementById("user-role");
     const avatarElement = document.getElementById("user-avatar");
 
-    if (nameElement) nameElement.textContent = name;
+    if (nameElement) {
+        nameElement.textContent = name;
+    }
 
     if (roleElement) {
         roleElement.textContent =
@@ -283,21 +282,19 @@ function updateUserHeader(response) {
     }
 
     if (avatarElement) {
-        avatarElement.textContent =
-            name.charAt(0).toUpperCase();
+        avatarElement.textContent = name.charAt(0).toUpperCase();
     }
 
     setLoggedOutState(false);
     applyRoleBasedNavigation(role);
 
-    // Navigate only on a new login/session.
-    // Duplicate current-user responses must not reload the iframe.
     if (!sameUser || !hasInitializedUser) {
         hasInitializedUser = true;
         navigate("dashboard");
     }
 
     console.log("Authenticated user:", {
+        userID: userID,
         username: currentUsername,
         name: currentUserName,
         role: currentUserRole
@@ -402,66 +399,34 @@ function logoutCancelled() {
 }
 
 // Called when the user selects YES in the VB.NET dialog.
+
 function completeLogout() {
     logoutPending = false;
+
+    // Clear the previous user's session in JavaScript.
     isLoggedIn = false;
+    currentUserRole = "";
+    currentUserName = "";
+    currentUsername = "";
     hasInitializedUser = false;
 
+    // Reset the sidebar and user header.
     resetUserHeader();
     setLoggedOutState(true);
 
+    // Reset the visible page.
     currentPage = "dashboard";
 
-    const pageTitle = document.getElementById("page-title");
-    const pageSubtitle = document.getElementById("page-subtitle");
+    const titleElement = document.getElementById("page-title");
+    const subtitleElement = document.getElementById("page-subtitle");
 
-    if (pageTitle) {
-        pageTitle.textContent = "Login";
+    if (titleElement) titleElement.textContent = "Login";
+    if (subtitleElement) {
+        subtitleElement.textContent = "Please sign in to continue.";
     }
 
-    if (pageSubtitle) {
-        pageSubtitle.textContent = "Please sign in to continue";
-    }
-
-    // Do not clear or reload the iframe here.
-    // Let VB.NET handle the confirmed logout.
-    sendToHost({
-        action: "logoutConfirmed"
-    });
-
-    console.log("Logout completed.");
+    console.log("Logout complete. Previous user state cleared.");
 }
-
-
-/* =========================================================
-   SUPPORTED IFRAME ACTIONS
-   ========================================================= */
-
-const supportedActions = [
-    "getCurrentUser",
-    "loadDashboard",
-    "loadProducts",
-    "addProduct",
-    "updateProduct",
-    "deleteProduct",
-    "loadCategories",
-    "addCategory",
-    "deleteCategory",
-    "loadSuppliers",
-    "addSupplier",
-    "loadPurchases",
-    "addPurchase",
-    "loadInventory",
-    "loadSales",
-    "addSale",
-    "loadProductAnalysis",
-    "loadSalesAnalytics",
-    "loadReports",
-    "loadPendingAdmins",
-    "approveAdmin",
-    "rejectAdmin"
-];
-
 /* =========================================================
    RECEIVE IFRAME MESSAGES
    ========================================================= */
@@ -606,4 +571,30 @@ document.addEventListener("DOMContentLoaded", function () {
     setLoggedOutState(true);
 
     requestCurrentUser();
+});
+
+
+
+// Relay messages from dashboard iframe to VB.NET / WebView2
+window.addEventListener("message", function (event) {
+    const pageFrame = document.getElementById("page-frame");
+
+    // Accept messages only from our dashboard iframe
+    if (!pageFrame || event.source !== pageFrame.contentWindow) {
+        return;
+    }
+
+    const message = event.data;
+
+    if (!message || typeof message !== "object" || !message.action) {
+        return;
+    }
+
+    if (!window.chrome || !window.chrome.webview) {
+        console.error("WebView2 communication is unavailable.");
+        return;
+    }
+
+    console.log("Forwarding iframe action to VB.NET:", message.action);
+    window.chrome.webview.postMessage(message);
 });
