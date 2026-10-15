@@ -137,26 +137,45 @@ function setLoggedOutState(loggedOut) {
    ROLE-BASED NAVIGATION
    ========================================================= */
 
+
 function applyRoleBasedNavigation(role) {
-    currentUserRole = String(role || "")
-        .trim()
-        .toLowerCase();
+    const normalizedRole = String(role || "").trim().toLowerCase();
 
-    document.querySelectorAll(
-        ".navigation .nav-item, .sidebar-bottom .nav-item"
-    ).forEach(function (button) {
-        const command = button.getAttribute("onclick") || "";
+    // Features restricted to Staff
+    const staffRestrictedPages = [
+        "products",
+        "categories",
+        "suppliers",
+        "product-analysis",
+        "sales-analytics",
+        "reports",
+        "admin-approval"
+    ];
 
-        const restricted = staffRestrictedPages.some(
-            function (pageName) {
-                return command.includes("'" + pageName + "'");
-            }
-        );
+    // Admin Approval is only available to Admin users
+    const adminOnlyPages = [
+        "admin-approval"
+    ];
 
-        button.style.display =
-            currentUserRole === "staff" && restricted
-                ? "none"
-                : "";
+    document.querySelectorAll(".nav-item").forEach(button => {
+        const onclick = button.getAttribute("onclick") || "";
+        const match = onclick.match(/navigate\(['"]([^'"]+)['"]\)/);
+
+        if (!match) return;
+
+        const pageName = match[1];
+
+        if (adminOnlyPages.includes(pageName)) {
+            button.style.display =
+                normalizedRole === "admin" ? "" : "none";
+        } else if (
+            normalizedRole === "staff" &&
+            staffRestrictedPages.includes(pageName)
+        ) {
+            button.style.display = "none";
+        } else {
+            button.style.display = "";
+        }
     });
 }
 
