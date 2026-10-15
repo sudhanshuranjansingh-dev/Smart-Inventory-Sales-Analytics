@@ -15,6 +15,10 @@ document.addEventListener("DOMContentLoaded", function () {
     const quantityInput = document.getElementById("quantity");
     const purchasePriceInput = document.getElementById("purchasePrice");
 
+    if (purchasePriceInput) {
+        purchasePriceInput.readOnly = true;
+    }
+
     const currentStockElement = document.getElementById("currentStock");
     const summaryQuantityElement = document.getElementById("summaryQuantity");
     const newStockElement = document.getElementById("newStock");
@@ -303,10 +307,6 @@ document.addEventListener("DOMContentLoaded", function () {
 
     if (quantityInput) {
         quantityInput.addEventListener("input", calculatePurchaseSummary);
-    }
-
-    if (purchasePriceInput) {
-        purchasePriceInput.addEventListener("input", calculatePurchaseSummary);
     }
 
 
