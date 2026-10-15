@@ -5395,16 +5395,27 @@ Public Class FrmMain
     End Function
 
 
+
+
     Private Sub SendCurrentUserToWeb()
 
         SendToWeb(
             New With {
                 .type = "currentUser",
-                .role = Session.CurrentRole,
-                .fullName = Session.CurrentFullName
+                .role = If(Session.CurrentRole, ""),
+                .fullName = If(Session.CurrentFullName, "")
             }
         )
 
+        Debug.WriteLine(
+            "Sent current user: Role=" &
+            If(Session.CurrentRole, "(empty)") &
+            ", FullName=" &
+            If(Session.CurrentFullName, "(empty)")
+        )
+
     End Sub
+
+
 
 End Class

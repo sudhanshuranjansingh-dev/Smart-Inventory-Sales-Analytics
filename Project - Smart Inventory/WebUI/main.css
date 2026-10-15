@@ -1,8 +1,10 @@
-﻿/* =========================================================
+﻿
+/* =========================================================
    SMART INVENTORY
-   MAIN APPLICATION STYLE
+   REFINED MAIN APPLICATION STYLE
    ========================================================= */
 
+/* GLOBAL RESET */
 * {
     box-sizing: border-box;
     margin: 0;
@@ -14,77 +16,63 @@ body {
     width: 100%;
     height: 100%;
     overflow: hidden;
-
-    font-family:
-        "Segoe UI",
-        Arial,
-        sans-serif;
-
+    font-family: "Segoe UI", Arial, sans-serif;
     background: #f4f6f9;
     color: #1f2937;
 }
 
-
 /* =========================================================
-   APPLICATION
+   APPLICATION LAYOUT
    ========================================================= */
 
 .app {
     display: flex;
-
     width: 100%;
     height: 100vh;
+    min-height: 0;
+    overflow: hidden;
 }
-
 
 /* =========================================================
    SIDEBAR
    ========================================================= */
 
 .sidebar {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    flex: 0 0 245px;
+    flex-direction: column;
     width: 245px;
     min-width: 245px;
-
-    height: 100vh;
-
-    display: flex;
-    flex-direction: column;
-
+    height: 100%;
     background: #111827;
-    color: white;
+    color: #ffffff;
+    overflow: hidden;
+    pointer-events: auto;
 }
 
-
-/* =========================================================
-   BRAND
-   ========================================================= */
-
+/* BRAND */
 .brand {
-    height: 82px;
-
     display: flex;
     align-items: center;
-
+    flex-shrink: 0;
+    height: 82px;
+    min-height: 82px;
     padding: 0 20px;
-
-    border-bottom:
-        1px solid rgba(255,255,255,0.08);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 .brand-logo {
-    width: 42px;
-    height: 42px;
-
     display: flex;
     align-items: center;
     justify-content: center;
-
+    width: 42px;
+    height: 42px;
+    min-width: 42px;
     margin-right: 11px;
-
     border-radius: 10px;
-
     background: #2563eb;
-
     font-size: 21px;
 }
 
@@ -95,286 +83,234 @@ body {
 
 .brand-subtitle {
     margin-top: 2px;
-
-    font-size: 10px;
-
     color: #9ca3af;
-
+    font-size: 10px;
     letter-spacing: 2px;
 }
-
 
 /* =========================================================
    NAVIGATION
    ========================================================= */
 
 .navigation {
-    flex: 1;
-
+    flex: 1 1 auto;
+    min-height: 0;
     padding: 12px;
-
+    overflow-x: hidden;
     overflow-y: auto;
+    pointer-events: auto;
 }
 
-
+/* Hide sidebar section headings */
 .section-title {
     display: none !important;
 }
 
-
-
-/* =========================================================
-   NAV BUTTON
-   ========================================================= */
-
+/* NAVIGATION BUTTONS */
 .nav-item {
-    width: 100%;
-
     display: flex;
     align-items: center;
-
-    border: none;
-    outline: none;
-
-    background: transparent;
-
-    color: #d1d5db;
-
-    padding: 10px 11px;
-
+    width: 100%;
+    min-height: 39px;
     margin-bottom: 3px;
-
+    padding: 10px 11px;
+    border: none;
     border-radius: 8px;
-
-    cursor: pointer;
-
+    outline: none;
+    background: transparent;
+    color: #d1d5db;
     font-family: inherit;
-
     font-size: 13px;
-
     text-align: left;
-
-    transition: 0.2s ease;
-}
-
-.nav-item span {
-    width: 28px;
-
-    min-width: 28px;
-
-    display: inline-flex;
-
-    justify-content: center;
-
-    font-size: 15px;
-}
-
-.nav-item label {
     cursor: pointer;
+    pointer-events: auto;
+    transition: background-color 0.2s ease, color 0.2s ease;
 }
 
-.nav-item:hover {
-    background: #1f2937;
+    .nav-item span {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 28px;
+        min-width: 28px;
+        font-size: 15px;
+        pointer-events: none;
+    }
 
-    color: white;
-}
+    .nav-item label {
+        cursor: pointer;
+        pointer-events: none;
+    }
 
-.nav-item.active {
-    background: #2563eb;
+    .nav-item:hover {
+        background: #1f2937;
+        color: #ffffff;
+    }
 
-    color: white;
-}
+    .nav-item.active {
+        background: #2563eb;
+        color: #ffffff;
+    }
 
+    .nav-item:focus-visible {
+        outline: 2px solid #93c5fd;
+        outline-offset: -2px;
+    }
 
-/* =========================================================
-   SIDEBAR BOTTOM
-   ========================================================= */
-
+/* LOGOUT AREA */
 .sidebar-bottom {
+    position: relative;
+    flex-shrink: 0;
     padding: 12px;
-
-    border-top:
-        1px solid rgba(255,255,255,0.08);
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+    pointer-events: auto;
 }
 
-
 /* =========================================================
-   MAIN
+   MAIN CONTENT AREA
    ========================================================= */
 
 .main {
-    flex: 1;
-
-    min-width: 0;
-
-    height: 100vh;
-
+    position: relative;
+    z-index: 1;
     display: flex;
+    flex: 1 1 0;
     flex-direction: column;
-
+    width: 0;
+    min-width: 0;
+    height: 100%;
     background: #f4f6f9;
+    overflow: hidden;
 }
-
 
 /* =========================================================
    TOPBAR
    ========================================================= */
 
 .topbar {
-    height: 82px;
-    min-height: 82px;
-
     display: flex;
     align-items: center;
-
     justify-content: space-between;
-
+    flex-shrink: 0;
+    height: 82px;
+    min-height: 82px;
     padding: 0 26px;
-
-    background: white;
-
-    border-bottom:
-        1px solid #e5e7eb;
+    background: #ffffff;
+    border-bottom: 1px solid #e5e7eb;
 }
 
-
-/* =========================================================
-   PAGE HEADING
-   ========================================================= */
-
-.page-heading h1 {
-    font-size: 22px;
-
-    font-weight: 700;
-
-    color: #111827;
+.page-heading {
+    min-width: 0;
 }
 
-.page-heading p {
-    margin-top: 4px;
+    .page-heading h1 {
+        color: #111827;
+        font-size: 22px;
+        font-weight: 700;
+    }
 
-    font-size: 12px;
-
-    color: #6b7280;
-}
-
-
-/* =========================================================
-   TOPBAR RIGHT
-   ========================================================= */
+    .page-heading p {
+        margin-top: 4px;
+        color: #6b7280;
+        font-size: 12px;
+    }
 
 .topbar-right {
     display: flex;
-
     align-items: center;
-
     gap: 17px;
 }
 
-
-/* Notification */
-
-.notification {
-    width: 38px;
-    height: 38px;
-
-    border: 1px solid #e5e7eb;
-
-    border-radius: 8px;
-
-    background: white;
-
-    cursor: pointer;
-
-    font-size: 15px;
-}
-
-.notification:hover {
-    background: #f3f4f6;
-}
-
-
 /* =========================================================
-   USER
+   USER PROFILE
    ========================================================= */
 
 .user {
     display: flex;
-
     align-items: center;
-
-    gap: 9px;
+    gap: 10px;
 }
 
 .avatar {
-    width: 38px;
-    height: 38px;
-
     display: flex;
     align-items: center;
     justify-content: center;
-
+    flex-shrink: 0;
+    width: 38px;
+    height: 38px;
     border-radius: 50%;
-
     background: #2563eb;
-
-    color: white;
-
+    color: #ffffff;
     font-size: 14px;
-
     font-weight: 600;
 }
 
 .user-details {
     display: flex;
     flex-direction: column;
+    justify-content: center;
+    min-width: 0;
 }
 
-.user-details strong {
-    font-size: 13px;
-
+#username {
+    overflow: hidden;
+    max-width: 220px;
     color: #111827;
+    font-size: 14px;
+    font-weight: 600;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
-.user-details small {
+#user-role {
     margin-top: 2px;
-
-    font-size: 10px;
-
     color: #6b7280;
+    font-size: 12px;
+    text-transform: capitalize;
 }
-
 
 /* =========================================================
-   CONTENT
+   HIDE NOTIFICATION ELEMENTS
+   ========================================================= */
+
+.notification,
+.notification-btn,
+.notification-button,
+.notification-icon,
+.notification-bell,
+#notification,
+#notifications,
+#notificationBtn,
+#notification-btn,
+#notification-button,
+#notification-bell {
+    display: none !important;
+}
+
+/* =========================================================
+   PAGE CONTENT / IFRAME
    ========================================================= */
 
 .content {
-    flex: 1;
-
+    display: flex;
+    flex: 1 1 auto;
+    min-width: 0;
     min-height: 0;
-
     padding: 16px;
-
     overflow: hidden;
 }
 
-
-/* Web page */
-
 #page-frame {
+    display: block;
+    flex: 1 1 auto;
     width: 100%;
     height: 100%;
-
-    display: block;
-
+    min-width: 0;
+    min-height: 0;
     border: none;
-
     border-radius: 10px;
-
     background: #f4f6f9;
 }
-
 
 /* =========================================================
    SCROLLBAR
@@ -385,77 +321,108 @@ body {
 }
 
 .navigation::-webkit-scrollbar-thumb {
-    background: #374151;
-
     border-radius: 10px;
+    background: #374151;
 }
 
+.navigation::-webkit-scrollbar-track {
+    background: transparent;
+}
 
 /* =========================================================
-   RESPONSIVE
+   LOGGED-OUT STATE
+   Keep sidebar visible, but don't grant page access.
+   JavaScript controls authentication and navigation.
+   ========================================================= */
+
+.app.logged-out .sidebar {
+    display: flex !important;
+    flex: 0 0 245px;
+    width: 245px;
+    min-width: 245px;
+    visibility: visible;
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.app.logged-out .navigation,
+.app.logged-out .sidebar-bottom,
+.app.logged-out .nav-item {
+    pointer-events: auto;
+}
+
+.app.logged-out .main {
+    display: flex !important;
+    flex: 1 1 0;
+    width: 0;
+    min-width: 0;
+}
+
+/* Hide profile when logged out */
+.app.logged-out .user {
+    display: none !important;
+}
+
+/* =========================================================
+   RESPONSIVE DESIGN
    ========================================================= */
 
 @media (max-width: 850px) {
-
-    .sidebar {
+    .sidebar,
+    .app.logged-out .sidebar {
+        flex-basis: 210px;
         width: 210px;
         min-width: 210px;
     }
 
-    .user-details {
-        display: none;
+    .topbar {
+        padding: 0 18px;
     }
 
+    #username {
+        max-width: 150px;
+    }
 }
 
 @media (max-width: 650px) {
+    .sidebar,
+    .app.logged-out .sidebar {
+        flex-basis: 175px;
+        width: 175px;
+        min-width: 175px;
+    }
 
-    .sidebar {
-        display: none;
+    .brand {
+        padding: 0 12px;
+    }
+
+    .brand-name {
+        font-size: 16px;
+    }
+
+    .navigation,
+    .sidebar-bottom {
+        padding: 8px;
+    }
+
+    .nav-item {
+        padding: 10px 7px;
+        font-size: 12px;
     }
 
     .topbar {
-        padding: 0 15px;
+        padding: 0 12px;
     }
 
     .content {
-        padding: 10px;
+        padding: 8px;
     }
 
-}
+    .page-heading h1 {
+        font-size: 19px;
+    }
 
-/* Logged-in user information */
-.user {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-}
-
-.user-details {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-}
-
-#username {
-    font-size: 14px;
-    font-weight: 600;
-}
-
-#user-role {
-    font-size: 12px;
-    opacity: 0.75;
-    text-transform: capitalize;
-}
-
-/* Hide notification bell if another script renders it */
-.notification,
-.notification-btn,
-.notification-button,
-.notification-icon,
-#notification,
-#notifications,
-#notificationBtn,
-#notification-button {
-    display: none !important;
+    #username {
+        max-width: 100px;
+    }
 }

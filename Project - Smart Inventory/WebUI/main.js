@@ -55,24 +55,35 @@ const pages = {
         title: "Sales Analytics",
         subtitle: "Analyze sales performance"
     },
-    "admin-approval": {
-        file: "admin-approval.html",
-        title: "Admin Approval",
-        subtitle: "Review and manage access requests"
-    },
     reports: {
         file: "reports.html",
         title: "Reports",
         subtitle: "Generate inventory and sales reports"
+    },
+    "admin-approval": {
+        file: "admin-approval.html",
+        title: "Admin Approval",
+        subtitle: "Review and manage access requests"
     }
 };
 
-/* CURRENT USER */
+/* =========================================================
+   SESSION STATE
+   ========================================================= */
+
 let currentUserRole = "";
 let currentUserName = "";
 let currentUsername = "";
 
-/* STAFF RESTRICTED PAGES */
+let isLoggedIn = false;
+let logoutPending = false;
+let currentPage = "dashboard";
+let hasInitializedUser = false;
+
+/* =========================================================
+   STAFF PERMISSIONS
+   ========================================================= */
+
 const staffRestrictedPages = [
     "products",
     "categories",
@@ -90,25 +101,69 @@ function isStaffRestrictedPage(pageName) {
     );
 }
 
-/* ROLE-BASED NAVIGATION */
-function applyRoleBasedNavigation(role) {
-    currentUserRole = String(role || "").trim().toLowerCase();
+/* =========================================================
+   WEBVIEW2 HELPER
+   ========================================================= */
 
-    document.querySelectorAll(".nav-item").forEach(function (button) {
-        const command = button.getAttribute("onclick") || "";
+function sendToHost(message) {
+    if (
+        window.chrome &&
+        window.chrome.webview
+    ) {
+        window.chrome.webview.postMessage(message);
+        return true;
+    }
 
-        const restricted = staffRestrictedPages.some(function (pageName) {
-            return command.includes("'" + pageName + "'");
-        });
-
-        button.style.display =
-            currentUserRole === "staff" && restricted ? "none" : "";
-    });
-
-    console.log("Navigation applied for role:", currentUserRole);
+    console.error("WebView2 is not available.");
+    return false;
 }
 
-/* RESET USER HEADER */
+/* =========================================================
+   APPLICATION VISIBILITY
+   Requires .app.logged-out CSS below.
+   ========================================================= */
+
+function setLoggedOutState(loggedOut) {
+    const app = document.querySelector(".app");
+
+    if (app) {
+        app.classList.toggle("logged-out", loggedOut);
+    }
+
+    isLoggedIn = !loggedOut;
+}
+
+/* =========================================================
+   ROLE-BASED NAVIGATION
+   ========================================================= */
+
+function applyRoleBasedNavigation(role) {
+    currentUserRole = String(role || "")
+        .trim()
+        .toLowerCase();
+
+    document.querySelectorAll(
+        ".navigation .nav-item, .sidebar-bottom .nav-item"
+    ).forEach(function (button) {
+        const command = button.getAttribute("onclick") || "";
+
+        const restricted = staffRestrictedPages.some(
+            function (pageName) {
+                return command.includes("'" + pageName + "'");
+            }
+        );
+
+        button.style.display =
+            currentUserRole === "staff" && restricted
+                ? "none"
+                : "";
+    });
+}
+
+/* =========================================================
+   RESET USER HEADER
+   ========================================================= */
+
 function resetUserHeader() {
     currentUserRole = "";
     currentUserName = "";
@@ -122,26 +177,33 @@ function resetUserHeader() {
     if (roleElement) roleElement.textContent = "User";
     if (avatarElement) avatarElement.textContent = "U";
 
-    // Restore navigation until the next user's role is received.
+    // Remove active selection without hiding sidebar buttons.
     document.querySelectorAll(".nav-item").forEach(function (button) {
+        button.classList.remove("active");
         button.style.display = "";
     });
 }
+/* =========================================================
+   APPLY AUTHENTICATED USER
+   Do not reload the dashboard for duplicate responses.
+   ========================================================= */
 
-/* UPDATE LOGGED-IN USER HEADER */
-function updateUserHeader(userData) {
-    console.log("Current-user response:", userData);
+function updateUserHeader(response) {
+    if (!response || typeof response !== "object") {
+        console.error("Invalid current-user response:", response);
+        return;
+    }
 
-    if (!userData || typeof userData !== "object") {
-        console.error("Invalid current-user response.");
+    // Ignore any user response received while logout is pending.
+    if (logoutPending) {
         return;
     }
 
     const user =
-        userData.currentUser ||
-        userData.user ||
-        userData.data ||
-        userData;
+        response.currentUser ||
+        response.user ||
+        response.data ||
+        response;
 
     const name = String(
         user.FullName ||
@@ -158,75 +220,108 @@ function updateUserHeader(userData) {
     const role = String(
         user.Role ||
         user.role ||
-        userData.currentUserRole ||
-        userData.Role ||
-        userData.role ||
+        response.currentUserRole ||
+        response.Role ||
+        response.role ||
         ""
-    ).trim();
+    ).trim().toLowerCase();
 
-    // Never replace a real user's details with an incomplete response.
     if (!name || !role) {
-        console.error("User name or role missing from response.", {
-            name: name,
-            role: role,
-            response: userData
-        });
+        console.error(
+            "Current-user response is missing name or role:",
+            response
+        );
         return;
     }
 
-    const displayRole =
-        role.charAt(0).toUpperCase() + role.slice(1).toLowerCase();
+    const normalizedUsername = String(
+        user.Username ||
+        user.username ||
+        user.UserName ||
+        user.userName ||
+        name
+    ).trim();
+
+    const sameUser =
+        isLoggedIn &&
+        currentUsername.toLowerCase() ===
+            normalizedUsername.toLowerCase() &&
+        currentUserRole === role;
+
+    currentUserName = name;
+    currentUsername = normalizedUsername;
+    currentUserRole = role;
 
     const nameElement = document.getElementById("username");
     const roleElement = document.getElementById("user-role");
     const avatarElement = document.getElementById("user-avatar");
 
     if (nameElement) nameElement.textContent = name;
-    if (roleElement) roleElement.textContent = displayRole;
 
-    if (avatarElement) {
-        avatarElement.textContent = name.charAt(0).toUpperCase();
+    if (roleElement) {
+        roleElement.textContent =
+            role.charAt(0).toUpperCase() + role.slice(1);
     }
 
-    currentUserName = name;
-    currentUsername = String(
-        user.Username || user.username || user.UserName || user.userName || name
-    ).trim();
+    if (avatarElement) {
+        avatarElement.textContent =
+            name.charAt(0).toUpperCase();
+    }
 
+    setLoggedOutState(false);
     applyRoleBasedNavigation(role);
 
-    console.log("User header updated:", {
-        name: name,
-        role: displayRole
+    // Navigate only on a new login/session.
+    // Duplicate current-user responses must not reload the iframe.
+    if (!sameUser || !hasInitializedUser) {
+        hasInitializedUser = true;
+        navigate("dashboard");
+    }
+
+    console.log("Authenticated user:", {
+        username: currentUsername,
+        name: currentUserName,
+        role: currentUserRole
     });
 }
 
-/* NAVIGATE TO PAGE */
+/* =========================================================
+   NAVIGATION
+   ========================================================= */
+
 function navigate(pageName) {
-    if (isStaffRestrictedPage(pageName)) {
-        alert("You do not have permission to access this page.");
+    console.log("Sidebar clicked:", pageName);
+    console.log("Session:", isLoggedIn, "Role:", currentUserRole);
+
+    if (logoutPending) {
+        console.warn("Navigation blocked: logout confirmation pending.");
+        return;
+    }
+
+    if (!isLoggedIn || !currentUserRole) {
+        console.warn("Navigation blocked: no active session.");
         return;
     }
 
     const page = pages[pageName];
 
     if (!page) {
-        console.error("Page not found:", pageName);
+        console.error("Unknown page:", pageName);
         return;
     }
 
-    const pageFrame = document.getElementById("page-frame");
-
-    if (pageFrame) {
-        pageFrame.src = page.file;
-    } else {
-        console.error("page-frame was not found.");
+    if (isStaffRestrictedPage(pageName)) {
+        alert("You do not have permission to access this page.");
+        return;
     }
 
-    const pageTitle = document.getElementById("page-title");
-    if (pageTitle) pageTitle.textContent = page.title;
+    currentPage = pageName;
 
+    const pageTitle = document.getElementById("page-title");
     const pageSubtitle = document.getElementById("page-subtitle");
+    const pageFrame = document.getElementById("page-frame");
+
+    if (pageTitle) pageTitle.textContent = page.title;
     if (pageSubtitle) pageSubtitle.textContent = page.subtitle;
 
     document.querySelectorAll(".nav-item").forEach(function (button) {
@@ -238,35 +333,91 @@ function navigate(pageName) {
             button.classList.add("active");
         }
     });
-}
 
-/* LOGOUT */
+    if (pageFrame && pageFrame.getAttribute("src") !== page.file) {
+        pageFrame.setAttribute("src", page.file);
+    }
+}
+/* =========================================================
+   LOGOUT REQUEST
+   Do not clear or modify the current screen before
+   the user confirms logout in the VB.NET dialog.
+   ========================================================= */
+
+
+
 function logout() {
-    // Reset the UI immediately.
+    if (!isLoggedIn || logoutPending) {
+        return;
+    }
+
+    logoutPending = true;
+
+    const sent = sendToHost({
+        action: "logout"
+    });
+
+    if (!sent) {
+        logoutPending = false;
+    }
+}
+
+
+/* =========================================================
+   LOGOUT RESPONSE HANDLERS
+   ========================================================= */
+
+// Called when the user selects NO in the VB.NET dialog.
+function logoutCancelled() {
+    logoutPending = false;
+
+    // Preserve the existing authenticated session.
+    if (currentUserRole) {
+        setLoggedOutState(false);
+        applyRoleBasedNavigation(currentUserRole);
+    }
+
+    console.log("Logout cancelled. Session preserved.");
+    console.log("isLoggedIn:", isLoggedIn);
+    console.log("currentUserRole:", currentUserRole);
+}
+
+// Called when the user selects YES in the VB.NET dialog.
+function completeLogout() {
+    logoutPending = false;
+    isLoggedIn = false;
+    hasInitializedUser = false;
+
     resetUserHeader();
+    setLoggedOutState(true);
 
-    if (window.chrome && window.chrome.webview) {
-        window.chrome.webview.postMessage({
-            action: "logout"
-        });
-    } else {
-        console.error("WebView2 is not available.");
+    currentPage = "dashboard";
+
+    const pageTitle = document.getElementById("page-title");
+    const pageSubtitle = document.getElementById("page-subtitle");
+
+    if (pageTitle) {
+        pageTitle.textContent = "Login";
     }
+
+    if (pageSubtitle) {
+        pageSubtitle.textContent = "Please sign in to continue";
+    }
+
+    // Do not clear or reload the iframe here.
+    // Let VB.NET handle the confirmed logout.
+    sendToHost({
+        action: "logoutConfirmed"
+    });
+
+    console.log("Logout completed.");
 }
 
-/* REQUEST CURRENT USER
-   Call this after login succeeds as well as on initial page load. */
-function requestCurrentUser() {
-    if (window.chrome && window.chrome.webview) {
-        window.chrome.webview.postMessage({
-            action: "getCurrentUser"
-        });
-    } else {
-        console.error("WebView2 is not available.");
-    }
-}
 
-/* SUPPORTED WEBVIEW2 ACTIONS */
+/* =========================================================
+   SUPPORTED IFRAME ACTIONS
+   ========================================================= */
+
 const supportedActions = [
     "getCurrentUser",
     "loadDashboard",
@@ -292,7 +443,10 @@ const supportedActions = [
     "rejectAdmin"
 ];
 
-/* RECEIVE MESSAGES FROM IFRAME */
+/* =========================================================
+   RECEIVE IFRAME MESSAGES
+   ========================================================= */
+
 window.addEventListener("message", function (event) {
     const data = event.data;
 
@@ -301,57 +455,98 @@ window.addEventListener("message", function (event) {
     }
 
     if (!supportedActions.includes(data.action)) {
-        console.warn("Unsupported WebUI action:", data.action);
+        console.warn("Unsupported iframe action:", data.action);
         return;
     }
 
-    if (window.chrome && window.chrome.webview) {
-        window.chrome.webview.postMessage(data);
-    } else {
-        console.error("WebView2 is not available.");
+    if (!isLoggedIn || logoutPending) {
+        console.warn("Action blocked: session inactive.", data.action);
+        return;
     }
+
+    sendToHost(data);
 });
 
-/* PAGE FRAME */
+/* =========================================================
+   RECEIVE VB.NET / WEBVIEW2 MESSAGES
+   ========================================================= */
+
 const pageFrame = document.getElementById("page-frame");
 
-/* RECEIVE MESSAGES FROM VB.NET */
 if (window.chrome && window.chrome.webview) {
-    window.chrome.webview.addEventListener("message", function (event) {
-        const data = event.data;
+    window.chrome.webview.addEventListener(
+        "message",
+        function (event) {
+            const data = event.data;
 
-        if (!data || typeof data !== "object") {
-            return;
-        }
-
-        if (
-            data.type === "currentUser" ||
-            data.action === "currentUser"
-        ) {
-            updateUserHeader(data);
-
-            if (pageFrame && pageFrame.contentWindow) {
-                pageFrame.contentWindow.postMessage(data, "*");
+            if (!data || typeof data !== "object") {
+                return;
             }
 
-            return;
-        }
+            const messageType = String(
+                data.type || data.action || ""
+            ).toLowerCase();
 
-        // Forward other responses to the iframe.
-        if (data.type && pageFrame && pageFrame.contentWindow) {
-            pageFrame.contentWindow.postMessage(data, "*");
+            if (messageType === "currentuser") {
+                updateUserHeader(data);
+
+                if (
+                    isLoggedIn &&
+                    pageFrame &&
+                    pageFrame.contentWindow
+                ) {
+                    pageFrame.contentWindow.postMessage(data, "*");
+                }
+
+                return;
+            }
+
+            if (
+                messageType === "logoutcancelled" ||
+                messageType === "logoutcanceled"
+            ) {
+                logoutCancelled();
+                return;
+            }
+
+            if (
+                messageType === "logoutcomplete" ||
+                messageType === "logoutconfirmed"
+            ) {
+                completeLogout();
+                return;
+            }
+
+            // Never forward old session data after logout.
+            if (!isLoggedIn || logoutPending) {
+                return;
+            }
+
+            if (
+                data.type &&
+                pageFrame &&
+                pageFrame.contentWindow
+            ) {
+                pageFrame.contentWindow.postMessage(data, "*");
+            }
         }
-    });
+    );
 }
 
-/* PAGE FRAME LOAD EVENT */
+/* =========================================================
+   PAGE FRAME LOAD
+   ========================================================= */
+
 if (pageFrame) {
     pageFrame.addEventListener("load", function () {
-        console.log("Page loaded:", pageFrame.src);
+        console.log("Page loaded:", pageFrame.getAttribute("src"));
     });
 }
 
-/* HIDE NOTIFICATION BELL */
+/* =========================================================
+   HIDE NOTIFICATION ELEMENTS
+   ========================================================= */
+
 function hideNotificationBell() {
     document.querySelectorAll(
         ".notification, .notification-btn, " +
@@ -364,9 +559,32 @@ function hideNotificationBell() {
     });
 }
 
-/* INITIAL PAGE */
+
+
+function requestCurrentUser() {
+    if (!window.chrome?.webview) {
+        console.error("WebView2 is not available.");
+        return;
+    }
+
+    console.log("Requesting current user from VB.NET...");
+
+    window.chrome.webview.postMessage({
+        action: "getCurrentUser"
+    });
+}
+
+
+
+/* =========================================================
+   INITIALIZATION
+   ========================================================= */
+
 document.addEventListener("DOMContentLoaded", function () {
     hideNotificationBell();
-    navigate("dashboard");
+
+    resetUserHeader();
+    setLoggedOutState(true);
+
     requestCurrentUser();
 });
