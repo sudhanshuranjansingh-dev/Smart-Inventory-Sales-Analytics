@@ -2,23 +2,22 @@
    SALES NOVA - SUPPLIERS
    ========================================================= */
 
+"use strict";
+
 let suppliers = [];
 
 
 /* =========================================================
-   WEBVIEW2 BRIDGE
+   WEBVIEW2 / IFRAME BRIDGE
    ========================================================= */
 
 function sendToVB(data) {
 
     if (window.parent && window.parent !== window) {
-
         window.parent.postMessage(data, "*");
-
-    } else if (window.chrome && window.chrome.webview) {
-
+    }
+    else if (window.chrome?.webview) {
         window.chrome.webview.postMessage(data);
-
     }
 
 }
@@ -41,17 +40,26 @@ function loadSuppliers() {
    SHOW MESSAGE
    ========================================================= */
 
-function showMessage(message, type) {
+function showMessage(message, type = "success") {
 
     const messageBox = document.getElementById("message");
+
+    if (!messageBox) {
+        console.log(message);
+        return;
+    }
 
     messageBox.textContent = message;
     messageBox.className = "message " + type;
 
-    setTimeout(() => {
+    // Clear any previous reset timer.
+    if (messageBox._resetTimer) {
+        clearTimeout(messageBox._resetTimer);
+    }
 
+    messageBox._resetTimer = setTimeout(() => {
         messageBox.className = "message";
-
+        messageBox.textContent = "";
     }, 4000);
 
 }
@@ -63,7 +71,7 @@ function showMessage(message, type) {
 
 function renderSuppliers(data) {
 
-    suppliers = data || [];
+    suppliers = Array.isArray(data) ? data : [];
 
     const tableBody =
         document.getElementById("supplierTableBody");
@@ -71,54 +79,41 @@ function renderSuppliers(data) {
     const count =
         document.getElementById("supplierCount");
 
-    count.textContent =
-        suppliers.length +
-        (suppliers.length === 1 ? " Supplier" : " Suppliers");
+    if (!tableBody) {
+        console.error("Supplier table body not found.");
+        return;
+    }
 
+    if (count) {
+        count.textContent =
+            suppliers.length +
+            (suppliers.length === 1
+                ? " Supplier"
+                : " Suppliers");
+    }
 
     if (suppliers.length === 0) {
 
         tableBody.innerHTML = `
-            <tr>
-                <td colspan="5" class="empty-state">
-                    No suppliers found.
-                </td>
-            </tr>
-        `;
+    < tr >
+    <td colspan="5" class="empty-state">
+        No suppliers found.
+    </td>
+            </tr >
+    `;
 
         return;
     }
 
-
-    tableBody.innerHTML = suppliers.map(supplier => {
-
-        return `
-            <tr>
-
-                <td>${escapeHtml(supplier.SupplierID)}</td>
-
-                <td>
-                    <strong>
-                        ${escapeHtml(supplier.SupplierName)}
-                    </strong>
-                </td>
-
-                <td>
-                    ${escapeHtml(supplier.Phone || "-")}
-                </td>
-
-                <td>
-                    ${escapeHtml(supplier.Email || "-")}
-                </td>
-
-                <td>
-                    ${escapeHtml(supplier.Address || "-")}
-                </td>
-
-            </tr>
-        `;
-
-    }).join("");
+    tableBody.innerHTML = suppliers.map((supplier, index) => `
+    <tr data-supplier-id="${escapeHtml(supplier.SupplierID)}">
+        <td>${index + 1}</td>
+        <td><strong>${escapeHtml(supplier.SupplierName)}</strong></td>
+        <td>${escapeHtml(supplier.Phone || "-")}</td>
+        <td>${escapeHtml(supplier.Email || "-")}</td>
+        <td>${escapeHtml(supplier.Address || "-")}</td>
+    </tr>
+`).join("");
 
 }
 
@@ -144,35 +139,47 @@ function escapeHtml(value) {
 
 
 /* =========================================================
-   OPEN FORM
+   OPEN SUPPLIER FORM
    ========================================================= */
 
 function openSupplierForm() {
 
-    document
-        .getElementById("supplierFormCard")
-        .classList.remove("hidden");
+    const formCard =
+        document.getElementById("supplierFormCard");
 
-    document
-        .getElementById("supplierName")
-        .focus();
+    const supplierName =
+        document.getElementById("supplierName");
+
+    if (formCard) {
+        formCard.classList.remove("hidden");
+    }
+
+    if (supplierName) {
+        supplierName.focus();
+    }
 
 }
 
 
 /* =========================================================
-   CLOSE FORM
+   CLOSE SUPPLIER FORM
    ========================================================= */
 
 function closeSupplierForm() {
 
-    document
-        .getElementById("supplierFormCard")
-        .classList.add("hidden");
+    const formCard =
+        document.getElementById("supplierFormCard");
 
-    document
-        .getElementById("supplierForm")
-        .reset();
+    const form =
+        document.getElementById("supplierForm");
+
+    if (formCard) {
+        formCard.classList.add("hidden");
+    }
+
+    if (form) {
+        form.reset();
+    }
 
 }
 
@@ -185,19 +192,17 @@ function addSupplier(event) {
 
     event.preventDefault();
 
-
     const supplierName =
-        document.getElementById("supplierName").value.trim();
+        document.getElementById("supplierName")?.value.trim() || "";
 
     const phone =
-        document.getElementById("phone").value.trim();
+        document.getElementById("phone")?.value.trim() || "";
 
     const email =
-        document.getElementById("email").value.trim();
+        document.getElementById("email")?.value.trim() || "";
 
     const address =
-        document.getElementById("address").value.trim();
-
+        document.getElementById("address")?.value.trim() || "";
 
     if (!supplierName) {
 
@@ -208,7 +213,6 @@ function addSupplier(event) {
 
         return;
     }
-
 
     sendToVB({
 
@@ -228,85 +232,69 @@ function addSupplier(event) {
 
 
 /* =========================================================
-   RECEIVE MESSAGE FROM VB.NET
+   RECEIVE MESSAGES FROM VB.NET
    ========================================================= */
 
 window.addEventListener("message", function (event) {
 
     const data = event.data;
 
-    if (!data) {
+    if (!data || typeof data !== "object") {
         return;
     }
 
+    switch (data.type) {
 
-    /* SUPPLIER LIST */
+        case "suppliers":
 
-    if (data.type === "suppliers") {
+            renderSuppliers(data.data);
+            break;
 
-        renderSuppliers(data.data);
+        case "supplierAdded":
 
-    }
+            showMessage(
+                data.message || "Supplier added successfully.",
+                "success"
+            );
 
+            closeSupplierForm();
+            loadSuppliers();
+            break;
 
-    /* SUPPLIER ADDED */
+        case "supplierError":
 
-    else if (data.type === "supplierAdded") {
+            showMessage(
+                data.message || "Unable to add supplier.",
+                "error"
+            );
 
-        showMessage(
-            data.message || "Supplier added successfully.",
-            "success"
-        );
-
-        closeSupplierForm();
-
-        loadSuppliers();
-
-    }
-
-
-    /* ERROR */
-
-    else if (data.type === "supplierError") {
-
-        showMessage(
-            data.message || "Unable to add supplier.",
-            "error"
-        );
-
+            break;
     }
 
 });
 
 
 /* =========================================================
-   EVENTS
+   INITIALIZE EVENTS
    ========================================================= */
 
 document.addEventListener("DOMContentLoaded", function () {
 
-
     document
         .getElementById("btnAddSupplier")
-        .addEventListener("click", openSupplierForm);
-
+        ?.addEventListener("click", openSupplierForm);
 
     document
         .getElementById("btnCloseForm")
-        .addEventListener("click", closeSupplierForm);
-
+        ?.addEventListener("click", closeSupplierForm);
 
     document
         .getElementById("btnCancel")
-        .addEventListener("click", closeSupplierForm);
-
+        ?.addEventListener("click", closeSupplierForm);
 
     document
         .getElementById("supplierForm")
-        .addEventListener("submit", addSupplier);
-
-
-    /* Load existing suppliers */
+        ?.addEventListener("submit", addSupplier);
 
     loadSuppliers();
 

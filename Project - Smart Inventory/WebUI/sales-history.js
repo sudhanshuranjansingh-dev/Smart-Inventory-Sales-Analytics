@@ -1,731 +1,214 @@
-﻿/* =========================================================
-   SMART INVENTORY - SALES HISTORY
-   ========================================================= */
+﻿
+"use strict";
 
-let salesHistoryData = [];
+let allSalesHistory = [];
 
-
-/* =========================================================
-   PAGE LOAD
-   ========================================================= */
-
-document.addEventListener("DOMContentLoaded", function () {
-    loadSalesHistory();
-});
-
-
-/* =========================================================
-   LOAD SALES FROM VB.NET
-   ========================================================= */
-
-/* =========================================================
-   LOAD SALES HISTORY
-   ========================================================= */
+// ============================================
+// LOAD SALES HISTORY
+// ============================================
 
 function loadSalesHistory() {
+    const tbody = document.getElementById("salesHistoryTableBody");
 
-    console.log("Requesting sales history...");
-
-
-    if (
-        window.parent &&
-        window.parent !== window
-    ) {
-
-        window.parent.postMessage(
-            {
-                action: "loadSales"
-            },
-            "*"
-        );
-
-
-        console.log(
-            "Sales history request sent to main.js"
-        );
-
+    if (tbody) {
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="6" class="empty-message">
+                    Loading sales history...
+                </td>
+            </tr>`;
     }
 
-    else if (
-        window.chrome &&
-        window.chrome.webview
-    ) {
+    console.log("Sending loadSales request to parent");
 
-        window.parent.postMessage(
-            {
-                action: "loadSales"
-            },
-            "*"
-        );
-
-
-        console.log(
-            "Sales history request sent directly to VB.NET"
-        );
-
-    }
-
-    else {
-
-        console.error(
-            "WebView2 communication is unavailable."
-        );
-
-    }
-
+    window.parent.postMessage({
+        action: "loadSales"
+    }, "*");
 }
 
 
-/* =========================================================
-   RECEIVE MESSAGE FROM VB.NET
-   ========================================================= */
+// ============================================
+// RECEIVE SALES DATA
+// ============================================
+function handleSalesMessage(response) {
+    if (!response || !response.type) return;
 
+    console.log("Sales History message received:", response);
+
+    if (response.type === "sales") {
+        allSalesHistory = Array.isArray(response.data)
+            ? response.data
+            : [];
+
+        filterSales();
+    } else if (response.type === "saleError") {
+        showSalesMessage(
+            "Unable to load sales history: " +
+            (response.message || "Unknown error")
+        );
+    } else if (response.type === "sessionInvalid") {
+        showSalesMessage("Your session has expired. Please log in again.");
+    } else if (response.type === "accessDenied") {
+        showSalesMessage("You do not have permission to view sales history.");
+    }
+}
+
+// Listen for messages from the parent page.
 window.addEventListener("message", function (event) {
-
-    console.log("RAW MESSAGE:", event.data);
-
-    let data = event.data;
-
-    // ---------------------------------------------
-    // Convert JSON string to JavaScript object
-    // ---------------------------------------------
-    if (typeof data === "string") {
-
-        try {
-            data = JSON.parse(data);
-        }
-        catch (error) {
-
-            console.error(
-                "JSON parsing failed:",
-                error
-            );
-
-            return;
-        }
-    }
-
-
-    // ---------------------------------------------
-    // Check message
-    // ---------------------------------------------
-    if (!data) {
-        console.error("Empty message received.");
-        return;
-    }
-
-
-    console.log("MESSAGE OBJECT:", data);
-    console.log("MESSAGE TYPE:", data.type);
-    console.log("MESSAGE DATA:", data.data);
-
-
-    // ---------------------------------------------
-    // SALES DATA
-    // ---------------------------------------------
-    if (data.type === "sales") {
-
-        let sales = data.data;
-
-
-        // -----------------------------------------
-        // Sometimes data may arrive as JSON string
-        // -----------------------------------------
-        if (typeof sales === "string") {
-
-            try {
-                sales = JSON.parse(sales);
-            }
-            catch (error) {
-
-                console.error(
-                    "Sales data JSON parsing failed:",
-                    error
-                );
-
-                return;
-            }
-        }
-
-
-        // -----------------------------------------
-        // Make sure it is an array
-        // -----------------------------------------
-        if (!Array.isArray(sales)) {
-
-            console.error(
-                "Sales data is not an array:",
-                sales
-            );
-
-            // If a single object was received,
-            // convert it into an array.
-            if (
-                sales !== null &&
-                typeof sales === "object"
-            ) {
-
-                sales = [sales];
-
-            }
-            else {
-
-                sales = [];
-
-            }
-        }
-
-
-        console.log(
-            "FINAL SALES ARRAY:",
-            sales
-        );
-
-
-        // -----------------------------------------
-        // Store sales
-        // -----------------------------------------
-        salesHistoryData = sales;
-
-
-        // -----------------------------------------
-        // Render
-        // -----------------------------------------
-        renderSalesHistory(
-            salesHistoryData
-        );
-
-
-        // -----------------------------------------
-        // Summary
-        // -----------------------------------------
-        updateSummary(
-            salesHistoryData
-        );
-
-    }
-
-
-    // ---------------------------------------------
-    // SALE ADDED
-    // ---------------------------------------------
-    else if (data.type === "saleAdded") {
-
-        console.log(
-            "Sale added. Reloading sales..."
-        );
-
-        loadSalesHistory();
-
-    }
-
-
-    // ---------------------------------------------
-    // ERROR
-    // ---------------------------------------------
-    else if (
-        data.type === "saleError" ||
-        data.type === "error"
-    ) {
-
-        console.error(
-            "Sales error:",
-            data.message
-        );
-
-    }
-
+    handleSalesMessage(event.data);
 });
 
+// Listen for direct messages from the WebView2 host.
+if (window.chrome && window.chrome.webview) {
+    window.chrome.webview.addEventListener("message", function (event) {
+        handleSalesMessage(event.data);
+    });
+}
 
-/* =========================================================
-   RENDER SALES HISTORY
-   ========================================================= */
+// ============================================
+// FILTER SALES
+// ============================================
+function filterSales() {
+    const searchInput = document.getElementById("searchSales");
+    const dateInput = document.getElementById("saleDateFilter");
 
-function renderSalesHistory(sales) {
-
-    const tableBody =
-        document.getElementById(
-            "salesHistoryTableBody"
-        );
-
-
-    if (!tableBody) {
-
-        console.error(
-            "salesHistoryTableBody not found."
-        );
-
+    if (!searchInput || !dateInput) {
+        console.error("Sales filter elements were not found.");
         return;
-
     }
 
+    const searchText = searchInput.value.trim().toLowerCase();
+    const selectedDate = dateInput.value;
 
-    /* -----------------------------------------------------
-       NO DATA
-    ----------------------------------------------------- */
+    const filteredSales = allSalesHistory.filter(sale => {
+        const saleId = String(sale.SaleID ?? "").toLowerCase();
+        const productName = String(sale.ProductName ?? "").toLowerCase();
 
-    if (
-        !Array.isArray(sales) ||
-        sales.length === 0
-    ) {
+        // SaleDate is formatted as yyyy-MM-dd HH:mm by VB.NET.
+        const saleDate = String(sale.SaleDate ?? "").substring(0, 10);
 
-        tableBody.innerHTML = `
+        const matchesSearch =
+            saleId.includes(searchText) ||
+            productName.includes(searchText);
+
+        const matchesDate =
+            !selectedDate || saleDate === selectedDate;
+
+        return matchesSearch && matchesDate;
+    });
+
+    renderSalesHistory(filteredSales);
+}
+
+// ============================================
+// CLEAR FILTERS
+// ============================================
+function clearSalesFilter() {
+    document.getElementById("searchSales").value = "";
+    document.getElementById("saleDateFilter").value = "";
+
+    renderSalesHistory(allSalesHistory);
+}
+
+// ============================================
+// RENDER TABLE
+// ============================================
+function renderSalesHistory(sales) {
+    updateSalesSummary(sales);
+
+    const tbody = document.getElementById("salesHistoryTableBody");
+
+    if (!tbody) return;
+
+    if (!sales || sales.length === 0) {
+        tbody.innerHTML = `
             <tr>
                 <td colspan="6" class="empty-message">
                     No sales records found.
                 </td>
-            </tr>
-        `;
-
+            </tr>`;
         return;
-
     }
 
-
-    /* -----------------------------------------------------
-       CLEAR TABLE
-    ----------------------------------------------------- */
-
-    tableBody.innerHTML = "";
-
-
-    /* -----------------------------------------------------
-       ADD ROWS
-    ----------------------------------------------------- */
-
-    sales.forEach(function (sale) {
-
-        console.log(
-            "Rendering sale:",
-            sale
-        );
-
-
-        const saleID =
-            sale.SaleID ??
-            sale.saleID ??
-            "-";
-
-
-        const productName =
-            sale.ProductName ??
-            sale.productName ??
-            "-";
-
-
-        const quantity =
-            sale.Quantity ??
-            sale.quantity ??
-            0;
-
-
-        const sellingPrice =
-            sale.SellingPrice ??
-            sale.sellingPrice ??
-            0;
-
-
-        const totalAmount =
-            sale.TotalAmount ??
-            sale.totalAmount ??
-            0;
-
-
-        const saleDate =
-            sale.SaleDate ??
-            sale.saleDate ??
-            "";
-
-
-        const row =
-            document.createElement("tr");
-
-
-        row.innerHTML = `
-            <td>
-                ${escapeHtml(saleID)}
-            </td>
-
-            <td>
-                ${escapeHtml(productName)}
-            </td>
-
-            <td>
-                ${escapeHtml(quantity)}
-            </td>
-
-            <td>
-                ₹${formatNumber(sellingPrice)}
-            </td>
-
-            <td>
-                ₹${formatNumber(totalAmount)}
-            </td>
-
-            <td>
-                ${formatDate(saleDate)}
-            </td>
-        `;
-
-
-        tableBody.appendChild(row);
-
-    });
-
+    tbody.innerHTML = sales.map(sale => `
+        <tr>
+            <td>${escapeHtml(sale.SaleID)}</td>
+            <td>${escapeHtml(sale.ProductName)}</td>
+            <td>${Number(sale.Quantity ?? 0)}</td>
+            <td>₹${Number(sale.SellingPrice ?? 0).toFixed(2)}</td>
+            <td>₹${Number(sale.TotalAmount ?? 0).toFixed(2)}</td>
+            <td>${escapeHtml(sale.SaleDate ?? "")}</td>
+        </tr>
+    `).join("");
 }
 
+// ============================================
+// DISPLAY MESSAGE IN TABLE
+// ============================================
+function showSalesMessage(message) {
+    const tbody = document.getElementById("salesHistoryTableBody");
 
-/* =========================================================
-   UPDATE SUMMARY
-   ========================================================= */
+    if (!tbody) return;
 
-function updateSummary(sales) {
+    tbody.innerHTML = `
+        <tr>
+            <td colspan="6" class="empty-message">
+                ${escapeHtml(message)}
+            </td>
+        </tr>`;
+}
 
-    let totalSales = 0;
-    let totalItems = 0;
-    let totalRevenue = 0;
+// ============================================
+// ESCAPE HTML
+// ============================================
+function escapeHtml(value) {
+    return String(value ?? "").replace(/[&<>"']/g, character => ({
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        '"': "&quot;",
+        "'": "&#39;"
+    })[character]);
+}
 
+// ============================================
+// INITIALIZE PAGE
+// ============================================
+document.addEventListener("DOMContentLoaded", function () {
+    console.log("Sales History page initialized.");
+    loadSalesHistory();
+});
 
-    if (Array.isArray(sales)) {
+function updateSalesSummary(sales) {
+    const totalSalesElement = document.getElementById("totalSales");
+    const totalItemsElement = document.getElementById("totalItems");
+    const totalRevenueElement = document.getElementById("totalRevenue");
 
-        sales.forEach(function (sale) {
+    // Count unique sale transactions, not individual product rows.
+    const totalSales = new Set(
+        sales.map(sale => sale.SaleID)
+    ).size;
 
-            totalSales++;
+    const totalItems = sales.reduce(
+        (sum, sale) => sum + Number(sale.Quantity || 0),
+        0
+    );
 
-
-            totalItems += Number(
-                sale.Quantity ??
-                sale.quantity ??
-                0
-            );
-
-
-            totalRevenue += Number(
-                sale.TotalAmount ??
-                sale.totalAmount ??
-                0
-            );
-
-        });
-
-    }
-
-
-    const totalSalesElement =
-        document.getElementById(
-            "totalSales"
-        );
-
-
-    const totalItemsElement =
-        document.getElementById(
-            "totalItems"
-        );
-
-
-    const totalRevenueElement =
-        document.getElementById(
-            "totalRevenue"
-        );
-
+    const totalRevenue = sales.reduce(
+        (sum, sale) => sum + Number(sale.TotalAmount || 0),
+        0
+    );
 
     if (totalSalesElement) {
-
-        totalSalesElement.textContent =
-            totalSales;
-
+        totalSalesElement.textContent = totalSales;
     }
-
 
     if (totalItemsElement) {
-
-        totalItemsElement.textContent =
-            totalItems;
-
+        totalItemsElement.textContent = totalItems;
     }
-
 
     if (totalRevenueElement) {
-
         totalRevenueElement.textContent =
-            "₹" +
-            formatNumber(totalRevenue);
-
+            "₹" + totalRevenue.toFixed(2);
     }
-
-}
-
-
-/* =========================================================
-   FILTER SALES
-   ========================================================= */
-
-function filterSales() {
-
-    const searchInput =
-        document.getElementById(
-            "searchSales"
-        );
-
-
-    const dateInput =
-        document.getElementById(
-            "saleDateFilter"
-        );
-
-
-    const search =
-        searchInput
-            ? searchInput.value
-                .trim()
-                .toLowerCase()
-            : "";
-
-
-    const selectedDate =
-        dateInput
-            ? dateInput.value
-            : "";
-
-
-    const filteredSales =
-        salesHistoryData.filter(
-            function (sale) {
-
-                const saleID =
-                    String(
-                        sale.SaleID ??
-                        sale.saleID ??
-                        ""
-                    ).toLowerCase();
-
-
-                const productName =
-                    String(
-                        sale.ProductName ??
-                        sale.productName ??
-                        ""
-                    ).toLowerCase();
-
-
-                const saleDate =
-                    sale.SaleDate ??
-                    sale.saleDate ??
-                    "";
-
-
-                const matchesSearch =
-                    search === "" ||
-                    saleID.includes(search) ||
-                    productName.includes(search);
-
-
-                let matchesDate = true;
-
-
-                if (selectedDate !== "") {
-
-                    matchesDate =
-                        getDateOnly(
-                            saleDate
-                        ) === selectedDate;
-
-                }
-
-
-                return (
-                    matchesSearch &&
-                    matchesDate
-                );
-
-            }
-        );
-
-
-    renderSalesHistory(
-        filteredSales
-    );
-
-}
-
-
-/* =========================================================
-   CLEAR FILTER
-   ========================================================= */
-
-function clearSalesFilter() {
-
-    const searchInput =
-        document.getElementById(
-            "searchSales"
-        );
-
-
-    const dateInput =
-        document.getElementById(
-            "saleDateFilter"
-        );
-
-
-    if (searchInput) {
-        searchInput.value = "";
-    }
-
-
-    if (dateInput) {
-        dateInput.value = "";
-    }
-
-
-    renderSalesHistory(
-        salesHistoryData
-    );
-
-}
-
-
-/* =========================================================
-   DATE
-   ========================================================= */
-
-function getDateOnly(value) {
-
-    if (!value) {
-        return "";
-    }
-
-
-    const text =
-        String(value);
-
-
-    /*
-       VB.NET sends:
-       yyyy-MM-dd HH:mm
-
-       Therefore take the first 10 characters.
-    */
-
-    if (text.length >= 10) {
-
-        return text.substring(
-            0,
-            10
-        );
-
-    }
-
-
-    const date =
-        new Date(value);
-
-
-    if (isNaN(date.getTime())) {
-
-        return "";
-
-    }
-
-
-    return date.getFullYear() +
-        "-" +
-        String(
-            date.getMonth() + 1
-        ).padStart(2, "0") +
-        "-" +
-        String(
-            date.getDate()
-        ).padStart(2, "0");
-
-}
-
-
-function formatDate(value) {
-
-    if (!value) {
-        return "-";
-    }
-
-
-    const text =
-        String(value);
-
-
-    /*
-       VB.NET format:
-       yyyy-MM-dd HH:mm
-    */
-
-    if (
-        /^\d{4}-\d{2}-\d{2} \d{2}:\d{2}$/.test(text)
-    ) {
-
-        const parts =
-            text.split(" ");
-
-
-        return parts[0] +
-            " " +
-            parts[1];
-
-    }
-
-
-    return text;
-
-}
-
-
-/* =========================================================
-   NUMBER FORMAT
-   ========================================================= */
-
-function formatNumber(value) {
-
-    const number =
-        Number(value);
-
-
-    if (isNaN(number)) {
-
-        return "0.00";
-
-    }
-
-
-    return number.toLocaleString(
-        "en-IN",
-        {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2
-        }
-    );
-
-}
-
-
-/* =========================================================
-   HTML ESCAPE
-   ========================================================= */
-
-function escapeHtml(value) {
-
-    if (
-        value === null ||
-        value === undefined
-    ) {
-
-        return "";
-
-    }
-
-
-    return String(value)
-        .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;")
-        .replace(/"/g, "&quot;")
-        .replace(/'/g, "&#039;");
-
 }

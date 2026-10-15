@@ -256,7 +256,7 @@ Public Class FrmMain
                         AddPurchase(root)
 
                     Case "loadSales"
-                        Debug.WriteLine("Staff/Role requested: loadSales")
+                        Debug.WriteLine("TEST 1: loadSales received")
                         LoadSalesToWeb()
 
                     Case "addSale"
@@ -265,6 +265,9 @@ Public Class FrmMain
 
                     Case "addProduct"
                         AddProduct(root)
+
+                    Case "loadProductsBySupplier"
+                        LoadProductsBySupplier(root)
 
                     Case "updateProduct"
                         UpdateProduct(root)
@@ -324,11 +327,6 @@ Public Class FrmMain
         )
         End Try
     End Sub
-
-
-
-
-
 
     '=========================================================
     ' LOAD SALES
@@ -454,6 +452,7 @@ Public Class FrmMain
 
                 End Using
 
+                Debug.WriteLine("TEST 2: Sales count = " & sales.Count.ToString())
 
                 '-------------------------------------------------
                 ' SEND SALES TO WEB PAGE
@@ -482,6 +481,330 @@ Public Class FrmMain
             }
         )
 
+        End Try
+
+    End Sub
+
+
+    Private Sub AddPurchase(root As JsonElement)
+
+        Dim transaction As MySqlTransaction = Nothing
+        Dim purchaseID As Integer = 0
+        Dim totalPrice As Decimal = 0D
+
+        Try
+            ' Read values sent by JavaScript
+            Dim supplierID As Integer =
+            GetIntegerValue(root, "SupplierID")
+
+            Dim productID As Integer =
+            GetIntegerValue(root, "ProductID")
+
+            Dim quantity As Integer =
+            GetIntegerValue(root, "Quantity")
+
+            ' Validate input
+            If supplierID <= 0 Then
+                SendToWeb(New With {
+                .type = "purchaseError",
+                .message = "Please select a supplier."
+            })
+                Return
+            End If
+
+            If productID <= 0 Then
+                SendToWeb(New With {
+                .type = "purchaseError",
+                .message = "Please select a product."
+            })
+                Return
+            End If
+
+            If quantity <= 0 Then
+                SendToWeb(New With {
+                .type = "purchaseError",
+                .message = "Quantity must be greater than zero."
+            })
+                Return
+            End If
+
+            Using con As MySqlConnection = DBConnection.GetConnection()
+
+                con.Open()
+                transaction = con.BeginTransaction()
+
+                ' 1. Verify that the supplier exists
+                Dim supplierQuery As String =
+                "SELECT COUNT(*) FROM Suppliers " &
+                "WHERE SupplierID = @SupplierID"
+
+                Using cmd As New MySqlCommand(
+                supplierQuery, con, transaction)
+
+                    cmd.Parameters.AddWithValue(
+                    "@SupplierID", supplierID)
+
+                    Dim supplierExists As Integer =
+                    Convert.ToInt32(cmd.ExecuteScalar())
+
+                    If supplierExists = 0 Then
+                        Throw New Exception(
+                        "Selected supplier was not found.")
+                    End If
+                End Using
+
+                ' 2. Verify that the product belongs to this supplier
+                ' Lock the product row while updating stock
+                Dim previousStock As Integer = 0
+                Dim purchasePrice As Decimal = 0D
+
+                Dim productQuery As String =
+                "SELECT StockQuantity, PurchasePrice " &
+                "FROM Products " &
+                "WHERE ProductID = @ProductID " &
+                "AND SupplierID = @SupplierID " &
+                "FOR UPDATE"
+
+                Using cmd As New MySqlCommand(
+                productQuery, con, transaction)
+
+                    cmd.Parameters.AddWithValue(
+                    "@ProductID", productID)
+
+                    cmd.Parameters.AddWithValue(
+                    "@SupplierID", supplierID)
+
+                    Using reader As MySqlDataReader =
+                    cmd.ExecuteReader()
+
+                        If Not reader.Read() Then
+                            Throw New Exception(
+                            "The selected product does not belong " &
+                            "to this supplier, or the product was not found.")
+                        End If
+
+                        previousStock =
+                        Convert.ToInt32(reader("StockQuantity"))
+
+                        purchasePrice =
+                        Convert.ToDecimal(reader("PurchasePrice"))
+                    End Using
+                End Using
+
+                If purchasePrice <= 0D Then
+                    Throw New Exception(
+                    "The selected product has an invalid purchase price.")
+                End If
+
+                ' 3. Calculate purchase amount and new stock
+
+                totalPrice = Decimal.Round(
+                    quantity * purchasePrice,
+                    2,
+                    MidpointRounding.AwayFromZero)
+
+                Dim newStock As Integer =
+                previousStock + quantity
+
+                ' 4. Insert purchase header
+                Dim purchaseQuery As String =
+                "INSERT INTO Purchases " &
+                "(SupplierID, PurchaseDate, TotalAmount) " &
+                "VALUES (@SupplierID, NOW(), @TotalAmount)"
+
+                Using cmd As New MySqlCommand(
+                purchaseQuery, con, transaction)
+
+                    cmd.Parameters.AddWithValue(
+                    "@SupplierID", supplierID)
+
+                    cmd.Parameters.AddWithValue(
+                    "@TotalAmount", totalPrice)
+
+                    cmd.ExecuteNonQuery()
+
+                    purchaseID = Convert.ToInt32(cmd.LastInsertedId)
+                End Using
+
+                ' 5. Insert purchase details
+                Dim detailQuery As String =
+                "INSERT INTO PurchaseDetails " &
+                "(PurchaseID, ProductID, Quantity, " &
+                "PurchasePrice, TotalPrice) " &
+                "VALUES (@PurchaseID, @ProductID, @Quantity, " &
+                "@PurchasePrice, @TotalPrice)"
+
+                Using cmd As New MySqlCommand(
+                detailQuery, con, transaction)
+
+                    cmd.Parameters.AddWithValue(
+                    "@PurchaseID", purchaseID)
+
+                    cmd.Parameters.AddWithValue(
+                    "@ProductID", productID)
+
+                    cmd.Parameters.AddWithValue(
+                    "@Quantity", quantity)
+
+                    cmd.Parameters.AddWithValue(
+                    "@PurchasePrice", purchasePrice)
+
+                    cmd.Parameters.AddWithValue(
+                    "@TotalPrice", totalPrice)
+
+                    cmd.ExecuteNonQuery()
+                End Using
+
+                ' 6. Update product stock
+                Dim stockQuery As String =
+                "UPDATE Products SET " &
+                "StockQuantity = @NewStock " &
+                "WHERE ProductID = @ProductID " &
+                "AND SupplierID = @SupplierID"
+
+                Using cmd As New MySqlCommand(
+                stockQuery, con, transaction)
+
+                    cmd.Parameters.AddWithValue(
+                    "@NewStock", newStock)
+
+                    cmd.Parameters.AddWithValue(
+                    "@ProductID", productID)
+
+                    cmd.Parameters.AddWithValue(
+                    "@SupplierID", supplierID)
+
+                    Dim rowsAffected As Integer =
+                    cmd.ExecuteNonQuery()
+
+                    If rowsAffected = 0 Then
+                        Throw New Exception(
+                        "Product stock could not be updated.")
+                    End If
+                End Using
+
+                ' 7. Record stock history
+                Dim historyQuery As String =
+                "INSERT INTO StockHistory " &
+                "(ProductID, ChangeType, Quantity, " &
+                "PreviousStock, NewStock, ChangeDate) " &
+                "VALUES (@ProductID, @ChangeType, @Quantity, " &
+                "@PreviousStock, @NewStock, NOW())"
+
+                Using cmd As New MySqlCommand(
+                historyQuery, con, transaction)
+
+                    cmd.Parameters.AddWithValue(
+                    "@ProductID", productID)
+
+                    cmd.Parameters.AddWithValue(
+                    "@ChangeType", "PURCHASE")
+
+                    cmd.Parameters.AddWithValue(
+                    "@Quantity", quantity)
+
+                    cmd.Parameters.AddWithValue(
+                    "@PreviousStock", previousStock)
+
+                    cmd.Parameters.AddWithValue(
+                    "@NewStock", newStock)
+
+                    cmd.ExecuteNonQuery()
+                End Using
+
+                ' 8. Commit all database changes
+                transaction.Commit()
+                transaction = Nothing
+
+            End Using
+
+            ' 9. Notify JavaScript that the purchase succeeded
+            SendToWeb(New With {
+                    .type = "purchaseAdded",
+                    .message = "Purchase added successfully.",
+                    .purchaseID = purchaseID,
+                    .totalAmount = totalPrice
+                })
+            ' Refresh purchase history and product/supplier data
+            LoadPurchasesToWeb()
+            LoadProductsToWeb()
+            LoadSuppliersToWeb()
+
+        Catch ex As Exception
+
+            ' Roll back if any database operation failed
+            If transaction IsNot Nothing Then
+                Try
+                    transaction.Rollback()
+                Catch rollbackEx As Exception
+                    Debug.WriteLine(
+                    "Purchase rollback error: " & rollbackEx.Message)
+                End Try
+            End If
+
+            SendToWeb(New With {
+            .type = "purchaseError",
+            .message = "Unable to add purchase: " & ex.Message
+        })
+
+            Debug.WriteLine(
+            "AddPurchase error: " & ex.ToString())
+
+        Finally
+            If transaction IsNot Nothing Then
+                transaction.Dispose()
+            End If
+        End Try
+
+    End Sub
+
+
+    '=============================================
+    ' Products By Supplier
+    '=====================================
+
+    Private Sub LoadProductsBySupplier(supplierID As Integer)
+
+        Try
+            Using con As MySqlConnection = DBConnection.GetConnection()
+
+                con.Open()
+
+                Dim query As String =
+                "SELECT ProductID, ProductName " &
+                "FROM Products " &
+                "WHERE SupplierID = @SupplierID " &
+                "ORDER BY ProductName"
+
+                Using cmd As New MySqlCommand(query, con)
+
+                    cmd.Parameters.AddWithValue("@SupplierID", supplierID)
+
+                    Using reader As MySqlDataReader = cmd.ExecuteReader()
+
+                        Dim products As New List(Of Dictionary(Of String, Object))
+
+                        While reader.Read()
+                            products.Add(New Dictionary(Of String, Object) From {
+                            {"ProductID", reader("ProductID")},
+                            {"ProductName", reader("ProductName")}
+                        })
+                        End While
+
+                        SendToWeb(New With {
+                        .type = "supplierProducts",
+                        .data = products
+                    })
+
+                    End Using
+                End Using
+            End Using
+
+        Catch ex As Exception
+            SendToWeb(New With {
+            .type = "supplierProductsError",
+            .message = ex.Message
+        })
         End Try
 
     End Sub
@@ -2631,355 +2954,73 @@ Public Class FrmMain
     '=========================================================
     ' ADD PURCHASE
     '=========================================================
-    Private Sub AddPurchase(root As JsonElement)
+    Private Sub LoadProductsBySupplier(root As JsonElement)
 
-        Dim transaction As MySqlTransaction = Nothing
-        Dim purchaseID As Integer = 0
+        Dim supplierID As Integer = 0
+        Dim requestNumber As Integer = 0
 
         Try
-
-            Dim supplierID As Integer =
-            GetIntegerValue(root, "SupplierID")
-
-            Dim productID As Integer =
-            GetIntegerValue(root, "ProductID")
-
-            Dim quantity As Integer =
-            GetIntegerValue(root, "Quantity")
-
+            supplierID = GetIntegerValue(root, "SupplierID")
+            requestNumber = GetIntegerValue(root, "RequestNumber")
 
             If supplierID <= 0 Then
-
-                SendToWeb(
-                New With {
-                    .type = "purchaseError",
-                    .message = "Please select a supplier."
-                }
-            )
-
+                SendToWeb(New With {
+                .type = "supplierProducts",
+                .SupplierID = supplierID,
+                .RequestNumber = requestNumber,
+                .data = New Object() {}
+            })
                 Return
-
             End If
 
+            Dim products As New List(Of Dictionary(Of String, Object))()
 
-            If productID <= 0 Then
-
-                SendToWeb(
-                New With {
-                    .type = "purchaseError",
-                    .message = "Please select a product."
-                }
-            )
-
-                Return
-
-            End If
-
-
-            If quantity <= 0 Then
-
-                SendToWeb(
-                New With {
-                    .type = "purchaseError",
-                    .message = "Quantity must be greater than zero."
-                }
-            )
-
-                Return
-
-            End If
-
-
-            Using con As MySqlConnection =
-            DBConnection.GetConnection()
+            Using con As MySqlConnection = DBConnection.GetConnection()
 
                 con.Open()
 
-                transaction =
-                con.BeginTransaction()
-
-
-                Dim supplierQuery As String =
-                "SELECT COUNT(*) " &
-                "FROM Suppliers " &
-                "WHERE SupplierID = @SupplierID"
-
-                Using cmd As New MySqlCommand(
-                supplierQuery,
-                con,
-                transaction
-            )
-
-                    cmd.Parameters.AddWithValue(
-                    "@SupplierID",
-                    supplierID
-                )
-
-                    Dim supplierExists As Integer =
-                    Convert.ToInt32(
-                        cmd.ExecuteScalar()
-                    )
-
-                    If supplierExists = 0 Then
-
-                        Throw New Exception(
-                        "Selected supplier was not found."
-                    )
-
-                    End If
-
-                End Using
-
-
-                Dim previousStock As Integer = 0
-                Dim purchasePrice As Decimal = 0D
-
-                Dim productQuery As String =
-                "SELECT StockQuantity, PurchasePrice " &
+                Dim query As String =
+                "SELECT ProductID, ProductName, StockQuantity, PurchasePrice " &
                 "FROM Products " &
-                "WHERE ProductID = @ProductID " &
-                "FOR UPDATE"
+                "WHERE SupplierID = @SupplierID " &
+                "ORDER BY ProductName"
 
-                Using cmd As New MySqlCommand(
-                productQuery,
-                con,
-                transaction
-            )
+                Using cmd As New MySqlCommand(query, con)
 
-                    cmd.Parameters.AddWithValue(
-                    "@ProductID",
-                    productID
-                )
+                    cmd.Parameters.AddWithValue("@SupplierID", supplierID)
 
-                    Using reader As MySqlDataReader =
-                    cmd.ExecuteReader()
+                    Using reader As MySqlDataReader = cmd.ExecuteReader()
 
-                        If Not reader.Read() Then
+                        While reader.Read()
 
-                            Throw New Exception(
-                            "Selected product was not found."
-                        )
+                            products.Add(New Dictionary(Of String, Object) From {
+                            {"ProductID", Convert.ToInt32(reader("ProductID"))},
+                            {"ProductName", reader("ProductName").ToString()},
+                            {"StockQuantity", Convert.ToInt32(reader("StockQuantity"))},
+                            {"PurchasePrice", Convert.ToDecimal(reader("PurchasePrice"))}
+                        })
 
-                        End If
-
-                        previousStock =
-                        Convert.ToInt32(
-                            reader("StockQuantity")
-                        )
-
-                        purchasePrice =
-                        Convert.ToDecimal(
-                            reader("PurchasePrice")
-                        )
+                        End While
 
                     End Using
-
                 End Using
-
-
-                If purchasePrice <= 0D Then
-
-                    Throw New Exception(
-                    "Selected product does not have a valid purchase price."
-                )
-
-                End If
-
-
-                Dim totalPrice As Decimal =
-                quantity * purchasePrice
-
-                Dim newStock As Integer =
-                previousStock + quantity
-
-
-                Dim purchaseQuery As String =
-                "INSERT INTO Purchases " &
-                "(SupplierID, PurchaseDate, TotalAmount) " &
-                "VALUES " &
-                "(@SupplierID, NOW(), @TotalAmount)"
-
-                Using cmd As New MySqlCommand(
-                purchaseQuery,
-                con,
-                transaction
-            )
-
-                    cmd.Parameters.AddWithValue(
-                    "@SupplierID",
-                    supplierID
-                )
-
-                    cmd.Parameters.AddWithValue(
-                    "@TotalAmount",
-                    totalPrice
-                )
-
-                    cmd.ExecuteNonQuery()
-
-                    purchaseID =
-                    Convert.ToInt32(
-                        cmd.LastInsertedId
-                    )
-
-                End Using
-
-
-                Dim detailQuery As String =
-                "INSERT INTO PurchaseDetails " &
-                "(PurchaseID, ProductID, Quantity, PurchasePrice, TotalPrice) " &
-                "VALUES " &
-                "(@PurchaseID, @ProductID, @Quantity, @PurchasePrice, @TotalPrice)"
-
-                Using cmd As New MySqlCommand(
-                detailQuery,
-                con,
-                transaction
-            )
-
-                    cmd.Parameters.AddWithValue(
-                    "@PurchaseID",
-                    purchaseID
-                )
-
-                    cmd.Parameters.AddWithValue(
-                    "@ProductID",
-                    productID
-                )
-
-                    cmd.Parameters.AddWithValue(
-                    "@Quantity",
-                    quantity
-                )
-
-                    cmd.Parameters.AddWithValue(
-                    "@PurchasePrice",
-                    purchasePrice
-                )
-
-                    cmd.Parameters.AddWithValue(
-                    "@TotalPrice",
-                    totalPrice
-                )
-
-                    cmd.ExecuteNonQuery()
-
-                End Using
-
-
-                Dim stockQuery As String =
-                "UPDATE Products SET " &
-                "StockQuantity = @NewStock " &
-                "WHERE ProductID = @ProductID"
-
-                Using cmd As New MySqlCommand(
-                stockQuery,
-                con,
-                transaction
-            )
-
-                    cmd.Parameters.AddWithValue(
-                    "@NewStock",
-                    newStock
-                )
-
-                    cmd.Parameters.AddWithValue(
-                    "@ProductID",
-                    productID
-                )
-
-                    Dim rowsAffected As Integer =
-                    cmd.ExecuteNonQuery()
-
-                    If rowsAffected = 0 Then
-
-                        Throw New Exception(
-                        "Product stock could not be updated."
-                    )
-
-                    End If
-
-                End Using
-
-
-                Dim historyQuery As String =
-                "INSERT INTO StockHistory " &
-                "(ProductID, ChangeType, Quantity, PreviousStock, NewStock, ChangeDate) " &
-                "VALUES " &
-                "(@ProductID, @ChangeType, @Quantity, @PreviousStock, @NewStock, NOW())"
-
-                Using cmd As New MySqlCommand(
-                historyQuery,
-                con,
-                transaction
-            )
-
-                    cmd.Parameters.AddWithValue(
-                    "@ProductID",
-                    productID
-                )
-
-                    cmd.Parameters.AddWithValue(
-                    "@ChangeType",
-                    "PURCHASE"
-                )
-
-                    cmd.Parameters.AddWithValue(
-                    "@Quantity",
-                    quantity
-                )
-
-                    cmd.Parameters.AddWithValue(
-                    "@PreviousStock",
-                    previousStock
-                )
-
-                    cmd.Parameters.AddWithValue(
-                    "@NewStock",
-                    newStock
-                )
-
-                    cmd.ExecuteNonQuery()
-
-                End Using
-
-
-                transaction.Commit()
-                transaction = Nothing
-
             End Using
 
-
-            SendToWeb(
-            New With {
-                .type = "purchaseAdded",
-                .message = "Purchase added successfully.",
-                .purchaseID = purchaseID,
-                .totalAmount = 0
-            }
-        )
-
-            LoadPurchasesToWeb()
-            LoadProductsToWeb()
-            LoadSuppliersToWeb()
+            SendToWeb(New With {
+            .type = "supplierProducts",
+            .SupplierID = supplierID,
+            .RequestNumber = requestNumber,
+            .data = products
+        })
 
         Catch ex As Exception
 
-            If transaction IsNot Nothing Then
-
-                Try
-                    transaction.Rollback()
-                Catch
-                End Try
-
-            End If
-
-            SendToWeb(
-            New With {
-                .type = "purchaseError",
-                .message = "Unable to add purchase: " & ex.Message
-            }
-        )
+            SendToWeb(New With {
+            .type = "supplierProductsError",
+            .SupplierID = supplierID,
+            .RequestNumber = requestNumber,
+            .message = ex.Message
+        })
 
         End Try
 
@@ -2989,80 +3030,44 @@ Public Class FrmMain
     '=========================================================
     ' SEND DATA TO WEB UI
     '=========================================================
+
     Private Sub SendToWeb(data As Object)
-
         Try
-
-            '-------------------------------------------------
-            ' MAKE SURE WEBVIEW2 IS READY
-            '-------------------------------------------------
             If WebView21.CoreWebView2 Is Nothing Then
+                Debug.WriteLine("SendToWeb: WebView2 is not ready.")
                 Return
             End If
 
+            Dim json As String = JsonSerializer.Serialize(data)
 
-            '-------------------------------------------------
-            ' CONVERT VB.NET OBJECT TO JSON
-            '-------------------------------------------------
-            Dim json As String =
-            JsonSerializer.Serialize(data)
+            Debug.WriteLine("SendToWeb payload: " & json)
 
+            ' Send to the top-level WebView2 page.
+            WebView21.CoreWebView2.PostWebMessageAsJson(json)
 
-            '-------------------------------------------------
-            ' SEND TO TOP-LEVEL WEBVIEW
-            '-------------------------------------------------
-            WebView21.CoreWebView2.PostWebMessageAsJson(
-            json
-        )
-
-
-            '-------------------------------------------------
-            ' SEND TO CURRENT IFRAME
-            '
-            ' Small delay allows the iframe/page JavaScript
-            ' to finish loading before receiving the message.
-            '-------------------------------------------------
+            ' Also send to the currently displayed iframe.
             Dim script As String =
-            "setTimeout(function() {" &
-            "    try {" &
-            "        const frame = document.getElementById('page-frame');" &
-            "        if (!frame) {" &
-            "            console.log('SendToWeb: page-frame not found');" &
-            "            return;" &
-            "        }" &
-            "        if (!frame.contentWindow) {" &
-            "            console.log('SendToWeb: iframe contentWindow unavailable');" &
-            "            return;" &
-            "        }" &
-            "        const message = " & json & ";" &
-            "        frame.contentWindow.postMessage(message, '*');" &
-            "        console.log('SendToWeb: message sent to iframe', message);" &
-            "    } catch (error) {" &
-            "        console.error('SendToWeb iframe error:', error);" &
+            "(() => {" &
+            "  try {" &
+            "    const frame = document.getElementById('page-frame');" &
+            "    if (frame && frame.contentWindow) {" &
+            "      frame.contentWindow.postMessage(" & json & ", '*');" &
+            "      console.log('SendToWeb: sent message to page-frame');" &
+            "    } else {" &
+            "      console.warn('SendToWeb: page-frame not found');" &
             "    }" &
-            "}, 300);"
+            "  } catch (error) {" &
+            "    console.error('SendToWeb iframe error:', error);" &
+            "  }" &
+            "})();"
 
-
-            WebView21.CoreWebView2.ExecuteScriptAsync(
-            script
-        )
-
+            WebView21.CoreWebView2.ExecuteScriptAsync(script)
 
         Catch ex As Exception
-
-            MessageBox.Show(
-            "Error sending data to WebUI:" &
-            Environment.NewLine &
-            Environment.NewLine &
-            ex.Message,
-            "WebUI Error",
-            MessageBoxButtons.OK,
-            MessageBoxIcon.Error
-        )
-
+            Debug.WriteLine("SendToWeb error: " & ex.ToString())
         End Try
-
     End Sub
+
 
 
     '=========================================================

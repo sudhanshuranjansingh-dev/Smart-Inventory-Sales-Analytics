@@ -1,4 +1,5 @@
-﻿/* =========================================================
+﻿
+/* =========================================================
    SMART INVENTORY
    PURCHASES MODULE
    ========================================================= */
@@ -9,198 +10,132 @@ document.addEventListener("DOMContentLoaded", function () {
        DOM ELEMENTS
        ===================================================== */
 
-    const supplierSelect =
-        document.getElementById("supplierSelect");
+    const supplierSelect = document.getElementById("supplierSelect");
+    const productSelect = document.getElementById("productSelect");
+    const quantityInput = document.getElementById("quantity");
+    const purchasePriceInput = document.getElementById("purchasePrice");
 
-    const productSelect =
-        document.getElementById("productSelect");
+    const currentStockElement = document.getElementById("currentStock");
+    const summaryQuantityElement = document.getElementById("summaryQuantity");
+    const newStockElement = document.getElementById("newStock");
+    const totalAmountElement = document.getElementById("totalAmount");
 
-    const quantityInput =
-        document.getElementById("quantity");
+    const purchaseForm = document.getElementById("purchaseForm");
+    const clearButton = document.getElementById("clearPurchaseBtn");
+    const tableBody = document.getElementById("purchasesTableBody");
 
-    const purchasePriceInput =
-        document.getElementById("purchasePrice");
-
-    /*
-     * These are SUMMARY DISPLAY elements.
-     * They may be div/span elements, not inputs.
-     */
-    const currentStockElement =
-        document.getElementById("currentStock");
-
-    const summaryQuantityElement =
-        document.getElementById("summaryQuantity");
-
-    const newStockElement =
-        document.getElementById("newStock");
-
-    const totalAmountElement =
-        document.getElementById("totalAmount");
-
-    const purchaseForm =
-        document.getElementById("purchaseForm");
-
-    const clearButton =
-        document.getElementById("clearPurchaseBtn");
-
-    const tableBody =
-        document.getElementById("purchasesTableBody");
+    let selectedSupplierID = "";
+    let productRequestNumber = 0;
+    let purchaseSubmitting = false;
 
 
     /* =====================================================
-       HELPER - SET DISPLAY VALUE
+       DISPLAY HELPERS
        ===================================================== */
 
     function setDisplayValue(element, value) {
+        if (!element) return;
 
-        if (!element) {
-            return;
-        }
-
-        /*
-         * If element is an input,
-         * use value.
-         */
-        if (
-            element.tagName === "INPUT" ||
-            element.tagName === "SELECT" ||
-            element.tagName === "TEXTAREA"
-        ) {
-
+        if (["INPUT", "SELECT", "TEXTAREA"].includes(element.tagName)) {
             element.value = value;
-
-        }
-        else {
-
-            /*
-             * For div, span, p, etc.
-             */
+        } else {
             element.textContent = value;
-
         }
-
     }
-
-
-    /* =====================================================
-       HELPER - GET NUMBER FROM INPUT
-       ===================================================== */
 
     function getNumber(element) {
+        if (!element) return 0;
 
-        if (!element) {
-            return 0;
-        }
+        const value = Number(element.value);
+        return Number.isFinite(value) ? value : 0;
+    }
 
-        const value =
-            Number(element.value);
+    function formatCurrency(value) {
+        return "₹" + Number(value || 0).toLocaleString("en-IN", {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+        });
+    }
 
-        if (Number.isNaN(value)) {
-            return 0;
-        }
+    function escapeHtml(value) {
+        if (value === null || value === undefined) return "";
 
-        return value;
-
+        return String(value)
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#039;");
     }
 
 
     /* =====================================================
-       SEND MESSAGE TO VB.NET
+       WEBVIEW2 / IFRAME BRIDGE
        ===================================================== */
 
     function sendToVB(data) {
-
-        /*
-         * Purchases is loaded inside an iframe.
-         * Send the message to the parent WebUI first.
-         */
-        if (
-            window.parent &&
-            window.parent !== window
-        ) {
-
-            window.parent.postMessage(
-                data,
-                "*"
-            );
-
+        if (window.parent && window.parent !== window) {
+            window.parent.postMessage(data, "*");
             return;
-
         }
 
-
-        /*
-         * Fallback for direct WebView2 page.
-         */
-        if (
-            window.chrome &&
-            window.chrome.webview
-        ) {
-
-            window.chrome.webview.postMessage(
-                data
-            );
-
+        if (window.chrome?.webview) {
+            window.chrome.webview.postMessage(data);
             return;
-
         }
 
-
-        console.error(
-            "WebView2 communication is unavailable."
-        );
-
+        console.error("WebView2 communication is unavailable.");
     }
 
 
     /* =====================================================
-       REQUEST SUPPLIERS
+       REQUEST DATA
        ===================================================== */
 
     function requestSuppliers() {
-
-        console.log(
-            "Purchases: requesting suppliers..."
-        );
-
-        sendToVB({
-            action: "loadSuppliers"
-        });
-
+        sendToVB({ action: "loadSuppliers" });
     }
-
-
-    /* =====================================================
-       REQUEST PRODUCTS
-       ===================================================== */
-
-    function requestProducts() {
-
-        console.log(
-            "Purchases: requesting products..."
-        );
-
-        sendToVB({
-            action: "loadProducts"
-        });
-
-    }
-
-
-    /* =====================================================
-       REQUEST PURCHASES
-       ===================================================== */
 
     function requestPurchases() {
+        sendToVB({ action: "loadPurchases" });
+    }
 
-        console.log(
-            "Purchases: requesting purchases..."
-        );
+    function requestProductsBySupplier(supplierID) {
+        // Invalidate any outstanding product response.
+        const requestNumber = ++productRequestNumber;
+
+        if (!productSelect) return;
+
+        if (!supplierID) {
+            productSelect.innerHTML =
+                '<option value="">Select supplier first</option>';
+            return;
+        }
+
+        productSelect.innerHTML =
+            '<option value="">Loading products...</option>';
+
+        productSelect.disabled = true;
 
         sendToVB({
-            action: "loadPurchases"
+            action: "loadProductsBySupplier",
+            SupplierID: Number(supplierID),
+            RequestNumber: requestNumber
         });
+    }
 
+
+    /* =====================================================
+       RESET PURCHASE SUMMARY
+       ===================================================== */
+
+    function resetSummary() {
+        if (purchasePriceInput) purchasePriceInput.value = "";
+
+        setDisplayValue(currentStockElement, 0);
+        setDisplayValue(summaryQuantityElement, 0);
+        setDisplayValue(newStockElement, 0);
+        setDisplayValue(totalAmountElement, formatCurrency(0));
     }
 
 
@@ -208,65 +143,50 @@ document.addEventListener("DOMContentLoaded", function () {
        POPULATE SUPPLIERS
        ===================================================== */
 
-    function populateSuppliers(suppliers) {
-
+    function populateSuppliers(data) {
         if (!supplierSelect) {
-
-            console.error(
-                "supplierSelect not found."
-            );
-
+            console.error("supplierSelect not found.");
             return;
-
         }
 
+        const previousSupplierID = selectedSupplierID;
 
         supplierSelect.innerHTML =
             '<option value="">Select Supplier</option>';
 
-
-        if (
-            !Array.isArray(suppliers) ||
-            suppliers.length === 0
-        ) {
-
-            console.warn(
-                "No suppliers received."
-            );
-
+        if (!Array.isArray(data) || data.length === 0) {
+            selectedSupplierID = "";
+            requestProductsBySupplier("");
+            console.warn("No suppliers received.");
             return;
-
         }
 
+        data.forEach(function (supplier) {
+            const option = document.createElement("option");
 
-        suppliers.forEach(
-            function (supplier) {
+            option.value = supplier.SupplierID;
+            option.textContent = supplier.SupplierName;
 
-                const option =
-                    document.createElement("option");
+            supplierSelect.appendChild(option);
+        });
 
+        // Restore the selection only if it still exists.
+        if (
+            previousSupplierID &&
+            data.some(s => String(s.SupplierID) === String(previousSupplierID))
+        ) {
+            supplierSelect.value = previousSupplierID;
+        }
 
-                option.value =
-                    supplier.SupplierID;
+        selectedSupplierID = supplierSelect.value || "";
 
+        if (selectedSupplierID) {
+            requestProductsBySupplier(selectedSupplierID);
+        } else {
+            requestProductsBySupplier("");
+        }
 
-                option.textContent =
-                    supplier.SupplierName;
-
-
-                supplierSelect.appendChild(
-                    option
-                );
-
-            }
-        );
-
-
-        console.log(
-            "Suppliers loaded:",
-            suppliers.length
-        );
-
+        console.log("Suppliers loaded:", data.length);
     }
 
 
@@ -274,77 +194,58 @@ document.addEventListener("DOMContentLoaded", function () {
        POPULATE PRODUCTS
        ===================================================== */
 
-    function populateProducts(products) {
-
-        if (!productSelect) {
-
-            console.error(
-                "productSelect not found."
-            );
-
-            return;
-
-        }
-
+    function populateProducts(data) {
+        if (!productSelect) return;
 
         productSelect.innerHTML =
             '<option value="">Select Product</option>';
 
+        if (!Array.isArray(data) || data.length === 0) {
+            productSelect.innerHTML =
+                '<option value="">No products for this supplier</option>';
 
-        if (
-            !Array.isArray(products) ||
-            products.length === 0
-        ) {
-
-            console.warn(
-                "No products received."
-            );
-
+            productSelect.disabled = true;
+            resetSummary();
             return;
-
         }
 
+        data.forEach(function (product) {
+            const option = document.createElement("option");
 
-        products.forEach(
-            function (product) {
+            option.value = product.ProductID;
+            option.textContent = product.ProductName;
 
-                const option =
-                    document.createElement("option");
+            option.dataset.stock = product.StockQuantity ?? 0;
+            option.dataset.purchasePrice = product.PurchasePrice ?? 0;
 
+            productSelect.appendChild(option);
+        });
 
-                option.value =
-                    product.ProductID;
+        productSelect.disabled = false;
 
-
-                option.textContent =
-                    product.ProductName;
-
-
-                /*
-                 * Store stock and purchase price
-                 * inside the option.
-                 */
-                option.dataset.stock =
-                    product.StockQuantity ?? 0;
+        console.log("Filtered products loaded:", data.length);
+    }
 
 
-                option.dataset.purchasePrice =
-                    product.PurchasePrice ?? 0;
+    /* =====================================================
+       SUPPLIER CHANGE
+       ===================================================== */
 
+    if (supplierSelect) {
+        supplierSelect.addEventListener("change", function () {
+            selectedSupplierID = this.value || "";
 
-                productSelect.appendChild(
-                    option
-                );
-
+            // Clear the old product and summary immediately.
+            if (productSelect) {
+                productSelect.innerHTML =
+                    '<option value="">Select supplier first</option>';
+                productSelect.disabled = !selectedSupplierID;
             }
-        );
 
+            resetSummary();
 
-        console.log(
-            "Products loaded:",
-            products.length
-        );
-
+            requestProductsBySupplier(selectedSupplierID);
+        });
     }
 
 
@@ -353,242 +254,59 @@ document.addEventListener("DOMContentLoaded", function () {
        ===================================================== */
 
     function calculatePurchaseSummary() {
+        const quantity = getNumber(quantityInput);
+        const purchasePrice = getNumber(purchasePriceInput);
 
-        const quantity =
-            getNumber(quantityInput);
-
-
-        const purchasePrice =
-            getNumber(purchasePriceInput);
-
-
-        /*
-         * Current stock is stored in the
-         * selected product option.
-         */
         let currentStock = 0;
 
-
-        if (
-            productSelect &&
-            productSelect.selectedIndex >= 0
-        ) {
-
+        if (productSelect && productSelect.selectedIndex >= 0) {
             const selectedOption =
-                productSelect.options[
-                productSelect.selectedIndex
-                ];
+                productSelect.options[productSelect.selectedIndex];
 
-
-            if (
-                selectedOption &&
-                selectedOption.value
-            ) {
-
-                currentStock =
-                    Number(
-                        selectedOption.dataset.stock || 0
-                    );
-
+            if (selectedOption?.value) {
+                currentStock = Number(selectedOption.dataset.stock || 0);
             }
-
         }
 
+        const newStock = currentStock + quantity;
+        const totalAmount = quantity * purchasePrice;
 
-        const newStock =
-            currentStock + quantity;
-
-
-        const totalAmount =
-            quantity * purchasePrice;
-
-
-        /* -------------------------------------------------
-           UPDATE SUMMARY
-           ------------------------------------------------- */
-
-        setDisplayValue(
-            currentStockElement,
-            currentStock
-        );
-
-
-        setDisplayValue(
-            summaryQuantityElement,
-            quantity
-        );
-
-
-        setDisplayValue(
-            newStockElement,
-            newStock
-        );
-
-
-        setDisplayValue(
-            totalAmountElement,
-            "₹" +
-            totalAmount.toLocaleString(
-                "en-IN",
-                {
-                    minimumFractionDigits: 2,
-                    maximumFractionDigits: 2
-                }
-            )
-        );
-
-
-        console.log(
-            "Purchase Summary:",
-            {
-                currentStock:
-                    currentStock,
-
-                quantity:
-                    quantity,
-
-                newStock:
-                    newStock,
-
-                totalAmount:
-                    totalAmount
-            }
-        );
-
+        setDisplayValue(currentStockElement, currentStock);
+        setDisplayValue(summaryQuantityElement, quantity);
+        setDisplayValue(newStockElement, newStock);
+        setDisplayValue(totalAmountElement, formatCurrency(totalAmount));
     }
 
 
     /* =====================================================
-       PRODUCT SELECTION
+       PRODUCT CHANGE
        ===================================================== */
 
     if (productSelect) {
+        productSelect.addEventListener("change", function () {
+            const option = this.options[this.selectedIndex];
 
-        productSelect.addEventListener(
-            "change",
-            function () {
-
-                const selectedOption =
-                    productSelect.options[
-                    productSelect.selectedIndex
-                    ];
-
-
-                /*
-                 * Nothing selected
-                 */
-                if (
-                    !selectedOption ||
-                    !selectedOption.value
-                ) {
-
-                    if (purchasePriceInput) {
-
-                        purchasePriceInput.value =
-                            "";
-
-                    }
-
-
-                    setDisplayValue(
-                        currentStockElement,
-                        0
-                    );
-
-
-                    setDisplayValue(
-                        summaryQuantityElement,
-                        0
-                    );
-
-
-                    setDisplayValue(
-                        newStockElement,
-                        0
-                    );
-
-
-                    setDisplayValue(
-                        totalAmountElement,
-                        "₹0.00"
-                    );
-
-
-                    return;
-
-                }
-
-
-                /*
-                 * Get product data
-                 */
-                const stock =
-                    Number(
-                        selectedOption.dataset.stock || 0
-                    );
-
-
-                const purchasePrice =
-                    Number(
-                        selectedOption.dataset.purchasePrice || 0
-                    );
-
-
-                /*
-                 * Fill purchase price
-                 */
-                if (purchasePriceInput) {
-
-                    purchasePriceInput.value =
-                        purchasePrice.toFixed(2);
-
-                }
-
-
-                /*
-                 * Update summary
-                 */
-                calculatePurchaseSummary();
-
+            if (!option || !option.value) {
+                resetSummary();
+                return;
             }
-        );
 
+            const price = Number(option.dataset.purchasePrice || 0);
+
+            if (purchasePriceInput) {
+                purchasePriceInput.value = price.toFixed(2);
+            }
+
+            calculatePurchaseSummary();
+        });
     }
-
-
-    /* =====================================================
-       QUANTITY CHANGE
-       ===================================================== */
 
     if (quantityInput) {
-
-        quantityInput.addEventListener(
-            "input",
-            function () {
-
-                calculatePurchaseSummary();
-
-            }
-        );
-
+        quantityInput.addEventListener("input", calculatePurchaseSummary);
     }
 
-
-    /* =====================================================
-       PURCHASE PRICE CHANGE
-       ===================================================== */
-
     if (purchasePriceInput) {
-
-        purchasePriceInput.addEventListener(
-            "input",
-            function () {
-
-                calculatePurchaseSummary();
-
-            }
-        );
-
+        purchasePriceInput.addEventListener("input", calculatePurchaseSummary);
     }
 
 
@@ -597,55 +315,23 @@ document.addEventListener("DOMContentLoaded", function () {
        ===================================================== */
 
     function clearForm() {
+        if (purchaseForm) purchaseForm.reset();
 
-        if (purchaseForm) {
+        selectedSupplierID = supplierSelect?.value || "";
 
-            purchaseForm.reset();
+        resetSummary();
 
+        if (selectedSupplierID) {
+            requestProductsBySupplier(selectedSupplierID);
+        } else if (productSelect) {
+            productSelect.innerHTML =
+                '<option value="">Select supplier first</option>';
+            productSelect.disabled = true;
         }
-
-
-        setDisplayValue(
-            currentStockElement,
-            0
-        );
-
-
-        setDisplayValue(
-            summaryQuantityElement,
-            0
-        );
-
-
-        setDisplayValue(
-            newStockElement,
-            0
-        );
-
-
-        setDisplayValue(
-            totalAmountElement,
-            "₹0.00"
-        );
-
     }
 
-
-    /* =====================================================
-       CLEAR BUTTON
-       ===================================================== */
-
     if (clearButton) {
-
-        clearButton.addEventListener(
-            "click",
-            function () {
-
-                clearForm();
-
-            }
-        );
-
+        clearButton.addEventListener("click", clearForm);
     }
 
 
@@ -654,144 +340,63 @@ document.addEventListener("DOMContentLoaded", function () {
        ===================================================== */
 
     if (purchaseForm) {
+        purchaseForm.addEventListener("submit", function (event) {
+            event.preventDefault();
 
-        purchaseForm.addEventListener(
-            "submit",
-            function (event) {
+            if (purchaseSubmitting) return;
 
-                event.preventDefault();
+            const supplierID = Number(supplierSelect?.value || 0);
+            const productID = Number(productSelect?.value || 0);
+            const quantity = getNumber(quantityInput);
+            const purchasePrice = getNumber(purchasePriceInput);
 
-
-                const supplierID =
-                    Number(
-                        supplierSelect?.value || 0
-                    );
-
-
-                const productID =
-                    Number(
-                        productSelect?.value || 0
-                    );
-
-
-                const quantity =
-                    Number(
-                        quantityInput?.value || 0
-                    );
-
-
-                const purchasePrice =
-                    Number(
-                        purchasePriceInput?.value || 0
-                    );
-
-
-                /* -----------------------------------------
-                   VALIDATE SUPPLIER
-                   ----------------------------------------- */
-
-                if (supplierID <= 0) {
-
-                    alert(
-                        "Please select a supplier."
-                    );
-
-                    return;
-
-                }
-
-
-                /* -----------------------------------------
-                   VALIDATE PRODUCT
-                   ----------------------------------------- */
-
-                if (productID <= 0) {
-
-                    alert(
-                        "Please select a product."
-                    );
-
-                    return;
-
-                }
-
-
-                /* -----------------------------------------
-                   VALIDATE QUANTITY
-                   ----------------------------------------- */
-
-                if (
-                    !Number.isInteger(quantity) ||
-                    quantity <= 0
-                ) {
-
-                    alert(
-                        "Quantity must be a positive whole number."
-                    );
-
-                    return;
-
-                }
-
-
-                /* -----------------------------------------
-                   VALIDATE PRICE
-                   ----------------------------------------- */
-
-                if (purchasePrice <= 0) {
-
-                    alert(
-                        "Purchase price must be greater than zero."
-                    );
-
-                    return;
-
-                }
-
-
-                /* -----------------------------------------
-                   CONFIRM
-                   ----------------------------------------- */
-
-                const confirmed =
-                    confirm(
-                        "Are you sure you want to add this purchase?"
-                    );
-
-
-                if (!confirmed) {
-
-                    return;
-
-                }
-
-
-                /* -----------------------------------------
-                   SEND PURCHASE TO VB.NET
-                   ----------------------------------------- */
-
-                sendToVB({
-
-                    action:
-                        "addPurchase",
-
-                    SupplierID:
-                        supplierID,
-
-                    ProductID:
-                        productID,
-
-                    Quantity:
-                        quantity,
-
-                    PurchasePrice:
-                        purchasePrice
-
-                });
-
+            if (supplierID <= 0) {
+                alert("Please select a supplier.");
+                return;
             }
-        );
 
+            if (productID <= 0) {
+                alert("Please select a product.");
+                return;
+            }
+
+            if (!Number.isInteger(quantity) || quantity <= 0) {
+                alert("Quantity must be a positive whole number.");
+                return;
+            }
+
+            if (!Number.isFinite(purchasePrice) || purchasePrice <= 0) {
+                alert("Purchase price must be greater than zero.");
+                return;
+            }
+
+            // Check that the chosen product belongs to the selected supplier.
+            const selectedOption =
+                productSelect.options[productSelect.selectedIndex];
+
+            if (
+                !selectedOption ||
+                !selectedOption.value ||
+                String(supplierID) !== String(selectedSupplierID)
+            ) {
+                alert("Please select a valid product for this supplier.");
+                return;
+            }
+
+            if (!confirm("Are you sure you want to add this purchase?")) {
+                return;
+            }
+
+            purchaseSubmitting = true;
+
+            sendToVB({
+                action: "addPurchase",
+                SupplierID: supplierID,
+                ProductID: productID,
+                Quantity: quantity,
+                PurchasePrice: purchasePrice
+            });
+        });
     }
 
 
@@ -799,230 +404,131 @@ document.addEventListener("DOMContentLoaded", function () {
        RENDER PURCHASE HISTORY
        ===================================================== */
 
-    function renderPurchases(purchases) {
-
+    function renderPurchases(data) {
         if (!tableBody) {
-
-            console.error(
-                "purchasesTableBody not found."
-            );
-
+            console.error("purchasesTableBody not found.");
             return;
-
         }
-
 
         tableBody.innerHTML = "";
 
-
-        if (
-            !Array.isArray(purchases) ||
-            purchases.length === 0
-        ) {
-
+        if (!Array.isArray(data) || data.length === 0) {
             tableBody.innerHTML = `
-                <tr>
-                    <td colspan="4">
-                        No purchase records found.
-                    </td>
-                </tr>
-            `;
-
+    < tr >
+    <td colspan="4">No purchase records found.</td>
+                </tr >`;
             return;
-
         }
 
+        data.forEach(function (purchase) {
+            const row = document.createElement("tr");
 
-        purchases.forEach(
-            function (purchase) {
+            const values = [
+                purchase.PurchaseID ?? "-",
+                purchase.SupplierName ?? "-",
+                purchase.PurchaseDate ?? "-",
+                formatCurrency(purchase.TotalAmount)
+            ];
 
-                const row =
-                    document.createElement("tr");
+            values.forEach(function (value) {
+                const cell = document.createElement("td");
+                cell.textContent = value;
+                row.appendChild(cell);
+            });
 
-
-                const purchaseID =
-                    purchase.PurchaseID ?? "-";
-
-
-                const supplierName =
-                    purchase.SupplierName ?? "-";
-
-
-                const purchaseDate =
-                    purchase.PurchaseDate ?? "-";
-
-
-                const totalAmount =
-                    Number(
-                        purchase.TotalAmount || 0
-                    );
-
-
-                row.innerHTML = `
-                    <td>${purchaseID}</td>
-
-                    <td>${supplierName}</td>
-
-                    <td>${purchaseDate}</td>
-
-                    <td>
-                        ₹${totalAmount.toLocaleString(
-                    "en-IN",
-                    {
-                        minimumFractionDigits: 2,
-                        maximumFractionDigits: 2
-                    }
-                )}
-                    </td>
-                `;
-
-
-                tableBody.appendChild(
-                    row
-                );
-
-            }
-        );
-
+            tableBody.appendChild(row);
+        });
     }
 
 
     /* =====================================================
-       RECEIVE DATA FROM MAIN WEBUI / VB.NET
+       RECEIVE MESSAGES FROM VB.NET
        ===================================================== */
 
-    window.addEventListener(
-        "message",
-        function (event) {
+    window.addEventListener("message", function (event) {
+        const data = event.data;
 
-            if (!event.data) {
+        if (!data || typeof data !== "object") return;
 
-                return;
+        console.log("Purchases received:", data);
 
-            }
+        switch (data.type) {
 
+            case "suppliers":
+                populateSuppliers(data.data);
+                break;
 
-            const data =
-                event.data;
+            case "products":
+                // Do not repopulate the dropdown with the full product list.
+                // This response is intentionally ignored.
+                console.log("Ignoring unfiltered products response.");
+                break;
 
+            case "supplierProducts":
+                // Ignore responses for an older request or different supplier.
+                if (
+                    String(data.SupplierID) !== String(selectedSupplierID) ||
+                    String(data.SupplierID) !== String(supplierSelect?.value || "") ||
+                    (data.RequestNumber != null &&
+                     Number(data.RequestNumber) !== productRequestNumber)
+                ) {
+                    break;
+                }
 
-            console.log(
-                "Purchases received:",
-                data
-            );
+                populateProducts(data.data);
+                break;
 
+            case "supplierProductsError":
+                if (
+                    String(data.SupplierID) !== String(selectedSupplierID)
+                ) {
+                    break;
+                }
 
-            /* ---------------------------------------------
-               SUPPLIERS
-               --------------------------------------------- */
+                if (productSelect) {
+                    productSelect.innerHTML =
+                        '<option value="">Unable to load products</option>';
+                    productSelect.disabled = true;
+                }
 
-            if (
-                data.type === "suppliers"
-            ) {
+                alert(data.message || "Unable to load supplier products.");
+                break;
 
-                populateSuppliers(
-                    data.data
-                );
+            case "purchases":
+                renderPurchases(data.data);
+                break;
 
-                return;
+            case "purchaseAdded":
+                purchaseSubmitting = false;
 
-            }
-
-
-            /* ---------------------------------------------
-               PRODUCTS
-               --------------------------------------------- */
-
-            if (
-                data.type === "products"
-            ) {
-
-                populateProducts(
-                    data.data
-                );
-
-                return;
-
-            }
-
-
-            /* ---------------------------------------------
-               PURCHASES
-               --------------------------------------------- */
-
-            if (
-                data.type === "purchases"
-            ) {
-
-                renderPurchases(
-                    data.data
-                );
-
-                return;
-
-            }
-
-
-            /* ---------------------------------------------
-               PURCHASE SUCCESS
-               --------------------------------------------- */
-
-            if (
-                data.type === "purchaseAdded"
-            ) {
-
-                alert(
-                    data.message ||
-                    "Purchase added successfully."
-                );
-
+                alert(data.message || "Purchase added successfully.");
 
                 clearForm();
-
-
                 requestPurchases();
+                break;
 
-                requestProducts();
+            case "purchaseError":
+                purchaseSubmitting = false;
 
-                return;
-
-            }
-
-
-            /* ---------------------------------------------
-               PURCHASE ERROR
-               --------------------------------------------- */
-
-            if (
-                data.type === "purchaseError"
-            ) {
-
-                alert(
-                    data.message ||
-                    "Unable to process purchase."
-                );
-
-                return;
-
-            }
-
+                alert(data.message || "Unable to process purchase.");
+                break;
         }
-    );
+    });
 
 
     /* =====================================================
        INITIAL LOAD
        ===================================================== */
 
-    console.log(
-        "Purchases page initialized."
-    );
+    console.log("Purchases page initialized.");
 
+    if (productSelect) {
+        productSelect.innerHTML =
+            '<option value="">Select supplier first</option>';
+        productSelect.disabled = true;
+    }
 
     requestSuppliers();
-
-    requestProducts();
-
     requestPurchases();
 
 });
