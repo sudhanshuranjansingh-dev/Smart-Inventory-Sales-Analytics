@@ -1,4 +1,5 @@
-﻿document.addEventListener("DOMContentLoaded", function () {
+﻿
+document.addEventListener("DOMContentLoaded", function () {
 
     const usernameInput =
         document.getElementById("username");
@@ -20,19 +21,36 @@
 
 
     //=========================================================
+    // CHECK REQUIRED ELEMENTS
+    //=========================================================
+    if (
+        !usernameInput ||
+        !passwordInput ||
+        !btnLogin ||
+        !btnRegister ||
+        !btnExit ||
+        !message
+    ) {
+        console.error(
+            "Login page error: Required HTML elements are missing."
+        );
+
+        return;
+    }
+
+
+    //=========================================================
     // SHOW MESSAGE
     //=========================================================
     function showMessage(text) {
-
         message.textContent = text;
-
     }
 
 
     //=========================================================
     // LOGIN
     //=========================================================
-    btnLogin.addEventListener("click", function () {
+    function login() {
 
         const username =
             usernameInput.value.trim();
@@ -41,33 +59,20 @@
             passwordInput.value;
 
 
-        // Validate username
         if (username === "") {
-
-            showMessage(
-                "Please enter your username."
-            );
-
+            showMessage("Please enter your username.");
             usernameInput.focus();
-
             return;
         }
 
 
-        // Validate password
         if (password === "") {
-
-            showMessage(
-                "Please enter your password."
-            );
-
+            showMessage("Please enter your password.");
             passwordInput.focus();
-
             return;
         }
 
 
-        // Check WebView2
         if (
             window.chrome &&
             window.chrome.webview
@@ -76,15 +81,41 @@
             window.chrome.webview.postMessage({
 
                 action: "login",
-
                 username: username,
-
                 password: password
 
             });
 
+        } else {
+
+            showMessage(
+                "WebView2 connection is not available."
+            );
+
         }
-        else {
+    }
+
+
+    btnLogin.addEventListener("click", login);
+
+
+    //=========================================================
+    // REGISTER
+    //=========================================================
+    btnRegister.addEventListener("click", function (event) {
+
+        event.preventDefault();
+
+        if (
+            window.chrome &&
+            window.chrome.webview
+        ) {
+
+            window.chrome.webview.postMessage({
+                action: "registerPage"
+            });
+
+        } else {
 
             showMessage(
                 "WebView2 connection is not available."
@@ -96,11 +127,9 @@
 
 
     //=========================================================
-    // REGISTER
+    // EXIT
     //=========================================================
-   btnRegister.addEventListener(
-    "click",
-    function () {
+    btnExit.addEventListener("click", function () {
 
         if (
             window.chrome &&
@@ -108,13 +137,10 @@
         ) {
 
             window.chrome.webview.postMessage({
-
-                action: "registerPage"
-
+                action: "exit"
             });
 
-        }
-        else {
+        } else {
 
             showMessage(
                 "WebView2 connection is not available."
@@ -122,39 +148,7 @@
 
         }
 
-    }
-);
-
-
-    //=========================================================
-    // EXIT
-    //=========================================================
-    btnExit.addEventListener(
-        "click",
-        function () {
-
-            if (
-                window.chrome &&
-                window.chrome.webview
-            ) {
-
-                window.chrome.webview.postMessage({
-
-                    action: "exit"
-
-                });
-
-            }
-            else {
-
-                showMessage(
-                    "WebView2 connection is not available."
-                );
-
-            }
-
-        }
-    );
+    });
 
 
     //=========================================================
@@ -171,12 +165,10 @@
 
                 if (
                     event.data &&
-                    event.data.message
+                    typeof event.data.message === "string"
                 ) {
 
-                    showMessage(
-                        event.data.message
-                    );
+                    showMessage(event.data.message);
 
                 }
 
@@ -189,14 +181,26 @@
     //=========================================================
     // ENTER KEY LOGIN
     //=========================================================
+    usernameInput.addEventListener(
+        "keydown",
+        function (event) {
+
+            if (event.key === "Enter") {
+                event.preventDefault();
+                login();
+            }
+
+        }
+    );
+
+
     passwordInput.addEventListener(
         "keydown",
         function (event) {
 
             if (event.key === "Enter") {
-
-                btnLogin.click();
-
+                event.preventDefault();
+                login();
             }
 
         }

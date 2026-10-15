@@ -1,18 +1,17 @@
-﻿<!DOCTYPE html>
+﻿
+<!DOCTYPE html>
 <html lang="en">
 
 <head>
-
     <meta charset="UTF-8">
 
     <meta name="viewport"
           content="width=device-width, initial-scale=1.0">
 
     <title>Sales Nova - Login</title>
-    <link rel="stylesheet" href="theme.css">
-    <link rel="stylesheet"
-          href="login.css">
 
+    <link rel="stylesheet" href="theme.css">
+    <link rel="stylesheet" href="login.css">
 </head>
 
 <body>
@@ -21,12 +20,57 @@
 
         <div class="login-card">
 
-
-            <!-- =================================================
-                 HEADER
-                 ================================================= -->
-
+            <!-- HEADER -->
             <div class="login-header">
+
+                <div class="login-logo">
+                    <svg viewBox="0 0 100 85"
+                         xmlns="http://www.w3.org/2000/svg"
+                         aria-label="Sales Nova logo"
+                         role="img">
+
+                        <defs>
+                            <linearGradient id="novaGradient"
+                                            x1="0" y1="1"
+                                            x2="1" y2="0">
+                                <stop offset="0%"
+                                      stop-color="#2387f7" />
+                                <stop offset="100%"
+                                      stop-color="#913df5" />
+                            </linearGradient>
+                        </defs>
+
+                        <rect x="14" y="38"
+                              width="16" height="36"
+                              rx="3"
+                              fill="url(#novaGradient)" />
+
+                        <rect x="37" y="24"
+                              width="16" height="50"
+                              rx="3"
+                              fill="url(#novaGradient)" />
+
+                        <rect x="60" y="8"
+                              width="16" height="42"
+                              rx="3"
+                              fill="url(#novaGradient)" />
+
+                        <path d="M5 67
+                                 Q38 91 75 53
+                                 L87 39"
+                              fill="none"
+                              stroke="url(#novaGradient)"
+                              stroke-width="6"
+                              stroke-linecap="round" />
+
+                        <path d="M73 40 L89 35 L91 51"
+                              fill="none"
+                              stroke="#853ff5"
+                              stroke-width="6"
+                              stroke-linecap="round"
+                              stroke-linejoin="round" />
+                    </svg>
+                </div>
 
                 <h1>Sales Nova</h1>
 
@@ -35,75 +79,135 @@
             </div>
 
 
-            <!-- =================================================
-                 LOGIN FORM
-                 ================================================= -->
-
+            <!-- LOGIN FORM -->
             <form class="login-form"
                   onsubmit="return false;">
 
-
                 <!-- USERNAME -->
-
                 <div class="form-group">
 
-                    <label for="username">
-                        Username
-                    </label>
+                    <label for="username">Username</label>
 
-                    <input type="text"
-                           id="username"
-                           name="username"
-                           placeholder="Enter your username"
-                           autocomplete="username">
+                    <div class="input-wrapper">
 
+                        <svg class="input-icon"
+                             viewBox="0 0 24 24"
+                             fill="none"
+                             stroke="currentColor"
+                             stroke-width="1.8"
+                             aria-hidden="true">
+
+                            <circle cx="12" cy="8"
+                                    r="4" />
+
+                            <path d="M4 21v-2
+                                     a8 8 0 0 1 16 0v2z" />
+                        </svg>
+
+                        <input type="text"
+                               id="username"
+                               name="username"
+                               placeholder="Enter username"
+                               autocomplete="username">
+                    </div>
                 </div>
 
 
                 <!-- PASSWORD -->
-
                 <div class="form-group">
 
-                    <label for="password">
-                        Password
-                    </label>
+                    <label for="password">Password</label>
 
-                    <input type="password"
-                           id="password"
-                           name="password"
-                           placeholder="Enter your password"
-                           autocomplete="current-password">
+                    <div class="input-wrapper">
 
+                        <svg class="input-icon"
+                             viewBox="0 0 24 24"
+                             fill="none"
+                             stroke="currentColor"
+                             stroke-width="1.8"
+                             aria-hidden="true">
+
+                            <rect x="4" y="10"
+                                  width="16" height="11"
+                                  rx="2" />
+
+                            <path d="M8 10V7
+                                     a4 4 0 0 1 8 0v3" />
+
+                            <circle cx="12" cy="15"
+                                    r="1" />
+
+                            <path d="M12 16v2" />
+                        </svg>
+
+                        <input type="password"
+                               id="password"
+                               name="password"
+                               placeholder="Enter password"
+                               autocomplete="current-password">
+
+                        <button type="button"
+                                id="togglePassword"
+                                class="password-toggle"
+                                aria-label="Show password"
+                                title="Show password">
+
+                            <svg viewBox="0 0 24 24"
+                                 fill="none"
+                                 stroke="currentColor"
+                                 stroke-width="1.8"
+                                 aria-hidden="true">
+
+                                <path d="M2 12s3.5-7 10-7
+                                         10 7 10 7-3.5 7-10 7
+                                         -10-7-10-7z" />
+
+                                <circle cx="12" cy="12"
+                                        r="3" />
+                            </svg>
+                        </button>
+
+                    </div>
                 </div>
 
 
                 <!-- LOGIN BUTTON -->
-
                 <button type="button"
                         id="btnLogin"
                         class="login-button">
-                    Login
+
+                    <svg viewBox="0 0 24 24"
+                         fill="none"
+                         stroke="currentColor"
+                         stroke-width="2"
+                         aria-hidden="true">
+
+                        <path d="M10 17l5-5-5-5" />
+
+                        <path d="M15 12H3" />
+
+                        <path d="M12 3h6
+                                 a3 3 0 0 1 3 3v12
+                                 a3 3 0 0 1-3 3h-6" />
+                    </svg>
+
+                    <span>Login</span>
                 </button>
 
 
                 <!-- MESSAGE -->
-
                 <div id="message"
-                     class="login-message"></div>
-
+                     class="login-message"
+                     role="status"
+                     aria-live="polite"></div>
 
             </form>
 
 
-            <!-- =================================================
-                 REGISTER
-                 ================================================= -->
-
+            <!-- REGISTER -->
             <div class="register-section">
 
-                <span>
-                    New user?
-                </span>
+                <span>New user?</span>
 
                 <a href="#"
                    id="btnRegister"
@@ -114,28 +218,71 @@
             </div>
 
 
-            <!-- =================================================
-                 EXIT
-                 ================================================= -->
-
+            <!-- EXIT -->
             <button type="button"
                     id="btnExit"
                     class="exit-button">
-                Exit
-            </button>
 
+                <svg viewBox="0 0 24 24"
+                     fill="none"
+                     stroke="currentColor"
+                     stroke-width="2"
+                     aria-hidden="true">
+
+                    <path d="M10 17l5-5-5-5" />
+
+                    <path d="M15 12H3" />
+
+                    <path d="M12 3h6
+                             a3 3 0 0 1 3 3v12
+                             a3 3 0 0 1-3 3h-6" />
+                </svg>
+
+                <span>Exit</span>
+            </button>
 
         </div>
 
     </div>
 
 
-    <!-- =====================================================
-         JAVASCRIPT
-         ===================================================== -->
+    <!-- PASSWORD VISIBILITY -->
+  
+    <script>
+            document.addEventListener("DOMContentLoaded", function () {
+
+                const password = document.getElementById("password");
+                const toggle = document.getElementById("togglePassword");
+
+                if (!password || !toggle) {
+                    return;
+                }
+
+                toggle.addEventListener("click", function () {
+
+                    if (password.getAttribute("type") === "password") {
+
+                        password.setAttribute("type", "text");
+
+                        toggle.setAttribute("aria-label", "Hide password");
+                        toggle.setAttribute("title", "Hide password");
+
+                    } else {
+
+                        password.setAttribute("type", "password");
+
+                        toggle.setAttribute("aria-label", "Show password");
+                        toggle.setAttribute("title", "Show password");
+
+                    }
+
+                });
+
+            });
+    </script>
+   
 
     <script src="login.js"></script>
 
 </body>
-
 </html>
