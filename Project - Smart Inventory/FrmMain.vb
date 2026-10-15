@@ -331,159 +331,62 @@ Public Class FrmMain
     '=========================================================
     ' LOAD SALES
     '=========================================================
+
     Private Sub LoadSalesToWeb()
 
+
         Try
+            Dim sales As New List(Of Dictionary(Of String, Object))()
 
-            Using conn As MySqlConnection =
-            DBConnection.GetConnection()
+            Using con As MySqlConnection = DBConnection.GetConnection()
+                con.Open()
 
-                conn.Open()
 
-                Dim sales As New List(Of Object)
-
-                '-------------------------------------------------
-                ' SALES QUERY
-                '-------------------------------------------------
                 Dim query As String =
-                "SELECT " &
-                "sd.SaleID, " &
-                "p.ProductName, " &
-                "sd.Quantity, " &
-                "sd.SellingPrice, " &
-                "sd.TotalPrice, " &
-                "s.SaleDate " &
-                "FROM SaleDetails sd " &
-                "INNER JOIN Sales s " &
-                "ON sd.SaleID = s.SaleID " &
-                "INNER JOIN Products p " &
-                "ON sd.ProductID = p.ProductID " &
-                "ORDER BY s.SaleDate DESC, sd.SaleID DESC"
+                        "SELECT " &
+                        "s.SaleID, " &
+                        "s.SaleDate, " &
+                        "SUM(sd.TotalPrice) AS TotalAmount, " &
+                        "SUM(sd.Quantity) AS TotalItems " &
+                        "FROM Sales s " &
+                        "INNER JOIN SaleDetails sd ON s.SaleID = sd.SaleID " &
+                        "GROUP BY s.SaleID, s.SaleDate " &
+                        "ORDER BY s.SaleDate DESC, s.SaleID DESC"
 
 
-                Using cmd As New MySqlCommand(
-                query,
-                conn
-            )
-
-                    Using reader As MySqlDataReader =
-                    cmd.ExecuteReader()
-
+                Using cmd As New MySqlCommand(query, con)
+                    Using reader As MySqlDataReader = cmd.ExecuteReader()
                         While reader.Read()
 
-                            '-------------------------------------------------
-                            ' SAFE VALUES
-                            '-------------------------------------------------
-                            Dim saleID As Integer =
-                            Convert.ToInt32(
-                                reader("SaleID")
-                            )
-
-
-                            Dim productName As String =
-                            If(
-                                reader("ProductName") Is DBNull.Value,
-                                "Unknown Product",
-                                reader("ProductName").ToString()
-                            )
-
-
-                            Dim quantity As Integer =
-                            If(
-                                reader("Quantity") Is DBNull.Value,
-                                0,
-                                Convert.ToInt32(
-                                    reader("Quantity")
-                                )
-                            )
-
-
-                            Dim sellingPrice As Decimal =
-                            If(
-                                reader("SellingPrice") Is DBNull.Value,
-                                0D,
-                                Convert.ToDecimal(
-                                    reader("SellingPrice")
-                                )
-                            )
-
-
-                            Dim totalAmount As Decimal =
-                            If(
-                                reader("TotalPrice") Is DBNull.Value,
-                                0D,
-                                Convert.ToDecimal(
-                                    reader("TotalPrice")
-                                )
-                            )
-
-
-                            Dim saleDate As String = ""
-
-                            If Not reader("SaleDate") Is DBNull.Value Then
-
-                                saleDate =
-                                Convert.ToDateTime(
-                                    reader("SaleDate")
-                                ).ToString(
-                                    "yyyy-MM-dd HH:mm"
-                                )
-
-                            End If
-
-
-                            '-------------------------------------------------
-                            ' ADD SALE TO LIST
-                            '-------------------------------------------------
-                            sales.Add(
-                            New With {
-                                .SaleID = saleID,
-                                .ProductName = productName,
-                                .Quantity = quantity,
-                                .SellingPrice = sellingPrice,
-                                .TotalAmount = totalAmount,
-                                .SaleDate = saleDate
-                            }
-                        )
+                            sales.Add(New Dictionary(Of String, Object) From {
+                                {"SaleID", Convert.ToInt32(reader("SaleID"))},
+                                {"TotalAmount", Convert.ToDecimal(reader("TotalAmount"))},
+                                {"TotalItems", Convert.ToInt32(reader("TotalItems"))},
+                                {"SaleDate", Convert.ToDateTime(reader("SaleDate")).ToString("yyyy-MM-dd HH:mm")}
+                            })
 
                         End While
-
                     End Using
-
                 End Using
-
-                Debug.WriteLine("TEST 2: Sales count = " & sales.Count.ToString())
-
-                '-------------------------------------------------
-                ' SEND SALES TO WEB PAGE
-                '-------------------------------------------------
-                SendToWeb(
-                New With {
-                    .type = "sales",
-                    .data = sales
-                }
-            )
-
             End Using
 
+            Debug.WriteLine("Sales records loaded: " & sales.Count.ToString())
+
+            SendToWeb(New With {
+            .type = "sales",
+            .data = sales
+        })
 
         Catch ex As Exception
+            Debug.WriteLine("LoadSalesToWeb error: " & ex.Message)
 
-            '-------------------------------------------------
-            ' SEND ERROR TO WEB PAGE
-            '-------------------------------------------------
-            SendToWeb(
-            New With {
-                .type = "saleError",
-                .message =
-                    "Unable to load sales history: " &
-                    ex.Message
-            }
-        )
-
+            SendToWeb(New With {
+            .type = "salesError",
+            .message = "Unable to load sales history."
+        })
         End Try
-
     End Sub
+
 
 
     Private Sub AddPurchase(root As JsonElement)

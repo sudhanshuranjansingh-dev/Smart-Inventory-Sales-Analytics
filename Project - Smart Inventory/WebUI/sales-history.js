@@ -13,23 +13,21 @@ function loadSalesHistory() {
     if (tbody) {
         tbody.innerHTML = `
             <tr>
-                <td colspan="6" class="empty-message">
+                <td colspan="3" class="empty-message">
                     Loading sales history...
                 </td>
             </tr>`;
     }
-
-    console.log("Sending loadSales request to parent");
 
     window.parent.postMessage({
         action: "loadSales"
     }, "*");
 }
 
-
 // ============================================
 // RECEIVE SALES DATA
 // ============================================
+
 function handleSalesMessage(response) {
     if (!response || !response.type) return;
 
@@ -40,25 +38,36 @@ function handleSalesMessage(response) {
             ? response.data
             : [];
 
+        updateSalesSummary(allSalesHistory);
         filterSales();
-    } else if (response.type === "saleError") {
+
+    } else if (
+        response.type === "salesError" ||
+        response.type === "saleError"
+    ) {
         showSalesMessage(
             "Unable to load sales history: " +
             (response.message || "Unknown error")
         );
+
     } else if (response.type === "sessionInvalid") {
-        showSalesMessage("Your session has expired. Please log in again.");
+        showSalesMessage(
+            "Your session has expired. Please log in again."
+        );
+
     } else if (response.type === "accessDenied") {
-        showSalesMessage("You do not have permission to view sales history.");
+        showSalesMessage(
+            "You do not have permission to view sales history."
+        );
     }
 }
 
-// Listen for messages from the parent page.
+// Receive messages from the parent page.
 window.addEventListener("message", function (event) {
     handleSalesMessage(event.data);
 });
 
-// Listen for direct messages from the WebView2 host.
+// Receive direct messages from WebView2.
 if (window.chrome && window.chrome.webview) {
     window.chrome.webview.addEventListener("message", function (event) {
         handleSalesMessage(event.data);
@@ -68,6 +77,7 @@ if (window.chrome && window.chrome.webview) {
 // ============================================
 // FILTER SALES
 // ============================================
+
 function filterSales() {
     const searchInput = document.getElementById("searchSales");
     const dateInput = document.getElementById("saleDateFilter");
@@ -82,17 +92,10 @@ function filterSales() {
 
     const filteredSales = allSalesHistory.filter(sale => {
         const saleId = String(sale.SaleID ?? "").toLowerCase();
-        const productName = String(sale.ProductName ?? "").toLowerCase();
-
-        // SaleDate is formatted as yyyy-MM-dd HH:mm by VB.NET.
         const saleDate = String(sale.SaleDate ?? "").substring(0, 10);
 
-        const matchesSearch =
-            saleId.includes(searchText) ||
-            productName.includes(searchText);
-
-        const matchesDate =
-            !selectedDate || saleDate === selectedDate;
+        const matchesSearch = saleId.includes(searchText);
+        const matchesDate = !selectedDate || saleDate === selectedDate;
 
         return matchesSearch && matchesDate;
     });
@@ -103,99 +106,75 @@ function filterSales() {
 // ============================================
 // CLEAR FILTERS
 // ============================================
+
 function clearSalesFilter() {
-    document.getElementById("searchSales").value = "";
-    document.getElementById("saleDateFilter").value = "";
+    const searchInput = document.getElementById("searchSales");
+    const dateInput = document.getElementById("saleDateFilter");
+
+    if (searchInput) searchInput.value = "";
+    if (dateInput) dateInput.value = "";
 
     renderSalesHistory(allSalesHistory);
 }
 
 // ============================================
-// RENDER TABLE
+// RENDER TRANSACTION TABLE
 // ============================================
+
+
 function renderSalesHistory(sales) {
-    updateSalesSummary(sales);
+    const tableBody = document.getElementById("salesHistoryTableBody");
 
-    const tbody = document.getElementById("salesHistoryTableBody");
+    console.log("Sales data received:", sales);
+    console.log("Is array:", Array.isArray(sales));
+    console.log("Number of records:", sales?.length);
 
-    if (!tbody) return;
+    if (!tableBody) {
+        console.error("Sales history table body not found.");
+        return;
+    }
 
-    if (!sales || sales.length === 0) {
-        tbody.innerHTML = `
+    if (!Array.isArray(sales) || sales.length === 0) {
+        tableBody.innerHTML = `
             <tr>
-                <td colspan="6" class="empty-message">
+                <td colspan="3" class="empty-message">
                     No sales records found.
                 </td>
             </tr>`;
         return;
     }
 
-    tbody.innerHTML = sales.map(sale => `
+    tableBody.innerHTML = sales.map(sale => `
         <tr>
-            <td>${escapeHtml(sale.SaleID)}</td>
-            <td>${escapeHtml(sale.ProductName)}</td>
-            <td>${Number(sale.Quantity ?? 0)}</td>
-            <td>₹${Number(sale.SellingPrice ?? 0).toFixed(2)}</td>
+            <td>${escapeHtml(sale.SaleID ?? "")}</td>
             <td>₹${Number(sale.TotalAmount ?? 0).toFixed(2)}</td>
             <td>${escapeHtml(sale.SaleDate ?? "")}</td>
         </tr>
     `).join("");
 }
 
-// ============================================
-// DISPLAY MESSAGE IN TABLE
-// ============================================
-function showSalesMessage(message) {
-    const tbody = document.getElementById("salesHistoryTableBody");
-
-    if (!tbody) return;
-
-    tbody.innerHTML = `
-        <tr>
-            <td colspan="6" class="empty-message">
-                ${escapeHtml(message)}
-            </td>
-        </tr>`;
-}
 
 // ============================================
-// ESCAPE HTML
+// SUMMARY CARDS
 // ============================================
-function escapeHtml(value) {
-    return String(value ?? "").replace(/[&<>"']/g, character => ({
-        "&": "&amp;",
-        "<": "&lt;",
-        ">": "&gt;",
-        '"': "&quot;",
-        "'": "&#39;"
-    })[character]);
-}
-
-// ============================================
-// INITIALIZE PAGE
-// ============================================
-document.addEventListener("DOMContentLoaded", function () {
-    console.log("Sales History page initialized.");
-    loadSalesHistory();
-});
 
 function updateSalesSummary(sales) {
     const totalSalesElement = document.getElementById("totalSales");
     const totalItemsElement = document.getElementById("totalItems");
     const totalRevenueElement = document.getElementById("totalRevenue");
 
-    // Count unique sale transactions, not individual product rows.
-    const totalSales = new Set(
-        sales.map(sale => sale.SaleID)
-    ).size;
+    // One row now represents one sale transaction.
+    const totalSales = sales.length;
 
+    // Quantity is not included in the transaction-level query.
+    // Leave this at zero until the backend supplies TotalItems.
     const totalItems = sales.reduce(
-        (sum, sale) => sum + Number(sale.Quantity || 0),
+        (sum, sale) => sum + Number(sale.TotalItems ?? 0),
         0
     );
 
     const totalRevenue = sales.reduce(
-        (sum, sale) => sum + Number(sale.TotalAmount || 0),
+        (sum, sale) => sum + Number(sale.TotalAmount ?? 0),
         0
     );
 
@@ -212,3 +191,43 @@ function updateSalesSummary(sales) {
             "₹" + totalRevenue.toFixed(2);
     }
 }
+
+// ============================================
+// DISPLAY MESSAGE IN TABLE
+// ============================================
+
+function showSalesMessage(message) {
+    const tbody = document.getElementById("salesHistoryTableBody");
+
+    if (!tbody) return;
+
+    tbody.innerHTML = `
+        <tr>
+            <td colspan="3" class="empty-message">
+                ${escapeHtml(message)}
+            </td>
+        </tr>`;
+}
+
+// ============================================
+// ESCAPE HTML
+// ============================================
+
+function escapeHtml(value) {
+    return String(value).replace(/[&<>"']/g, character => ({
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        '"': "&quot;",
+        "'": "&#39;"
+    })[character]);
+}
+
+// ============================================
+// INITIALIZE PAGE
+// ============================================
+
+document.addEventListener("DOMContentLoaded", function () {
+    console.log("Sales History page initialized.");
+    loadSalesHistory();
+});
