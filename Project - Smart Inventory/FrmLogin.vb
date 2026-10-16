@@ -565,21 +565,6 @@ Public Class FrmLogin
                             accountStatus
 
 
-                        '=========================================
-                        ' LOGIN SUCCESSFUL
-                        '=========================================
-
-                        MessageBox.Show(
-                            "Welcome, " &
-                            fullName &
-                            "!" &
-                            Environment.NewLine &
-                            "Role: " &
-                            role,
-                            "Login Successful",
-                            MessageBoxButtons.OK,
-                            MessageBoxIcon.Information
-                        )
 
 
 
