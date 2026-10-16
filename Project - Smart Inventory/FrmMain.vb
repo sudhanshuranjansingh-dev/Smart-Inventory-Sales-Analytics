@@ -224,6 +224,12 @@ Public Class FrmMain
                 Select Case action
 
                     Case "getCurrentUser"
+                        Debug.WriteLine("GET CURRENT USER requested")
+                        Debug.WriteLine("Session.CurrentUserID: " &
+                    Session.CurrentUserID.ToString())
+                        Debug.WriteLine("Session.CurrentRole: " &
+                    If(Session.CurrentRole, "(empty)"))
+
                         SendCurrentUserToWeb()
 
                     Case "loadDashboard"
@@ -259,6 +265,11 @@ Public Class FrmMain
                         Debug.WriteLine("TEST 1: loadSales received")
                         LoadSalesToWeb()
 
+                    Case "loadSalesHistory"
+                        Debug.WriteLine("TEST 2: loadSalesHistory received")
+                        LoadSalesHistoryToWeb()
+                        Debug.WriteLine("TEST 3: LoadSalesHistoryToWeb returned")
+
                     Case "addSale"
                         Debug.WriteLine("Staff/Role requested: addSale")
                         AddSale(root)
@@ -282,7 +293,13 @@ Public Class FrmMain
                         LoadProductAnalysisToWeb()
 
                     Case "loadSalesAnalytics"
+                        Debug.WriteLine("=== SALES ANALYTICS REQUEST RECEIVED ===")
+                        Debug.WriteLine("Session User ID: " & Session.CurrentUserID.ToString())
+                        Debug.WriteLine("Session Role: " & If(Session.CurrentRole, "(empty)"))
+
                         LoadSalesAnalyticsToWeb(root)
+
+                        Debug.WriteLine("=== SALES ANALYTICS REQUEST COMPLETED ===")
 
                     Case "loadReports"
                         LoadReportsToWeb(root)
@@ -332,8 +349,8 @@ Public Class FrmMain
     ' LOAD SALES
     '=========================================================
 
-    Private Sub LoadSalesToWeb()
 
+    Private Sub LoadSalesToWeb()
 
         Try
             Dim sales As New List(Of Dictionary(Of String, Object))()
@@ -341,29 +358,34 @@ Public Class FrmMain
             Using con As MySqlConnection = DBConnection.GetConnection()
                 con.Open()
 
-
                 Dim query As String =
-                        "SELECT " &
-                        "s.SaleID, " &
-                        "s.SaleDate, " &
-                        "SUM(sd.TotalPrice) AS TotalAmount, " &
-                        "SUM(sd.Quantity) AS TotalItems " &
-                        "FROM Sales s " &
-                        "INNER JOIN SaleDetails sd ON s.SaleID = sd.SaleID " &
-                        "GROUP BY s.SaleID, s.SaleDate " &
-                        "ORDER BY s.SaleDate DESC, s.SaleID DESC"
-
+                "SELECT s.SaleID, " &
+                "GROUP_CONCAT(DISTINCT p.ProductName ORDER BY p.ProductName SEPARATOR ', ') AS ProductName, " &
+                "SUM(sd.Quantity) AS Quantity, " &
+                "CASE WHEN SUM(sd.Quantity) > 0 " &
+                "THEN SUM(sd.TotalPrice) / SUM(sd.Quantity) ELSE 0 END AS SellingPrice, " &
+                "SUM(sd.TotalPrice) AS TotalAmount, " &
+                "s.SaleDate " &
+                "FROM Sales s " &
+                "INNER JOIN SaleDetails sd ON s.SaleID = sd.SaleID " &
+                "INNER JOIN Products p ON sd.ProductID = p.ProductID " &
+                "GROUP BY s.SaleID, s.SaleDate " &
+                "ORDER BY s.SaleDate DESC, s.SaleID DESC " &
+                "LIMIT 10"
 
                 Using cmd As New MySqlCommand(query, con)
                     Using reader As MySqlDataReader = cmd.ExecuteReader()
+
                         While reader.Read()
 
                             sales.Add(New Dictionary(Of String, Object) From {
-                                {"SaleID", Convert.ToInt32(reader("SaleID"))},
-                                {"TotalAmount", Convert.ToDecimal(reader("TotalAmount"))},
-                                {"TotalItems", Convert.ToInt32(reader("TotalItems"))},
-                                {"SaleDate", Convert.ToDateTime(reader("SaleDate")).ToString("yyyy-MM-dd HH:mm")}
-                            })
+                            {"SaleID", Convert.ToInt32(reader("SaleID"))},
+                            {"ProductName", Convert.ToString(reader("ProductName"))},
+                            {"Quantity", Convert.ToInt32(reader("Quantity"))},
+                            {"SellingPrice", Convert.ToDecimal(reader("SellingPrice"))},
+                            {"TotalAmount", Convert.ToDecimal(reader("TotalAmount"))},
+                            {"SaleDate", Convert.ToDateTime(reader("SaleDate")).ToString("yyyy-MM-dd HH:mm")}
+                        })
 
                         End While
                     End Using
@@ -378,14 +400,78 @@ Public Class FrmMain
         })
 
         Catch ex As Exception
-            Debug.WriteLine("LoadSalesToWeb error: " & ex.Message)
+
+            Debug.WriteLine("LoadSalesToWeb error: " & ex.ToString())
 
             SendToWeb(New With {
             .type = "salesError",
-            .message = "Unable to load sales history."
+            .message = "Unable to load recent sales: " & ex.Message
+        })
+
+        End Try
+
+    End Sub
+
+
+
+
+    Private Sub LoadSalesHistoryToWeb()
+
+        Debug.WriteLine("HISTORY 1: Method started")
+
+        Try
+            Using con As MySqlConnection = DBConnection.GetConnection()
+                con.Open()
+                Debug.WriteLine("HISTORY 2: Database connected")
+
+                Dim query As String =
+                "SELECT s.SaleID, s.SaleDate, " &
+                "SUM(sd.TotalPrice) AS TotalAmount, " &
+                "SUM(sd.Quantity) AS TotalItems " &
+                "FROM Sales s " &
+                "INNER JOIN SaleDetails sd ON s.SaleID = sd.SaleID " &
+                "GROUP BY s.SaleID, s.SaleDate " &
+                "ORDER BY s.SaleDate DESC, s.SaleID DESC"
+
+                Using cmd As New MySqlCommand(query, con)
+                    Using reader As MySqlDataReader = cmd.ExecuteReader()
+
+                        Dim sales As New List(Of Dictionary(Of String, Object))()
+
+                        While reader.Read()
+                            sales.Add(New Dictionary(Of String, Object) From {
+                            {"SaleID", Convert.ToInt32(reader("SaleID"))},
+                            {"TotalAmount", Convert.ToDecimal(reader("TotalAmount"))},
+                            {"TotalItems", Convert.ToInt32(reader("TotalItems"))},
+                            {"SaleDate", Convert.ToDateTime(reader("SaleDate")).ToString("yyyy-MM-dd HH:mm:ss")}
+                        })
+                        End While
+
+                        Debug.WriteLine("HISTORY 3: Rows loaded = " & sales.Count)
+
+                        SendToWeb(New With {
+                        .type = "salesHistory",
+                        .data = sales
+                    })
+
+                        Debug.WriteLine("HISTORY 4: Response sent to SendToWeb")
+
+                    End Using
+                End Using
+            End Using
+
+        Catch ex As Exception
+            Debug.WriteLine("HISTORY ERROR: " & ex.ToString())
+
+            SendToWeb(New With {
+            .type = "salesHistoryError",
+            .message = ex.Message
         })
         End Try
+
     End Sub
+
+
 
 
 
@@ -2934,6 +3020,7 @@ Public Class FrmMain
     ' SEND DATA TO WEB UI
     '=========================================================
 
+
     Private Sub SendToWeb(data As Object)
         Try
             If WebView21.CoreWebView2 Is Nothing Then
@@ -2945,31 +3032,16 @@ Public Class FrmMain
 
             Debug.WriteLine("SendToWeb payload: " & json)
 
-            ' Send to the top-level WebView2 page.
+            ' Send the response to the top-level page.
             WebView21.CoreWebView2.PostWebMessageAsJson(json)
 
-            ' Also send to the currently displayed iframe.
-            Dim script As String =
-            "(() => {" &
-            "  try {" &
-            "    const frame = document.getElementById('page-frame');" &
-            "    if (frame && frame.contentWindow) {" &
-            "      frame.contentWindow.postMessage(" & json & ", '*');" &
-            "      console.log('SendToWeb: sent message to page-frame');" &
-            "    } else {" &
-            "      console.warn('SendToWeb: page-frame not found');" &
-            "    }" &
-            "  } catch (error) {" &
-            "    console.error('SendToWeb iframe error:', error);" &
-            "  }" &
-            "})();"
-
-            WebView21.CoreWebView2.ExecuteScriptAsync(script)
+            Debug.WriteLine("SendToWeb: response sent to main page.")
 
         Catch ex As Exception
             Debug.WriteLine("SendToWeb error: " & ex.ToString())
         End Try
     End Sub
+
 
 
 
@@ -4142,7 +4214,7 @@ Public Class FrmMain
 
 
                 result.Add(
-                    "action",
+                    "type",
                     "salesAnalyticsData"
                 )
 
@@ -4199,6 +4271,19 @@ Public Class FrmMain
                     "toDate",
                     toDate.ToString("yyyy-MM-dd")
                 )
+
+                Debug.WriteLine("========== SALES ANALYTICS ==========")
+                Debug.WriteLine("From: " & fromDate.ToString("yyyy-MM-dd"))
+                Debug.WriteLine("To: " & toDate.ToString("yyyy-MM-dd"))
+                Debug.WriteLine("Total Sales: " & totalSales.ToString())
+                Debug.WriteLine("Total Orders: " & totalOrders.ToString())
+                Debug.WriteLine("Average Sale: " & averageSale.ToString())
+                Debug.WriteLine("Daily Records: " & dailySales.Count.ToString())
+                Debug.WriteLine("Monthly Records: " & monthlySales.Count.ToString())
+                Debug.WriteLine("Payment Records: " & paymentSales.Count.ToString())
+                Debug.WriteLine("Status Records: " & statusSales.Count.ToString())
+
+                SendToWeb(result)
 
 
                 SendToWeb(result)
@@ -5262,26 +5347,21 @@ Public Class FrmMain
 
     Private Sub SendCurrentUserToWeb()
 
-        SendToWeb(
-            New With {
-                .type = "currentUser",
-                .userID = Session.CurrentUserID,
-                .username = If(Session.CurrentUsername, ""),
-                .role = If(Session.CurrentRole, ""),
-                .fullName = If(Session.CurrentFullName, "")
-            }
-        )
+        Dim response = New With {
+        .type = "currentUser",
+        .userID = Session.CurrentUserID,
+        .username = If(Session.CurrentUsername, ""),
+        .role = If(Session.CurrentRole, ""),
+        .fullName = If(Session.CurrentFullName, "")
+    }
 
-        Debug.WriteLine(
-            "Sent current user: ID=" &
-            Session.CurrentUserID.ToString() &
-            ", Username=" &
-            If(Session.CurrentUsername, "(empty)") &
-            ", Role=" &
-            If(Session.CurrentRole, "(empty)") &
-            ", FullName=" &
-            If(Session.CurrentFullName, "(empty)")
-        )
+        Dim json As String =
+        System.Text.Json.JsonSerializer.Serialize(response)
+
+        Debug.WriteLine("Sending current-user response:")
+        Debug.WriteLine(json)
+
+        SendToWeb(response)
 
     End Sub
 

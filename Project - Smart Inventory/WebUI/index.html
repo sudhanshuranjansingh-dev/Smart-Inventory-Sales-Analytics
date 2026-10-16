@@ -181,3 +181,13 @@
 
 </body>
 </html>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+		document.querySelectorAll(".nav-item").forEach(function (button) {
+			button.addEventListener("click", function () {
+				console.log("SIDEBAR CLICK DETECTED:", button.textContent.trim());
+			});
+		});
+});
+</script>

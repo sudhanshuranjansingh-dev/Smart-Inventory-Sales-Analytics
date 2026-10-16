@@ -440,3 +440,28 @@ body {
         max-width: 100px;
     }
 }
+
+/* SIDEBAR CLICK FIX */
+.sidebar {
+    position: relative;
+    z-index: 1000;
+    pointer-events: auto !important;
+}
+
+.navigation,
+.nav-item,
+.sidebar-bottom {
+    pointer-events: auto !important;
+}
+
+.nav-item {
+    position: relative;
+    z-index: 1001;
+    cursor: pointer;
+}
+
+.main,
+.content,
+#page-frame {
+    min-height: 0;
+}

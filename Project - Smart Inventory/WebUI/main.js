@@ -207,14 +207,14 @@ function resetUserHeader() {
    Do not reload the dashboard for duplicate responses.
    ========================================================= */
 function updateUserHeader(response) {
+    console.log("Current-user response received:", response);
+
     if (!response || typeof response !== "object") {
-        console.error("Invalid current-user response:", response);
+        console.error("Invalid current-user response.");
         return;
     }
 
-    if (logoutPending) {
-        return;
-    }
+    if (logoutPending) return;
 
     const user =
         response.currentUser ||
@@ -234,14 +234,7 @@ function updateUserHeader(response) {
         ""
     ).trim();
 
-    const role = String(
-        user.role ||
-        user.Role ||
-        response.currentUserRole ||
-        ""
-    ).trim().toLowerCase();
-
-    const normalizedUsername = String(
+    const username = String(
         user.username ||
         user.Username ||
         user.userName ||
@@ -249,32 +242,37 @@ function updateUserHeader(response) {
         name
     ).trim();
 
-    const userID = Number(user.userID ?? user.UserID ?? user.userId ?? 0);
+    const role = String(
+        user.role ||
+        user.Role ||
+        response.currentUserRole ||
+        ""
+    ).trim().toLowerCase();
 
     if (!name || !role) {
         console.error(
-            "Current-user response is missing name or role:",
-            response
+            "Cannot initialize session: name or role is missing.",
+            JSON.stringify(response, null, 2)
         );
+
+        setLoggedOutState(true);
         return;
     }
 
     const sameUser =
         isLoggedIn &&
-        currentUsername.toLowerCase() === normalizedUsername.toLowerCase() &&
+        currentUsername.toLowerCase() === username.toLowerCase() &&
         currentUserRole === role;
 
     currentUserName = name;
-    currentUsername = normalizedUsername;
+    currentUsername = username;
     currentUserRole = role;
 
     const nameElement = document.getElementById("username");
     const roleElement = document.getElementById("user-role");
     const avatarElement = document.getElementById("user-avatar");
 
-    if (nameElement) {
-        nameElement.textContent = name;
-    }
+    if (nameElement) nameElement.textContent = name;
 
     if (roleElement) {
         roleElement.textContent =
@@ -293,29 +291,29 @@ function updateUserHeader(response) {
         navigate("dashboard");
     }
 
-    console.log("Authenticated user:", {
-        userID: userID,
+    console.log("Session initialized:", {
         username: currentUsername,
-        name: currentUserName,
-        role: currentUserRole
+        role: currentUserRole,
+        isLoggedIn: isLoggedIn
     });
 }
-
 /* =========================================================
    NAVIGATION
    ========================================================= */
 
 function navigate(pageName) {
     console.log("Sidebar clicked:", pageName);
-    console.log("Session:", isLoggedIn, "Role:", currentUserRole);
 
     if (logoutPending) {
-        console.warn("Navigation blocked: logout confirmation pending.");
+        console.warn("Navigation blocked: logout pending.");
         return;
     }
 
     if (!isLoggedIn || !currentUserRole) {
-        console.warn("Navigation blocked: no active session.");
+        console.warn(
+            "Navigation blocked: session is not initialized.",
+            { isLoggedIn, currentUserRole }
+        );
         return;
     }
 
@@ -331,30 +329,38 @@ function navigate(pageName) {
         return;
     }
 
-    currentPage = pageName;
-
-    const pageTitle = document.getElementById("page-title");
-    const pageSubtitle = document.getElementById("page-subtitle");
     const pageFrame = document.getElementById("page-frame");
 
-    if (pageTitle) pageTitle.textContent = page.title;
-    if (pageSubtitle) pageSubtitle.textContent = page.subtitle;
+    if (!pageFrame) {
+        console.error("Cannot navigate: #page-frame was not found.");
+        return;
+    }
+
+    currentPage = pageName;
+
+    const title = document.getElementById("page-title");
+    const subtitle = document.getElementById("page-subtitle");
+
+    if (title) title.textContent = page.title;
+    if (subtitle) subtitle.textContent = page.subtitle;
 
     document.querySelectorAll(".nav-item").forEach(function (button) {
         button.classList.remove("active");
 
-        const command = button.getAttribute("onclick") || "";
+        const onclick = button.getAttribute("onclick") || "";
+        const match = onclick.match(/navigate\(['"]([^'"]+)['"]\)/);
 
-        if (command.includes("'" + pageName + "'")) {
+        if (match && match[1] === pageName) {
             button.classList.add("active");
         }
     });
 
-    if (pageFrame && pageFrame.getAttribute("src") !== page.file) {
+    if (pageFrame.getAttribute("src") !== page.file) {
         pageFrame.setAttribute("src", page.file);
     }
-}
-/* =========================================================
+
+    console.log("Navigation successful:", page.file);
+}/* =========================================================
    LOGOUT REQUEST
    Do not clear or modify the current screen before
    the user confirms logout in the VB.NET dialog.
@@ -432,25 +438,26 @@ function completeLogout() {
    ========================================================= */
 
 window.addEventListener("message", function (event) {
+    const frame = document.getElementById("page-frame");
+
+    if (!frame || event.source !== frame.contentWindow) {
+        return;
+    }
+
     const data = event.data;
 
     if (!data || typeof data !== "object" || !data.action) {
         return;
     }
 
-    if (!supportedActions.includes(data.action)) {
-        console.warn("Unsupported iframe action:", data.action);
+    if (logoutPending || !isLoggedIn) {
+        console.warn("Iframe action blocked:", data.action);
         return;
     }
 
-    if (!isLoggedIn || logoutPending) {
-        console.warn("Action blocked: session inactive.", data.action);
-        return;
-    }
-
+    console.log("Forwarding action to VB.NET:", data.action);
     sendToHost(data);
 });
-
 /* =========================================================
    RECEIVE VB.NET / WEBVIEW2 MESSAGES
    ========================================================= */
@@ -474,11 +481,7 @@ if (window.chrome && window.chrome.webview) {
             if (messageType === "currentuser") {
                 updateUserHeader(data);
 
-                if (
-                    isLoggedIn &&
-                    pageFrame &&
-                    pageFrame.contentWindow
-                ) {
+                if (isLoggedIn && pageFrame && pageFrame.contentWindow) {
                     pageFrame.contentWindow.postMessage(data, "*");
                 }
 
@@ -571,30 +574,4 @@ document.addEventListener("DOMContentLoaded", function () {
     setLoggedOutState(true);
 
     requestCurrentUser();
-});
-
-
-
-// Relay messages from dashboard iframe to VB.NET / WebView2
-window.addEventListener("message", function (event) {
-    const pageFrame = document.getElementById("page-frame");
-
-    // Accept messages only from our dashboard iframe
-    if (!pageFrame || event.source !== pageFrame.contentWindow) {
-        return;
-    }
-
-    const message = event.data;
-
-    if (!message || typeof message !== "object" || !message.action) {
-        return;
-    }
-
-    if (!window.chrome || !window.chrome.webview) {
-        console.error("WebView2 communication is unavailable.");
-        return;
-    }
-
-    console.log("Forwarding iframe action to VB.NET:", message.action);
-    window.chrome.webview.postMessage(message);
 });

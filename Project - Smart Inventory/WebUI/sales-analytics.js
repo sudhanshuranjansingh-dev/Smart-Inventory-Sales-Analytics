@@ -1,113 +1,47 @@
-﻿/* =========================================================
-   SMART INVENTORY
-   SALES ANALYTICS
+﻿
+/* =========================================================
+   SMART INVENTORY - SALES ANALYTICS
    ========================================================= */
+
+"use strict";
 
 let dailyChart = null;
 let monthlyChart = null;
 let paymentChart = null;
 
+let analyticsInitialized = false;
+
 
 /* =========================================================
-   PAGE LOAD
+   PAGE INITIALIZATION
    ========================================================= */
 
-document.addEventListener("DOMContentLoaded", function () {
+document.addEventListener("DOMContentLoaded", initializeSalesAnalytics);
+
+function initializeSalesAnalytics() {
+
+    if (analyticsInitialized) return;
+    analyticsInitialized = true;
 
     setDefaultDates();
 
-    const btnApply =
-        document.getElementById("btnApply");
+    // Register response listener before sending the request.
+    window.addEventListener("message", handleSalesAnalyticsMessage);
 
-    const btnRefresh =
-        document.getElementById("btnRefresh");
-
+    const btnApply = document.getElementById("btnApply");
+    const btnRefresh = document.getElementById("btnRefresh");
 
     if (btnApply) {
-
-        btnApply.addEventListener(
-            "click",
-            function () {
-                loadSalesAnalytics();
-            }
-        );
-
+        btnApply.addEventListener("click", loadSalesAnalytics);
     }
-
 
     if (btnRefresh) {
-
-        btnRefresh.addEventListener(
-            "click",
-            function () {
-                loadSalesAnalytics();
-            }
-        );
-
+        btnRefresh.addEventListener("click", loadSalesAnalytics);
     }
 
-
-    /* =====================================================
-       RECEIVE DATA FROM VB.NET
-       ===================================================== */
-
-   /* =====================================================
-   RECEIVE DATA FROM PARENT INDEX PAGE
-   ===================================================== */
-
-window.addEventListener("message", function (event) {
-
-    let data = event.data;
-
-
-    /* -----------------------------------------
-       Convert JSON string if necessary
-       ----------------------------------------- */
-
-    if (typeof data === "string") {
-
-        try {
-
-            data = JSON.parse(data);
-
-        }
-        catch (error) {
-
-            console.error(
-                "Invalid JSON received:",
-                error
-            );
-
-            return;
-        }
-
-    }
-
-
-    console.log(
-        "Sales Analytics received:",
-        data
-    );
-
-
-    /* -----------------------------------------
-       Check response
-       ----------------------------------------- */
-
-    if (
-        data &&
-        data.action === "salesAnalyticsData"
-    ) {
-
-        updateDashboard(data);
-
-    }
-
-});
-      // Load analytics automatically
+    // Load analytics when the page opens.
     loadSalesAnalytics();
-
-});
+}
 
 
 /* =========================================================
@@ -116,58 +50,35 @@ window.addEventListener("message", function (event) {
 
 function setDefaultDates() {
 
-    const fromDate =
-        document.getElementById("fromDate");
-
-    const toDate =
-        document.getElementById("toDate");
-
+    const fromDate = document.getElementById("fromDate");
+    const toDate = document.getElementById("toDate");
 
     if (!fromDate || !toDate) {
+        console.error("Sales Analytics: Date inputs not found.");
         return;
     }
 
-
     const today = new Date();
-
     const previousDate = new Date();
 
-    previousDate.setDate(
-        today.getDate() - 30
-    );
+    previousDate.setDate(previousDate.getDate() - 30);
 
-
-    fromDate.value =
-        formatDate(previousDate);
-
-    toDate.value =
-        formatDate(today);
-
+    fromDate.value = formatDate(previousDate);
+    toDate.value = formatDate(today);
 }
 
 
 /* =========================================================
-   FORMAT DATE
+   DATE FORMAT
    ========================================================= */
 
 function formatDate(date) {
 
-    const year =
-        date.getFullYear();
-
-    const month =
-        String(
-            date.getMonth() + 1
-        ).padStart(2, "0");
-
-    const day =
-        String(
-            date.getDate()
-        ).padStart(2, "0");
-
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const day = String(date.getDate()).padStart(2, "0");
 
     return `${year}-${month}-${day}`;
-
 }
 
 
@@ -177,34 +88,91 @@ function formatDate(date) {
 
 function loadSalesAnalytics() {
 
-    const fromDate =
-        document.getElementById("fromDate").value;
+    const fromDateInput = document.getElementById("fromDate");
+    const toDateInput = document.getElementById("toDate");
 
-    const toDate =
-        document.getElementById("toDate").value;
+    if (!fromDateInput || !toDateInput) {
+        console.error("Sales Analytics: Date inputs are missing.");
+        return;
+    }
+
+    const fromDate = fromDateInput.value;
+    const toDate = toDateInput.value;
+
+    if (!fromDate || !toDate) {
+        alert("Please select both the start date and end date.");
+        return;
+    }
+
+    if (fromDate > toDate) {
+        alert("Start date cannot be later than end date.");
+        return;
+    }
+
+    if (typeof window.parent === "undefined" || window.parent === window) {
+        console.error("Sales Analytics: Parent page is unavailable.");
+        return;
+    }
+
+    const request = {
+        action: "loadSalesAnalytics",
+        fromDate: fromDate,
+        toDate: toDate
+    };
+
+    console.log("Requesting Sales Analytics:", request);
+
+    // Send through the parent page so main.js forwards it to VB.NET.
+    window.parent.postMessage(request, "*");
+}
 
 
-    console.log(
-        "Requesting Sales Analytics:",
-        fromDate,
-        toDate
-    );
+/* =========================================================
+   RECEIVE SALES ANALYTICS RESPONSE
+   ========================================================= */
 
+function handleSalesAnalyticsMessage(event) {
 
-   /* =====================================================
-   SEND REQUEST TO PARENT INDEX PAGE
-   ===================================================== */
+    let data = event.data;
 
-window.parent.postMessage({
+    // Accept either an object or a JSON string.
+    if (typeof data === "string") {
+        try {
+            data = JSON.parse(data);
+        } catch (error) {
+            return;
+        }
+    }
 
-    action: "loadSalesAnalytics",
+    if (!data || typeof data !== "object") {
+        return;
+    }
 
-    fromDate: fromDate,
+    console.log("Sales Analytics received:", data);
 
-    toDate: toDate
+    // VB.NET sends type = "salesAnalyticsData".
+    // Accept action as well for compatibility with older responses.
+    const responseType = String(data.type || data.action || "");
 
-}, "*");
+    if (responseType === "salesAnalyticsData") {
+        updateDashboard(data);
+        return;
+    }
 
+    if (
+        responseType === "salesAnalyticsError" ||
+        responseType === "salesAnalyticsDataError"
+    ) {
+        console.error(
+            "Sales Analytics backend error:",
+            data.message || "Unknown error"
+        );
+
+        alert(
+            "Unable to load Sales Analytics: " +
+            (data.message || "Unknown error")
+        );
+    }
 }
 
 
@@ -214,106 +182,57 @@ window.parent.postMessage({
 
 function updateDashboard(data) {
 
-    console.log(
-        "Updating Sales Analytics:",
-        data
-    );
+    console.log("Updating Sales Analytics dashboard:", data);
 
+    // KPI cards
+    setText("totalSales", formatCurrency(data.totalSales));
+    setText("totalOrders", Number(data.totalOrders) || 0);
+    setText("averageSale", formatCurrency(data.averageSale));
 
-    /* =====================================================
-       KPI CARDS
-       ===================================================== */
-
-    const totalSales =
-        document.getElementById("totalSales");
-
-    const totalOrders =
-        document.getElementById("totalOrders");
-
-    const averageSale =
-        document.getElementById("averageSale");
-
-
-    if (totalSales) {
-
-        totalSales.textContent =
-            formatCurrency(
-                data.totalSales
-            );
-
-    }
-
-
-    if (totalOrders) {
-
-        totalOrders.textContent =
-            data.totalOrders;
-
-    }
-
-
-    if (averageSale) {
-
-        averageSale.textContent =
-            formatCurrency(
-                data.averageSale
-            );
-
-    }
-
-
-    /* =====================================================
-       DAILY SALES CHART
-       ===================================================== */
-
+    // Charts
     createDailySalesChart(
-        data.dailySales || []
+        Array.isArray(data.dailySales) ? data.dailySales : []
     );
-
-
-    /* =====================================================
-       PAYMENT CHART
-       ===================================================== */
 
     createPaymentChart(
-        data.paymentSales || []
+        Array.isArray(data.paymentSales) ? data.paymentSales : []
     );
-
-
-    /* =====================================================
-       MONTHLY SALES CHART
-       ===================================================== */
 
     createMonthlySalesChart(
-        data.monthlySales || []
+        Array.isArray(data.monthlySales) ? data.monthlySales : []
     );
 
-
-    /* =====================================================
-       STATUS TABLE
-       ===================================================== */
-
+    // Status table
     updateStatusTable(
-        data.statusSales || []
+        Array.isArray(data.statusSales) ? data.statusSales : []
     );
 
-
-    /* =====================================================
-       LAST UPDATED
-       ===================================================== */
-
-    const lastUpdated =
-        document.getElementById("lastUpdated");
-
-
-    if (lastUpdated) {
-
-        lastUpdated.textContent =
-            "Last updated: " +
-            new Date().toLocaleString();
-
+    // Display the returned date range, if available.
+    if (data.fromDate && data.toDate) {
+        setText(
+            "lastUpdated",
+            `Showing ${data.fromDate} to ${data.toDate} · Updated ${new Date().toLocaleString()}`
+        );
+    } else {
+        setText(
+            "lastUpdated",
+            "Last updated: " + new Date().toLocaleString()
+        );
     }
+}
 
+
+/* =========================================================
+   SAFE TEXT UPDATE
+   ========================================================= */
+
+function setText(elementId, value) {
+
+    const element = document.getElementById(elementId);
+
+    if (element) {
+        element.textContent = value;
+    }
 }
 
 
@@ -323,90 +242,56 @@ function updateDashboard(data) {
 
 function createDailySalesChart(data) {
 
-    const canvas =
-        document.getElementById(
-            "dailySalesChart"
-        );
-
+    const canvas = document.getElementById("dailySalesChart");
 
     if (!canvas) {
+        console.warn("Daily sales chart canvas not found.");
         return;
     }
 
-
-    const labels =
-        data.map(
-            item => item.date
-        );
-
-
-    const values =
-        data.map(
-            item => Number(item.amount)
-        );
-
-
-    if (dailyChart) {
-
-        dailyChart.destroy();
-
+    if (typeof Chart === "undefined") {
+        console.error("Chart.js is not loaded.");
+        return;
     }
 
+    if (dailyChart) {
+        dailyChart.destroy();
+        dailyChart = null;
+    }
 
-    dailyChart =
-        new Chart(
-            canvas,
-            {
+    const labels = data.map(item => item.date || "");
+    const values = data.map(item => Number(item.amount) || 0);
 
-                type: "line",
+    dailyChart = new Chart(canvas, {
+        type: "line",
 
-                data: {
+        data: {
+            labels,
+            datasets: [{
+                label: "Daily Sales",
+                data: values,
+                tension: 0.3,
+                fill: false
+            }]
+        },
 
-                    labels: labels,
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
 
-                    datasets: [
-                        {
-                            label: "Daily Sales",
-
-                            data: values,
-
-                            tension: 0.3,
-
-                            fill: false
-                        }
-                    ]
-
-                },
-
-                options: {
-
-                    responsive: true,
-
-                    maintainAspectRatio: false,
-
-                    plugins: {
-
-                        legend: {
-                            display: true
-                        }
-
-                    },
-
-                    scales: {
-
-                        y: {
-
-                            beginAtZero: true
-
-                        }
-
-                    }
-
+            plugins: {
+                legend: {
+                    display: true
                 }
+            },
 
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
             }
-        );
-
+        }
+    });
 }
 
 
@@ -416,68 +301,42 @@ function createDailySalesChart(data) {
 
 function createPaymentChart(data) {
 
-    const canvas =
-        document.getElementById(
-            "paymentChart"
-        );
-
+    const canvas = document.getElementById("paymentChart");
 
     if (!canvas) {
+        console.warn("Payment chart canvas not found.");
         return;
     }
 
-
-    const labels =
-        data.map(
-            item => item.method
-        );
-
-
-    const values =
-        data.map(
-            item => Number(item.amount)
-        );
-
-
-    if (paymentChart) {
-
-        paymentChart.destroy();
-
+    if (typeof Chart === "undefined") {
+        console.error("Chart.js is not loaded.");
+        return;
     }
 
+    if (paymentChart) {
+        paymentChart.destroy();
+        paymentChart = null;
+    }
 
-    paymentChart =
-        new Chart(
-            canvas,
-            {
+    const labels = data.map(item => item.method || "Unknown");
+    const values = data.map(item => Number(item.amount) || 0);
 
-                type: "doughnut",
+    paymentChart = new Chart(canvas, {
+        type: "doughnut",
 
-                data: {
+        data: {
+            labels,
+            datasets: [{
+                label: "Sales by Payment Method",
+                data: values
+            }]
+        },
 
-                    labels: labels,
-
-                    datasets: [
-                        {
-                            label: "Payment Method",
-
-                            data: values
-                        }
-                    ]
-
-                },
-
-                options: {
-
-                    responsive: true,
-
-                    maintainAspectRatio: false
-
-                }
-
-            }
-        );
-
+        options: {
+            responsive: true,
+            maintainAspectRatio: false
+        }
+    });
 }
 
 
@@ -487,140 +346,93 @@ function createPaymentChart(data) {
 
 function createMonthlySalesChart(data) {
 
-    const canvas =
-        document.getElementById(
-            "monthlySalesChart"
-        );
-
+    const canvas = document.getElementById("monthlySalesChart");
 
     if (!canvas) {
+        console.warn("Monthly sales chart canvas not found.");
         return;
     }
 
-
-    const labels =
-        data.map(
-            item => item.month
-        );
-
-
-    const values =
-        data.map(
-            item => Number(item.amount)
-        );
-
-
-    if (monthlyChart) {
-
-        monthlyChart.destroy();
-
+    if (typeof Chart === "undefined") {
+        console.error("Chart.js is not loaded.");
+        return;
     }
 
+    if (monthlyChart) {
+        monthlyChart.destroy();
+        monthlyChart = null;
+    }
 
-    monthlyChart =
-        new Chart(
-            canvas,
-            {
+    const labels = data.map(item => item.month || "");
+    const values = data.map(item => Number(item.amount) || 0);
 
-                type: "bar",
+    monthlyChart = new Chart(canvas, {
+        type: "bar",
 
-                data: {
+        data: {
+            labels,
+            datasets: [{
+                label: "Monthly Sales",
+                data: values
+            }]
+        },
 
-                    labels: labels,
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
 
-                    datasets: [
-                        {
-                            label: "Monthly Sales",
-
-                            data: values
-                        }
-                    ]
-
-                },
-
-                options: {
-
-                    responsive: true,
-
-                    maintainAspectRatio: false,
-
-                    scales: {
-
-                        y: {
-
-                            beginAtZero: true
-
-                        }
-
-                    }
-
+            scales: {
+                y: {
+                    beginAtZero: true
                 }
-
             }
-        );
-
+        }
+    });
 }
 
 
 /* =========================================================
-   STATUS TABLE
+   SALES STATUS TABLE
    ========================================================= */
 
 function updateStatusTable(data) {
 
-    const tableBody =
-        document.getElementById(
-            "statusTableBody"
-        );
-
+    const tableBody = document.getElementById("statusTableBody");
 
     if (!tableBody) {
+        console.warn("Sales status table body not found.");
         return;
     }
 
+    tableBody.replaceChildren();
 
-    tableBody.innerHTML = "";
+    if (data.length === 0) {
+        const row = document.createElement("tr");
+        const cell = document.createElement("td");
 
+        cell.colSpan = 3;
+        cell.textContent = "No sales status data for this date range.";
 
-    data.forEach(function (item) {
-
-        const row =
-            document.createElement("tr");
-
-
-        const statusCell =
-            document.createElement("td");
-
-        const ordersCell =
-            document.createElement("td");
-
-        const amountCell =
-            document.createElement("td");
-
-
-        statusCell.textContent =
-            item.status;
-
-        ordersCell.textContent =
-            item.orders;
-
-        amountCell.textContent =
-            formatCurrency(
-                item.amount
-            );
-
-
-        row.appendChild(statusCell);
-
-        row.appendChild(ordersCell);
-
-        row.appendChild(amountCell);
-
-
+        row.appendChild(cell);
         tableBody.appendChild(row);
+        return;
+    }
 
+    data.forEach(item => {
+
+        const row = document.createElement("tr");
+
+        const statusCell = document.createElement("td");
+        const ordersCell = document.createElement("td");
+        const amountCell = document.createElement("td");
+
+        statusCell.textContent = item.status || "Unknown";
+        ordersCell.textContent = Number(item.orders) || 0;
+        amountCell.textContent = formatCurrency(item.amount);
+
+        row.append(statusCell, ordersCell, amountCell);
+        tableBody.appendChild(row);
     });
-
 }
 
 
@@ -630,17 +442,10 @@ function updateStatusTable(data) {
 
 function formatCurrency(value) {
 
-    const amount =
-        Number(value) || 0;
+    const amount = Number(value) || 0;
 
-
-    return "₹" +
-        amount.toLocaleString(
-            "en-IN",
-            {
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 2
-            }
-        );
-
+    return "₹" + amount.toLocaleString("en-IN", {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+    });
 }

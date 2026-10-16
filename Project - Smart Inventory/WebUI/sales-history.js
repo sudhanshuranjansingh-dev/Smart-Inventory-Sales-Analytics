@@ -20,7 +20,7 @@ function loadSalesHistory() {
     }
 
     window.parent.postMessage({
-        action: "loadSales"
+        action: "loadSalesHistory"
     }, "*");
 }
 
@@ -28,12 +28,16 @@ function loadSalesHistory() {
 // RECEIVE SALES DATA
 // ============================================
 
+
 function handleSalesMessage(response) {
     if (!response || !response.type) return;
 
     console.log("Sales History message received:", response);
 
-    if (response.type === "sales") {
+    if (
+        response.type === "salesHistory" ||
+        response.type === "sales"
+    ) {
         allSalesHistory = Array.isArray(response.data)
             ? response.data
             : [];
@@ -42,6 +46,7 @@ function handleSalesMessage(response) {
         filterSales();
 
     } else if (
+        response.type === "salesHistoryError" ||
         response.type === "salesError" ||
         response.type === "saleError"
     ) {
@@ -62,17 +67,19 @@ function handleSalesMessage(response) {
     }
 }
 
-// Receive messages from the parent page.
+
+// Receive messages from the parent page
 window.addEventListener("message", function (event) {
     handleSalesMessage(event.data);
 });
 
-// Receive direct messages from WebView2.
+// Receive direct messages from WebView2
 if (window.chrome && window.chrome.webview) {
     window.chrome.webview.addEventListener("message", function (event) {
         handleSalesMessage(event.data);
     });
 }
+
 
 // ============================================
 // FILTER SALES

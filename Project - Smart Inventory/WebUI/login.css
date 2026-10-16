@@ -416,3 +416,35 @@ body {
     transform: none;
     animation: none !important;
 }
+
+
+/* Hide browser-generated password reveal controls */
+input[type="password"]::-ms-reveal,
+input[type="password"]::-ms-clear {
+    display: none;
+}
+
+/* Hide Chromium/WebKit autofill password decoration */
+input[type="password"]::-webkit-credentials-auto-fill-button {
+    visibility: hidden;
+    display: none !important;
+    pointer-events: none;
+}
+
+/* Keep the custom password toggle correctly positioned */
+.password-toggle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    cursor: pointer;
+    background: transparent;
+    border: none;
+    padding: 5px;
+}
+
+    .password-toggle svg {
+        width: 20px;
+        height: 20px;
+        display: block;
+    }
