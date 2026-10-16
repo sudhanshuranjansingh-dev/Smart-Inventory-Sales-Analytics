@@ -21,7 +21,7 @@ SET @@SESSION.SQL_LOG_BIN= 0;
 -- GTID state at the beginning of the backup 
 --
 
-SET @@GLOBAL.GTID_PURGED=/*!80000 '+'*/ '87beacbc-8b59-11f1-863d-4676944026e3:1-6835';
+SET @@GLOBAL.GTID_PURGED=/*!80000 '+'*/ '87beacbc-8b59-11f1-863d-4676944026e3:1-6853';
 
 --
 -- Table structure for table `categories`
@@ -34,7 +34,7 @@ CREATE TABLE `categories` (
   `CategoryID` int NOT NULL AUTO_INCREMENT,
   `CategoryName` varchar(100) NOT NULL,
   PRIMARY KEY (`CategoryID`)
-) ENGINE=InnoDB AUTO_INCREMENT=14 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=15 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -43,7 +43,7 @@ CREATE TABLE `categories` (
 
 LOCK TABLES `categories` WRITE;
 /*!40000 ALTER TABLE `categories` DISABLE KEYS */;
-INSERT INTO `categories` VALUES (1,'Electronics'),(2,'Computer Accessories'),(3,'Stationery'),(5,'Toys'),(6,'Storage Devices'),(7,'Study Supplies'),(8,'Cloths'),(9,'Utensils'),(10,'Home Appliances'),(11,'Furniture'),(12,'Clothing'),(13,'Groceries');
+INSERT INTO `categories` VALUES (1,'Electronics'),(2,'Computer Accessories'),(3,'Stationery'),(5,'Toys'),(6,'Storage Devices'),(7,'Study Supplies'),(8,'Cloths'),(9,'Utensils'),(10,'Home Appliances'),(11,'Furniture'),(12,'Clothing'),(13,'Groceries'),(14,'Hardware');
 /*!40000 ALTER TABLE `categories` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -80,7 +80,7 @@ CREATE TABLE `products` (
 
 LOCK TABLES `products` WRITE;
 /*!40000 ALTER TABLE `products` DISABLE KEYS */;
-INSERT INTO `products` VALUES (1,'P001','SSD',1,10001,8500.00,10000.00,90,3,'2026-10-05 21:01:33'),(2,'01SM22U','Samsung S22 Ultra',1,10001,86000.00,99900.00,30,5,'2026-10-08 18:59:19'),(3,'P0001','Basmati Rice',13,10005,46.00,60.00,224,10,'2026-10-10 19:58:24'),(4,'P0002','Toy Building Blocks',5,10006,38.44,54.92,249,10,'2026-10-10 19:58:24'),(5,'P0008','Cotton T-Shirt',12,10009,250.00,499.00,316,10,'2026-10-10 19:58:24'),(6,'P0009','USB Keyboard',1,10003,599.00,999.00,259,10,'2026-10-10 19:58:24'),(7,'P0015','Denim Jeans',12,10009,699.00,1599.00,268,10,'2026-10-10 19:58:24'),(8,'P0017','Educational Toy Set',5,10006,37.32,53.32,308,10,'2026-10-10 19:58:24'),(9,'P0019','Winter Jacket',12,10009,37.84,54.05,274,10,'2026-10-10 19:58:24'),(10,'P0005','Toy Car Set',5,10006,200.00,499.00,281,10,'2026-10-10 19:58:24'),(11,'P0012','Packaged Biscuits',13,10005,33.50,47.85,267,10,'2026-10-10 19:58:24'),(12,'P0014','Wireless Headphones',1,10003,1200.00,1999.00,322,10,'2026-10-10 19:58:24'),(13,'P0007','LED Desk Lamp',1,10003,50.00,120.00,268,10,'2026-10-10 19:58:24'),(14,'P0013','Office Chair',11,10007,1700.00,2499.00,285,10,'2026-10-10 19:58:24'),(15,'P0006','Electronic Desk Clock',1,10003,130.00,240.00,298,10,'2026-10-10 19:58:24'),(16,'P0003','Wireless Mouse',1,10003,200.00,399.00,240,10,'2026-10-10 19:58:24'),(17,'P0016','Cotton Hoodie',12,10009,360.00,699.00,238,10,'2026-10-10 19:58:24'),(18,'P0018','Wooden Bookshelf',11,10007,450.00,999.00,242,10,'2026-10-10 19:58:24'),(19,'P0010','Wooden Study Table',11,10007,650.00,1299.00,274,10,'2026-10-10 19:58:24'),(20,'P0004','Bluetooth Speaker',1,10003,99.00,299.00,265,10,'2026-10-10 19:58:24'),(21,'P0011','Casual Shirt',12,10009,69.00,99.00,294,10,'2026-10-10 19:58:24'),(22,'P0020','Dining Table',11,10007,2500.00,4599.00,274,10,'2026-10-10 19:58:24');
+INSERT INTO `products` VALUES (1,'P001','SSD',1,10001,8500.00,10000.00,100,10,'2026-10-05 21:01:33'),(2,'01SM22U','Samsung S22 Ultra',1,10001,86000.00,99900.00,30,5,'2026-10-08 18:59:19'),(3,'P0001','Basmati Rice',13,10005,42.00,60.00,224,10,'2026-10-10 19:58:24'),(4,'P0002','Toy Building Blocks',5,10006,38.44,54.92,249,10,'2026-10-10 19:58:24'),(5,'P0008','Cotton T-Shirt',12,10009,250.00,499.00,316,10,'2026-10-10 19:58:24'),(6,'P0009','USB Keyboard',1,10003,599.00,999.00,259,10,'2026-10-10 19:58:24'),(7,'P0015','Denim Jeans',12,10009,699.00,1599.00,268,10,'2026-10-10 19:58:24'),(8,'P0017','Educational Toy Set',5,10006,37.32,53.32,308,10,'2026-10-10 19:58:24'),(9,'P0019','Winter Jacket',12,10009,37.84,54.05,274,10,'2026-10-10 19:58:24'),(10,'P0005','Toy Car Set',5,10006,200.00,499.00,281,10,'2026-10-10 19:58:24'),(11,'P0012','Packaged Biscuits',13,10005,33.50,47.85,267,10,'2026-10-10 19:58:24'),(12,'P0014','Wireless Headphones',1,10003,1200.00,1999.00,322,10,'2026-10-10 19:58:24'),(13,'P0007','LED Desk Lamp',1,10003,50.00,120.00,268,10,'2026-10-10 19:58:24'),(14,'P0013','Office Chair',11,10007,1700.00,2499.00,285,10,'2026-10-10 19:58:24'),(15,'P0006','Electronic Desk Clock',1,10003,130.00,240.00,298,10,'2026-10-10 19:58:24'),(16,'P0003','Wireless Mouse',1,10003,200.00,399.00,240,10,'2026-10-10 19:58:24'),(17,'P0016','Cotton Hoodie',12,10009,360.00,699.00,238,10,'2026-10-10 19:58:24'),(18,'P0018','Wooden Bookshelf',11,10007,450.00,999.00,242,10,'2026-10-10 19:58:24'),(19,'P0010','Wooden Study Table',11,10007,650.00,1299.00,274,10,'2026-10-10 19:58:24'),(20,'P0004','Bluetooth Speaker',1,10003,99.00,299.00,265,10,'2026-10-10 19:58:24'),(21,'P0011','Casual Shirt',12,10009,69.00,99.00,294,10,'2026-10-10 19:58:24'),(22,'P0020','Dining Table',11,10007,2500.00,4599.00,171,10,'2026-10-10 19:58:24');
 /*!40000 ALTER TABLE `products` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -103,7 +103,7 @@ CREATE TABLE `purchasedetails` (
   KEY `ProductID` (`ProductID`),
   CONSTRAINT `purchasedetails_ibfk_1` FOREIGN KEY (`PurchaseID`) REFERENCES `purchases` (`PurchaseID`),
   CONSTRAINT `purchasedetails_ibfk_2` FOREIGN KEY (`ProductID`) REFERENCES `products` (`ProductID`)
-) ENGINE=InnoDB AUTO_INCREMENT=23 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=24 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -112,7 +112,7 @@ CREATE TABLE `purchasedetails` (
 
 LOCK TABLES `purchasedetails` WRITE;
 /*!40000 ALTER TABLE `purchasedetails` DISABLE KEYS */;
-INSERT INTO `purchasedetails` VALUES (1,1,1,50,10000.00,500000.00),(2,2,1,25,10000.00,250000.00),(3,3,1,20,10000.00,200000.00),(4,4,3,100,40.00,4000.00),(5,4,16,100,45.00,4500.00),(6,4,15,50,44.00,2200.00),(7,5,4,100,42.00,4200.00),(8,5,10,50,60.00,3000.00),(9,6,5,100,42.00,4200.00),(10,6,7,100,42.00,4200.00),(11,7,14,100,50.00,5000.00),(12,7,19,100,40.00,4000.00),(13,8,11,100,35.00,3500.00),(14,8,12,100,30.00,3000.00),(15,9,2,1,8600.00,8600.00),(16,9,5,50,46.80,2340.00),(17,10,3,50,36.51,1825.50),(18,10,8,50,67.49,3374.50),(19,11,16,100,38.30,3830.00),(20,11,15,100,31.70,3170.00),(21,12,11,100,35.00,3500.00),(22,12,12,100,25.00,2500.00);
+INSERT INTO `purchasedetails` VALUES (1,1,1,50,10000.00,500000.00),(2,2,1,25,10000.00,250000.00),(3,3,1,20,10000.00,200000.00),(4,4,3,100,40.00,4000.00),(5,4,16,100,45.00,4500.00),(6,4,15,50,44.00,2200.00),(7,5,4,100,42.00,4200.00),(8,5,10,50,60.00,3000.00),(9,6,5,100,42.00,4200.00),(10,6,7,100,42.00,4200.00),(11,7,14,100,50.00,5000.00),(12,7,19,100,40.00,4000.00),(13,8,11,100,35.00,3500.00),(14,8,12,100,30.00,3000.00),(15,9,2,1,8600.00,8600.00),(16,9,5,50,46.80,2340.00),(17,10,3,50,36.51,1825.50),(18,10,8,50,67.49,3374.50),(19,11,16,100,38.30,3830.00),(20,11,15,100,31.70,3170.00),(21,12,11,100,35.00,3500.00),(22,12,12,100,25.00,2500.00),(23,13,22,22,2500.00,55000.00);
 /*!40000 ALTER TABLE `purchasedetails` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -131,7 +131,7 @@ CREATE TABLE `purchases` (
   PRIMARY KEY (`PurchaseID`),
   KEY `SupplierID` (`SupplierID`),
   CONSTRAINT `purchases_ibfk_1` FOREIGN KEY (`SupplierID`) REFERENCES `suppliers` (`SupplierID`)
-) ENGINE=InnoDB AUTO_INCREMENT=13 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=14 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -140,7 +140,7 @@ CREATE TABLE `purchases` (
 
 LOCK TABLES `purchases` WRITE;
 /*!40000 ALTER TABLE `purchases` DISABLE KEYS */;
-INSERT INTO `purchases` VALUES (1,10001,'2026-10-05 21:02:59',500000.00),(2,10001,'2026-10-05 21:10:03',250000.00),(3,10001,'2026-10-07 11:32:18',200000.00),(4,10003,'2026-10-08 10:00:00',10700.00),(5,10006,'2026-10-08 11:30:00',7200.00),(6,10009,'2026-10-09 09:15:00',8400.00),(7,10007,'2026-10-09 14:00:00',9000.00),(8,10005,'2026-10-10 10:30:00',6500.00),(9,10002,'2026-10-10 12:00:00',10940.00),(10,10004,'2026-10-10 12:30:00',5200.00),(11,10008,'2026-10-10 13:00:00',7000.00),(12,10010,'2026-10-10 13:30:00',6000.00);
+INSERT INTO `purchases` VALUES (1,10001,'2026-10-05 21:02:59',500000.00),(2,10001,'2026-10-05 21:10:03',250000.00),(3,10001,'2026-10-07 11:32:18',200000.00),(4,10003,'2026-10-08 10:00:00',10700.00),(5,10006,'2026-10-08 11:30:00',7200.00),(6,10009,'2026-10-09 09:15:00',8400.00),(7,10007,'2026-10-09 14:00:00',9000.00),(8,10005,'2026-10-10 10:30:00',6500.00),(9,10002,'2026-10-10 12:00:00',10940.00),(10,10004,'2026-10-10 12:30:00',5200.00),(11,10008,'2026-10-10 13:00:00',7000.00),(12,10010,'2026-10-10 13:30:00',6000.00),(13,10007,'2026-10-15 14:17:03',55000.00);
 /*!40000 ALTER TABLE `purchases` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -201,7 +201,7 @@ CREATE TABLE `saledetails` (
   KEY `ProductID` (`ProductID`),
   CONSTRAINT `saledetails_ibfk_1` FOREIGN KEY (`SaleID`) REFERENCES `sales` (`SaleID`),
   CONSTRAINT `saledetails_ibfk_2` FOREIGN KEY (`ProductID`) REFERENCES `products` (`ProductID`)
-) ENGINE=InnoDB AUTO_INCREMENT=14 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=15 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -210,7 +210,7 @@ CREATE TABLE `saledetails` (
 
 LOCK TABLES `saledetails` WRITE;
 /*!40000 ALTER TABLE `saledetails` DISABLE KEYS */;
-INSERT INTO `saledetails` VALUES (1,6,1,5,150.00,750.00),(2,7,1,10,150.00,1500.00),(3,8,3,2,52.15,104.30),(4,8,4,2,54.92,109.84),(5,9,5,2,57.12,114.24),(6,9,6,1,51.48,51.48),(7,10,7,1,58.31,58.31),(8,10,8,2,53.32,106.64),(9,11,9,2,56.38,112.76),(10,11,10,1,47.85,47.85),(11,12,11,2,59.51,119.02),(12,12,12,1,64.04,64.04),(13,13,22,1,4599.00,4599.00);
+INSERT INTO `saledetails` VALUES (1,6,1,5,150.00,750.00),(2,7,1,10,150.00,1500.00),(3,8,3,2,52.15,104.30),(4,8,4,2,54.92,109.84),(5,9,5,2,57.12,114.24),(6,9,6,1,51.48,51.48),(7,10,7,1,58.31,58.31),(8,10,8,2,53.32,106.64),(9,11,9,2,56.38,112.76),(10,11,10,1,47.85,47.85),(11,12,11,2,59.51,119.02),(12,12,12,1,64.04,64.04),(13,13,22,1,4599.00,4599.00),(14,14,22,125,4599.00,574875.00);
 /*!40000 ALTER TABLE `saledetails` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -229,7 +229,7 @@ CREATE TABLE `sales` (
   `TotalAmount` decimal(10,2) DEFAULT NULL,
   `Status` varchar(30) NOT NULL DEFAULT 'Completed',
   PRIMARY KEY (`SaleID`)
-) ENGINE=InnoDB AUTO_INCREMENT=14 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=15 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -238,7 +238,7 @@ CREATE TABLE `sales` (
 
 LOCK TABLES `sales` WRITE;
 /*!40000 ALTER TABLE `sales` DISABLE KEYS */;
-INSERT INTO `sales` VALUES (1,'Rahul Sharma','2026-09-16 19:48:01','Cash',2500.00,'Completed'),(2,'Priya Singh','2026-09-16 19:48:01','UPI',1800.00,'Completed'),(3,'Amit Kumar','2026-09-15 19:48:01','Card',3200.00,'Completed'),(4,'Neha Verma','2026-09-13 19:48:01','UPI',1500.00,'Pending'),(5,'Rohan Gupta','2026-09-09 19:48:01','Cash',2750.00,'Completed'),(6,NULL,'2026-10-06 18:36:07','Cash',750.00,'Completed'),(7,NULL,'2026-10-07 11:19:17','Cash',1500.00,'Completed'),(8,'Ankit Verma','2026-10-08 12:00:00','UPI',214.14,'Completed'),(9,'Priya Kumari','2026-10-08 15:30:00','Cash',165.72,'Completed'),(10,'Aman Raj','2026-10-09 10:15:00','Card',164.95,'Completed'),(11,'Neha Singh','2026-10-09 17:00:00','UPI',160.61,'Completed'),(12,'Rohit Kumar','2026-10-10 11:45:00','Cash',183.06,'Completed'),(13,NULL,'2026-10-13 09:32:14','Cash',4599.00,'Completed');
+INSERT INTO `sales` VALUES (1,'Rahul Sharma','2026-09-16 19:48:01','Cash',2500.00,'Completed'),(2,'Priya Singh','2026-09-16 19:48:01','UPI',1800.00,'Completed'),(3,'Amit Kumar','2026-09-15 19:48:01','Card',3200.00,'Completed'),(4,'Neha Verma','2026-09-13 19:48:01','UPI',1500.00,'Pending'),(5,'Rohan Gupta','2026-09-09 19:48:01','Cash',2750.00,'Completed'),(6,NULL,'2026-10-06 18:36:07','Cash',750.00,'Completed'),(7,NULL,'2026-10-07 11:19:17','Cash',1500.00,'Completed'),(8,'Ankit Verma','2026-10-08 12:00:00','UPI',214.14,'Completed'),(9,'Priya Kumari','2026-10-08 15:30:00','Cash',165.72,'Completed'),(10,'Aman Raj','2026-10-09 10:15:00','Card',164.95,'Completed'),(11,'Neha Singh','2026-10-09 17:00:00','UPI',160.61,'Completed'),(12,'Rohit Kumar','2026-10-10 11:45:00','Cash',183.06,'Completed'),(13,NULL,'2026-10-13 09:32:14','Cash',4599.00,'Completed'),(14,NULL,'2026-10-15 14:17:26','Cash',574875.00,'Completed');
 /*!40000 ALTER TABLE `sales` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -260,7 +260,7 @@ CREATE TABLE `stockhistory` (
   PRIMARY KEY (`HistoryID`),
   KEY `ProductID` (`ProductID`),
   CONSTRAINT `stockhistory_ibfk_1` FOREIGN KEY (`ProductID`) REFERENCES `products` (`ProductID`)
-) ENGINE=InnoDB AUTO_INCREMENT=27 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=29 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -269,7 +269,7 @@ CREATE TABLE `stockhistory` (
 
 LOCK TABLES `stockhistory` WRITE;
 /*!40000 ALTER TABLE `stockhistory` DISABLE KEYS */;
-INSERT INTO `stockhistory` VALUES (1,1,'PURCHASE',50,10,60,'2026-10-05 21:02:59'),(2,1,'PURCHASE',25,60,85,'2026-10-05 21:10:03'),(3,1,'SALE',5,85,80,'2026-10-06 18:36:07'),(4,1,'SALE',10,80,70,'2026-10-07 11:19:17'),(5,1,'PURCHASE',20,70,90,'2026-10-07 11:32:18'),(6,3,'DATASET_OPENING',224,0,224,'2026-10-08 09:00:00'),(7,4,'DATASET_OPENING',249,0,249,'2026-10-08 09:00:00'),(8,5,'DATASET_OPENING',316,0,316,'2026-10-08 09:00:00'),(9,6,'DATASET_OPENING',259,0,259,'2026-10-08 09:00:00'),(10,7,'DATASET_OPENING',268,0,268,'2026-10-08 09:00:00'),(11,8,'DATASET_OPENING',308,0,308,'2026-10-08 09:00:00'),(12,9,'DATASET_OPENING',274,0,274,'2026-10-08 09:00:00'),(13,10,'DATASET_OPENING',281,0,281,'2026-10-08 09:00:00'),(14,11,'DATASET_OPENING',267,0,267,'2026-10-08 09:00:00'),(15,12,'DATASET_OPENING',322,0,322,'2026-10-08 09:00:00'),(16,13,'DATASET_OPENING',268,0,268,'2026-10-08 09:00:00'),(17,14,'DATASET_OPENING',285,0,285,'2026-10-08 09:00:00'),(18,15,'DATASET_OPENING',298,0,298,'2026-10-08 09:00:00'),(19,16,'DATASET_OPENING',240,0,240,'2026-10-08 09:00:00'),(20,17,'DATASET_OPENING',238,0,238,'2026-10-08 09:00:00'),(21,18,'DATASET_OPENING',242,0,242,'2026-10-08 09:00:00'),(22,19,'DATASET_OPENING',274,0,274,'2026-10-08 09:00:00'),(23,20,'DATASET_OPENING',265,0,265,'2026-10-08 09:00:00'),(24,21,'DATASET_OPENING',294,0,294,'2026-10-08 09:00:00'),(25,22,'DATASET_OPENING',275,0,275,'2026-10-08 09:00:00'),(26,22,'SALE',1,275,274,'2026-10-13 09:32:14');
+INSERT INTO `stockhistory` VALUES (1,1,'PURCHASE',50,10,60,'2026-10-05 21:02:59'),(2,1,'PURCHASE',25,60,85,'2026-10-05 21:10:03'),(3,1,'SALE',5,85,80,'2026-10-06 18:36:07'),(4,1,'SALE',10,80,70,'2026-10-07 11:19:17'),(5,1,'PURCHASE',20,70,90,'2026-10-07 11:32:18'),(6,3,'DATASET_OPENING',224,0,224,'2026-10-08 09:00:00'),(7,4,'DATASET_OPENING',249,0,249,'2026-10-08 09:00:00'),(8,5,'DATASET_OPENING',316,0,316,'2026-10-08 09:00:00'),(9,6,'DATASET_OPENING',259,0,259,'2026-10-08 09:00:00'),(10,7,'DATASET_OPENING',268,0,268,'2026-10-08 09:00:00'),(11,8,'DATASET_OPENING',308,0,308,'2026-10-08 09:00:00'),(12,9,'DATASET_OPENING',274,0,274,'2026-10-08 09:00:00'),(13,10,'DATASET_OPENING',281,0,281,'2026-10-08 09:00:00'),(14,11,'DATASET_OPENING',267,0,267,'2026-10-08 09:00:00'),(15,12,'DATASET_OPENING',322,0,322,'2026-10-08 09:00:00'),(16,13,'DATASET_OPENING',268,0,268,'2026-10-08 09:00:00'),(17,14,'DATASET_OPENING',285,0,285,'2026-10-08 09:00:00'),(18,15,'DATASET_OPENING',298,0,298,'2026-10-08 09:00:00'),(19,16,'DATASET_OPENING',240,0,240,'2026-10-08 09:00:00'),(20,17,'DATASET_OPENING',238,0,238,'2026-10-08 09:00:00'),(21,18,'DATASET_OPENING',242,0,242,'2026-10-08 09:00:00'),(22,19,'DATASET_OPENING',274,0,274,'2026-10-08 09:00:00'),(23,20,'DATASET_OPENING',265,0,265,'2026-10-08 09:00:00'),(24,21,'DATASET_OPENING',294,0,294,'2026-10-08 09:00:00'),(25,22,'DATASET_OPENING',275,0,275,'2026-10-08 09:00:00'),(26,22,'SALE',1,275,274,'2026-10-13 09:32:14'),(27,22,'PURCHASE',22,274,296,'2026-10-15 14:17:03'),(28,22,'SALE',125,296,171,'2026-10-15 14:17:26');
 /*!40000 ALTER TABLE `stockhistory` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -287,7 +287,7 @@ CREATE TABLE `suppliers` (
   `Email` varchar(100) DEFAULT NULL,
   `Address` varchar(255) DEFAULT NULL,
   PRIMARY KEY (`SupplierID`)
-) ENGINE=InnoDB AUTO_INCREMENT=10011 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=10012 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -296,7 +296,7 @@ CREATE TABLE `suppliers` (
 
 LOCK TABLES `suppliers` WRITE;
 /*!40000 ALTER TABLE `suppliers` DISABLE KEYS */;
-INSERT INTO `suppliers` VALUES (10001,'ABC Electronics','9100000000','abc@electronics.com','Delhi'),(10002,'Zara','9876543210','zara@cloth.com','Mumbai, India'),(10003,'Global Tech Supplies','9810000001','globaltech@example.com','Delhi, India'),(10004,'Prime Office Products','9810000002','primeoffice@example.com','Noida, India'),(10005,'FreshMart Distributors','9810000003','freshmart@example.com','Patna, India'),(10006,'Toy World Wholesale','9810000004','toyworld@example.com','Kolkata, India'),(10007,'Furniture Hub','9810000005','furniturehub@example.com','Jaipur, India'),(10008,'Smart Electronics Co','9810000006','smartelectronics@example.com','Bengaluru, India'),(10009,'Clothing Corner Wholesale','9810000007','clothingcorner@example.com','Mumbai, India'),(10010,'Everyday Goods Traders','9810000008','everydaygoods@example.com','Lucknow, India');
+INSERT INTO `suppliers` VALUES (10001,'ABC Electronics','9100000000','abc@electronics.com','Delhi'),(10002,'Zara','9876543210','zara@cloth.com','Mumbai, India'),(10003,'Global Tech Supplies','9810000001','globaltech@example.com','Delhi, India'),(10004,'Prime Office Products','9810000002','primeoffice@example.com','Noida, India'),(10005,'FreshMart Distributors','9810000003','freshmart@example.com','Patna, India'),(10006,'Toy World Wholesale','9810000004','toyworld@example.com','Kolkata, India'),(10007,'Furniture Hub','9810000005','furniturehub@example.com','Jaipur, India'),(10008,'Smart Electronics Co','9810000006','smartelectronics@example.com','Bengaluru, India'),(10009,'Clothing Corner Wholesale','9810000007','clothingcorner@example.com','Mumbai, India'),(10010,'Everyday Goods Traders','9810000008','everydaygoods@example.com','Lucknow, India'),(10011,'XYZ Books','67890543210','xyz@books.com','Patna, Bihar');
 /*!40000 ALTER TABLE `suppliers` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -327,7 +327,7 @@ CREATE TABLE `users` (
 
 LOCK TABLES `users` WRITE;
 /*!40000 ALTER TABLE `users` DISABLE KEYS */;
-INSERT INTO `users` VALUES (1,'Sudhanshu123','Password123','Sudhanshu Ranjan Singh','Admin','Approved',NULL,'2026-09-18 20:17:07'),(2,'Wasif123','Password123','Wasif Masood','Admin','Approved',1,'2026-10-13 19:54:17'),(7,'Manager456','Manager456','Vishal Kumar','Manager','Approved',1,'2026-10-13 18:54:08'),(9,'Staff456','Staff456','Priya Kumari','Staff','Approved',1,'2026-10-07 12:11:15'),(10,'Staff123','Staff123','Amit Kumar','Staff','Approved',1,'2026-10-13 18:53:40'),(11,'Manager123','Manager123','Manager','Manager','Approved',1,'2026-10-13 19:54:13'),(12,'Akash123','Akash123','Akash','Manager','Approved',1,'2026-10-14 21:10:12');
+INSERT INTO `users` VALUES (1,'Sudhanshu123','Password123','Sudhanshu Ranjan Singh','Admin','Approved',NULL,'2026-09-18 20:17:07'),(2,'Wasif123','Password123','Wasif Masood','Admin','Approved',1,'2026-10-13 19:54:17'),(7,'Manager456','Manager456','Vishal Kumar','Manager','Approved',1,'2026-10-15 11:03:12'),(9,'Staff456','Staff456','Priya Kumari','Staff','Approved',1,'2026-10-07 12:11:15'),(10,'Staff123','Staff123','Amit Kumar','Staff','Approved',1,'2026-10-15 11:03:10'),(11,'Manager123','Manager123','Manager','Manager','Approved',1,'2026-10-13 19:54:13'),(12,'Akash123','Akash123','Akash','Manager','Approved',1,'2026-10-14 21:10:12');
 /*!40000 ALTER TABLE `users` ENABLE KEYS */;
 UNLOCK TABLES;
 SET @@SESSION.SQL_LOG_BIN = @MYSQLDUMP_TEMP_LOG_BIN;
@@ -341,4 +341,4 @@ SET @@SESSION.SQL_LOG_BIN = @MYSQLDUMP_TEMP_LOG_BIN;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2026-10-15  9:41:22
+-- Dump completed on 2026-10-16 17:45:31
