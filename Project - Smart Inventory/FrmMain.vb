@@ -4363,7 +4363,7 @@ Public Class FrmMain
                 '-------------------------------------------------
                 Dim query As String =
                     "SELECT UserID, Username, FullName, Role, AccountStatus " &
-                    "FROM Users " &
+                    "FROM users " &
                     "WHERE TRIM(AccountStatus) = 'Pending' " &
                     "ORDER BY UserID DESC"
 
@@ -4618,7 +4618,7 @@ Public Class FrmMain
                 con.Open()
 
                 Dim query As String =
-                    "UPDATE Users SET " &
+                    "UPDATE users SET " &
                     "AccountStatus = 'Rejected' " &
                     "WHERE UserID = @UserID " &
                     "AND AccountStatus = 'Pending'"
