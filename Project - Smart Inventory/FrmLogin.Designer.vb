@@ -153,15 +153,7 @@ Partial Class FrmLogin
         BackColor = Color.White
         ClientSize = New Size(500, 538)
         Controls.Add(WebViewLogin)
-        Controls.Add(btnRegister)
-        Controls.Add(btnExit)
-        Controls.Add(btnlogin)
-        Controls.Add(txtpass)
-        Controls.Add(txtname)
-        Controls.Add(Label4)
-        Controls.Add(Label3)
-        Controls.Add(Label2)
-        Controls.Add(PictureBox1)
+        WebViewLogin.BringToFront()
         Margin = New Padding(3, 2, 3, 2)
         Name = "FrmLogin"
         StartPosition = FormStartPosition.CenterScreen

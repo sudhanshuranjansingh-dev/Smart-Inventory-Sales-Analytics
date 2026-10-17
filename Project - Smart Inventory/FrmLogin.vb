@@ -14,6 +14,14 @@ Public Class FrmLogin
     ) Handles MyBase.Load
 
         Me.FormBorderStyle = FormBorderStyle.None
+        Me.Padding = Padding.Empty
+        Me.BackColor = Color.Magenta
+
+        WebViewLogin.Dock = DockStyle.Fill
+        WebViewLogin.Margin = Padding.Empty
+        WebViewLogin.Padding = Padding.Empty
+        WebViewLogin.DefaultBackgroundColor = Color.Magenta
+
 
         Try
 

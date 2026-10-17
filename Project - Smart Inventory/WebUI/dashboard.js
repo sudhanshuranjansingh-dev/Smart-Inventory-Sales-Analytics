@@ -41,8 +41,10 @@ document.addEventListener(
         // Request logged-in user details
         requestCurrentUser();
 
-        // Request dashboard statistics
-        requestDashboardData();
+        // Request dashboard data after the page has initialized.
+        setTimeout(function () {
+            requestDashboardData();
+        }, 300);
 
     }
 );
@@ -275,40 +277,56 @@ function applyStaffRestrictions() {
 }
 
 
+
 /* =========================================================
-   HIDE DASHBOARD DATA PANELS FOR STAFF
+   STAFF DASHBOARD RESTRICTIONS
+   Keep summary cards visible; hide charts only.
    ========================================================= */
 
 function hideDashboardDataForStaff() {
 
-    const dashboardPanels = [
-        ".cards",
-        ".sales-section",
-        ".inventory-section",
-        ".dashboard-footer"
-    ];
+    // Keep these dashboard summary cards visible:
+    // Total Products, Total Sales, Low Stock, Total Units.
 
-    dashboardPanels.forEach(function (selector) {
+    // Hide the monthly sales chart section.
+    const salesSection =
+        document.querySelector(".sales-section");
 
-        const panel =
-            document.querySelector(selector);
+    if (salesSection) {
+        salesSection.style.setProperty(
+            "display",
+            "none",
+            "important"
+        );
+    }
 
-        if (panel) {
+    // Hide the inventory status chart section.
+    const inventorySection =
+        document.querySelector(".inventory-section");
 
-            panel.style.setProperty(
-                "display",
-                "none",
-                "important"
-            );
+    if (inventorySection) {
+        inventorySection.style.setProperty(
+            "display",
+            "none",
+            "important"
+        );
+    }
 
-        }
+    // Hide an optional dashboard footer.
+    const dashboardFooter =
+        document.querySelector(".dashboard-footer");
 
-    });
+    if (dashboardFooter) {
+        dashboardFooter.style.setProperty(
+            "display",
+            "none",
+            "important"
+        );
+    }
 
     console.log(
-        "Staff dashboard data panels hidden."
+        "Staff dashboard: summary cards visible; charts hidden."
     );
-
 }
 
 
