@@ -69,9 +69,9 @@
     }
 
 
-    // =========================================================
-    // DISPLAY CATEGORIES
-    // =========================================================
+    /* =========================================================
+       DISPLAY CATEGORIES IN ALPHABETICAL ORDER
+       ========================================================= */
 
     function renderCategories(categories) {
 
@@ -79,51 +79,58 @@
 
         if (!Array.isArray(categories) || categories.length === 0) {
 
-            tableBody.innerHTML =
-                `<tr>
-                    <td colspan="3" class="empty-row">
-                        No categories found.
-                    </td>
-                </tr>`;
+            tableBody.innerHTML = `
+            <tr>
+                <td colspan="3" class="empty-row">
+                    No categories found.
+                </td>
+            </tr>
+        `;
 
             categoryCount.textContent = "0";
-
             return;
         }
 
+        // Sort alphabetically by category name (A-Z).
+        const sortedCategories = [...categories].sort(
+            function (a, b) {
+                return String(a.CategoryName || "").localeCompare(
+                    String(b.CategoryName || ""),
+                    undefined,
+                    { sensitivity: "base" }
+                );
+            }
+        );
 
-        categoryCount.textContent = categories.length;
+        categoryCount.textContent = sortedCategories.length;
 
-
-        categories.forEach(function (category) {
+        sortedCategories.forEach(function (category, index) {
 
             const row = document.createElement("tr");
 
             row.innerHTML = `
-                <td>${category.CategoryID}</td>
+            <td>${index + 1}</td>
 
-                <td>
-                    ${escapeHtml(category.CategoryName)}
-                </td>
+            <td>
+                ${escapeHtml(category.CategoryName)}
+            </td>
 
-                <td>
-                    <button
-                        type="button"
-                        class="delete-button"
-                        data-id="${category.CategoryID}"
-                        data-name="${escapeHtml(category.CategoryName)}">
-                        Delete
-                    </button>
-                </td>
-            `;
+            <td>
+                <button
+                    type="button"
+                    class="delete-button"
+                    data-id="${category.CategoryID}"
+                    data-name="${escapeHtml(category.CategoryName)}">
+                    Delete
+                </button>
+            </td>
+        `;
 
             tableBody.appendChild(row);
 
         });
 
-
-        // Attach delete events
-
+        // Attach delete events.
         const deleteButtons =
             document.querySelectorAll(".delete-button");
 
@@ -131,11 +138,9 @@
 
             button.addEventListener("click", function () {
 
-                const categoryID =
-                    parseInt(button.dataset.id);
+                const categoryID = parseInt(button.dataset.id);
 
-                const categoryNameValue =
-                    button.dataset.name;
+                const categoryNameValue = button.dataset.name;
 
                 deleteCategory(
                     categoryID,
@@ -147,6 +152,7 @@
         });
 
     }
+
 
 
     // =========================================================
@@ -171,6 +177,8 @@
     }
 
 
+
+
     // =========================================================
     // ADD CATEGORY
     // =========================================================
@@ -179,29 +187,25 @@
 
         event.preventDefault();
 
+        const name = categoryName.value.trim();
 
-        const name =
-            categoryName.value.trim();
-
-
-        if (name === "") {
-
-            showMessage(
-                "Please enter a category name."
-            );
-
+        if (!name) {
+            showMessage("Please enter a category name.");
             categoryName.focus();
-
             return;
         }
 
+        const confirmed = confirm(
+            `Are you sure you want to add the category "${name}"?`
+        );
+
+        if (!confirmed) {
+            return;
+        }
 
         sendToVB({
-
             action: "addCategory",
-
             CategoryName: name
-
         });
 
     });

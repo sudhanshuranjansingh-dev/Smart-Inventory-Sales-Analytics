@@ -92,18 +92,20 @@ function renderSuppliers(data) {
                 : " Suppliers");
     }
 
+
     if (suppliers.length === 0) {
 
         tableBody.innerHTML = `
-    < tr >
-    <td colspan="5" class="empty-state">
-        No suppliers found.
-    </td>
-            </tr >
+        <tr>
+            <td colspan="5" class="empty-state">
+                No suppliers found.
+            </td>
+        </tr>
     `;
 
         return;
     }
+
 
     tableBody.innerHTML = suppliers.map((supplier, index) => `
     <tr data-supplier-id="${escapeHtml(supplier.SupplierID)}">
@@ -184,8 +186,9 @@ function closeSupplierForm() {
 }
 
 
+
 /* =========================================================
-   ADD SUPPLIER
+   ADD SUPPLIER - VALIDATE ALL REQUIRED FIELDS
    ========================================================= */
 
 function addSupplier(event) {
@@ -204,16 +207,47 @@ function addSupplier(event) {
     const address =
         document.getElementById("address")?.value.trim() || "";
 
-    if (!supplierName) {
+    // Validate required fields
+    if (!supplierName || !phone || !email || !address) {
 
         showMessage(
-            "Supplier name is required.",
+            "Please fill in all supplier fields.",
             "error"
         );
 
         return;
     }
 
+    // Validate phone number: 10 digits
+    if (!/^[0-9]{10}$/.test(phone)) {
+
+        showMessage(
+            "Please enter a valid 10-digit phone number.",
+            "error"
+        );
+
+        document.getElementById("phone")?.focus();
+
+        return;
+    }
+
+    // Validate email format
+    const emailPattern =
+        /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+    if (!emailPattern.test(email)) {
+
+        showMessage(
+            "Please enter a valid email address.",
+            "error"
+        );
+
+        document.getElementById("email")?.focus();
+
+        return;
+    }
+
+    // Send data only after successful validation
     sendToVB({
 
         action: "addSupplier",
@@ -229,6 +263,7 @@ function addSupplier(event) {
     });
 
 }
+
 
 
 /* =========================================================

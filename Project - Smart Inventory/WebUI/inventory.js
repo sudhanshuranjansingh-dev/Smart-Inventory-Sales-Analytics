@@ -5,6 +5,7 @@
 let inventoryData = [];
 
 
+
 /* =========================================================
    REQUEST INVENTORY DATA
    ========================================================= */
@@ -40,6 +41,10 @@ function loadInventory() {
             {
                 action: "loadInventory"
             }
+        );
+
+        console.log(
+            "Inventory request sent to VB.NET"
         );
 
     }

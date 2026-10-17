@@ -359,6 +359,7 @@ Public Class FrmMain
     '=========================================================
 
 
+
     Private Sub LoadSalesToWeb()
 
         Try
@@ -368,8 +369,12 @@ Public Class FrmMain
                 con.Open()
 
                 Dim query As String =
-                "SELECT s.SaleID, " &
+                "SELECT " &
+                "s.SaleID, " &
+                "s.CustomerName, " &
+                "s.CustomerPhone, " &
                 "GROUP_CONCAT(DISTINCT p.ProductName ORDER BY p.ProductName SEPARATOR ', ') AS ProductName, " &
+               "GROUP_CONCAT(DISTINCT p.ProductCode ORDER BY p.ProductCode SEPARATOR ', ') AS ProductCode, " &
                 "SUM(sd.Quantity) AS Quantity, " &
                 "CASE WHEN SUM(sd.Quantity) > 0 " &
                 "THEN SUM(sd.TotalPrice) / SUM(sd.Quantity) ELSE 0 END AS SellingPrice, " &
@@ -378,18 +383,30 @@ Public Class FrmMain
                 "FROM Sales s " &
                 "INNER JOIN SaleDetails sd ON s.SaleID = sd.SaleID " &
                 "INNER JOIN Products p ON sd.ProductID = p.ProductID " &
-                "GROUP BY s.SaleID, s.SaleDate " &
+                "GROUP BY s.SaleID, s.CustomerName, s.CustomerPhone, s.SaleDate " &
                 "ORDER BY s.SaleDate DESC, s.SaleID DESC " &
                 "LIMIT 10"
 
                 Using cmd As New MySqlCommand(query, con)
+
                     Using reader As MySqlDataReader = cmd.ExecuteReader()
 
                         While reader.Read()
 
                             sales.Add(New Dictionary(Of String, Object) From {
                             {"SaleID", Convert.ToInt32(reader("SaleID"))},
+                            {"ProductCode", Convert.ToString(reader("ProductCode"))},
                             {"ProductName", Convert.ToString(reader("ProductName"))},
+                            {"CustomerName", If(
+                                reader.IsDBNull(reader.GetOrdinal("CustomerName")),
+                                "",
+                                Convert.ToString(reader("CustomerName"))
+                            )},
+                            {"CustomerPhone", If(
+                                reader.IsDBNull(reader.GetOrdinal("CustomerPhone")),
+                                "",
+                                Convert.ToString(reader("CustomerPhone"))
+                            )},
                             {"Quantity", Convert.ToInt32(reader("Quantity"))},
                             {"SellingPrice", Convert.ToDecimal(reader("SellingPrice"))},
                             {"TotalAmount", Convert.ToDecimal(reader("TotalAmount"))},
@@ -397,6 +414,7 @@ Public Class FrmMain
                         })
 
                         End While
+
                     End Using
                 End Using
             End Using
@@ -424,39 +442,64 @@ Public Class FrmMain
 
 
 
+
+
+
     Private Sub LoadSalesHistoryToWeb()
 
         Debug.WriteLine("HISTORY 1: Method started")
 
         Try
             Using con As MySqlConnection = DBConnection.GetConnection()
+
                 con.Open()
                 Debug.WriteLine("HISTORY 2: Database connected")
 
+
                 Dim query As String =
-                "SELECT s.SaleID, s.SaleDate, " &
-                "SUM(sd.TotalPrice) AS TotalAmount, " &
-                "SUM(sd.Quantity) AS TotalItems " &
-                "FROM Sales s " &
-                "INNER JOIN SaleDetails sd ON s.SaleID = sd.SaleID " &
-                "GROUP BY s.SaleID, s.SaleDate " &
-                "ORDER BY s.SaleDate DESC, s.SaleID DESC"
+                        "SELECT " &
+                        "s.SaleID, " &
+                        "s.CustomerName, " &
+                        "s.CustomerPhone, " &
+                        "GROUP_CONCAT(DISTINCT p.ProductCode ORDER BY p.ProductCode SEPARATOR ', ') AS ProductCode, " &
+                        "GROUP_CONCAT(DISTINCT p.ProductName ORDER BY p.ProductName SEPARATOR ', ') AS ProductName, " &
+                        "SUM(sd.Quantity) AS TotalItems, " &
+                        "CASE WHEN SUM(sd.Quantity) > 0 " &
+                        "THEN SUM(sd.TotalPrice) / SUM(sd.Quantity) ELSE 0 END AS SellingPrice, " &
+                        "SUM(sd.TotalPrice) AS TotalAmount, " &
+                        "s.SaleDate " &
+                        "FROM Sales s " &
+                        "INNER JOIN SaleDetails sd ON s.SaleID = sd.SaleID " &
+                        "INNER JOIN Products p ON sd.ProductID = p.ProductID " &
+                        "GROUP BY s.SaleID, s.CustomerName, s.CustomerPhone, s.SaleDate " &
+                        "ORDER BY s.SaleDate DESC, s.SaleID DESC"
+
 
                 Using cmd As New MySqlCommand(query, con)
+
                     Using reader As MySqlDataReader = cmd.ExecuteReader()
 
                         Dim sales As New List(Of Dictionary(Of String, Object))()
 
                         While reader.Read()
+
+
                             sales.Add(New Dictionary(Of String, Object) From {
-                            {"SaleID", Convert.ToInt32(reader("SaleID"))},
-                            {"TotalAmount", Convert.ToDecimal(reader("TotalAmount"))},
-                            {"TotalItems", Convert.ToInt32(reader("TotalItems"))},
-                            {"SaleDate", Convert.ToDateTime(reader("SaleDate")).ToString("yyyy-MM-dd HH:mm:ss")}
-                        })
+                                {"CustomerName", If(reader.IsDBNull(reader.GetOrdinal("CustomerName")), "", Convert.ToString(reader("CustomerName")))},
+                                {"CustomerPhone", If(reader.IsDBNull(reader.GetOrdinal("CustomerPhone")), "", Convert.ToString(reader("CustomerPhone")))},
+                                {"ProductCode", Convert.ToString(reader("ProductCode"))},
+                                {"ProductName", Convert.ToString(reader("ProductName"))},
+                                {"TotalItems", Convert.ToInt32(reader("TotalItems"))},
+                                {"Quantity", Convert.ToInt32(reader("TotalItems"))},
+                                {"SellingPrice", Convert.ToDecimal(reader("SellingPrice"))},
+                                {"TotalAmount", Convert.ToDecimal(reader("TotalAmount"))},
+                                {"SaleDate", Convert.ToDateTime(reader("SaleDate")).ToString("yyyy-MM-dd HH:mm:ss")}
+                            })
+
+
                         End While
 
-                        Debug.WriteLine("HISTORY 3: Rows loaded = " & sales.Count)
+                        Debug.WriteLine("HISTORY 3: Rows loaded = " & sales.Count.ToString())
 
                         SendToWeb(New With {
                         .type = "salesHistory",
@@ -470,15 +513,19 @@ Public Class FrmMain
             End Using
 
         Catch ex As Exception
+
             Debug.WriteLine("HISTORY ERROR: " & ex.ToString())
 
             SendToWeb(New With {
             .type = "salesHistoryError",
             .message = ex.Message
         })
+
         End Try
 
     End Sub
+
+
 
 
 
@@ -1169,6 +1216,7 @@ Public Class FrmMain
     '=========================================================
     ' ADD SALE
     '=========================================================
+
     Private Sub AddSale(root As JsonElement)
 
         Dim transaction As MySqlTransaction = Nothing
@@ -1179,421 +1227,285 @@ Public Class FrmMain
             '-------------------------------------------------
             ' GET VALUES FROM WEB UI
             '-------------------------------------------------
+            Dim customerName As String =
+            GetStringValue(root, "CustomerName").Trim()
+
+            Dim customerPhone As String =
+            GetStringValue(root, "CustomerPhone").Trim()
+
             Dim productID As Integer =
-            GetIntegerValue(
-                root,
-                "ProductID"
-            )
+            GetIntegerValue(root, "ProductID")
 
             Dim quantity As Integer =
-            GetIntegerValue(
-                root,
-                "Quantity"
-            )
+            GetIntegerValue(root, "Quantity")
 
             Dim sellingPrice As Decimal =
-            GetDecimalValue(
-                root,
-                "SellingPrice"
-            )
-
+            GetDecimalValue(root, "SellingPrice")
 
             '-------------------------------------------------
-            ' VALIDATION
+            ' VALIDATE CUSTOMER DETAILS
+            '-------------------------------------------------
+            If String.IsNullOrWhiteSpace(customerName) Then
+
+                SendToWeb(New With {
+                .type = "saleError",
+                .message = "Customer name is required."
+            })
+
+                Return
+
+            End If
+
+            If String.IsNullOrWhiteSpace(customerPhone) OrElse
+           Not System.Text.RegularExpressions.Regex.IsMatch(
+               customerPhone, "^[0-9]{10}$") Then
+
+                SendToWeb(New With {
+                .type = "saleError",
+                .message = "Enter a valid 10-digit customer phone number."
+            })
+
+                Return
+
+            End If
+
+            '-------------------------------------------------
+            ' VALIDATE SALE DETAILS
             '-------------------------------------------------
             If productID <= 0 Then
 
-                SendToWeb(
-                New With {
-                    .type = "saleError",
-                    .message = "Please select a product."
-                }
-            )
+                SendToWeb(New With {
+                .type = "saleError",
+                .message = "Please select a product."
+            })
 
                 Return
 
             End If
-
 
             If quantity <= 0 Then
 
-                SendToWeb(
-                New With {
-                    .type = "saleError",
-                    .message =
-                        "Quantity must be greater than zero."
-                }
-            )
+                SendToWeb(New With {
+                .type = "saleError",
+                .message = "Quantity must be greater than zero."
+            })
 
                 Return
 
             End If
-
 
             If sellingPrice <= 0D Then
 
-                SendToWeb(
-                New With {
-                    .type = "saleError",
-                    .message =
-                        "Selling price must be greater than zero."
-                }
-            )
+                SendToWeb(New With {
+                .type = "saleError",
+                .message = "Selling price must be greater than zero."
+            })
 
                 Return
 
             End If
-
 
             '-------------------------------------------------
             ' CALCULATE TOTAL
             '-------------------------------------------------
-            Dim totalPrice As Decimal =
-            quantity * sellingPrice
-
+            Dim totalPrice As Decimal = quantity * sellingPrice
 
             '-------------------------------------------------
             ' DATABASE CONNECTION
             '-------------------------------------------------
-            Using con As MySqlConnection =
-            DBConnection.GetConnection()
+            Using con As MySqlConnection = DBConnection.GetConnection()
 
                 con.Open()
 
-
-                '-------------------------------------------------
-                ' START TRANSACTION
-                '-------------------------------------------------
-                transaction =
-                con.BeginTransaction()
-
+                transaction = con.BeginTransaction()
 
                 '=================================================
-                ' 1. GET CURRENT PRODUCT STOCK
+                ' 1. GET CURRENT PRODUCT STOCK AND PRICE
                 '=================================================
                 Dim previousStock As Integer = 0
-
+                Dim databasePrice As Decimal = 0D
 
                 Dim productQuery As String =
-                "SELECT StockQuantity " &
+                "SELECT StockQuantity, SellingPrice " &
                 "FROM Products " &
                 "WHERE ProductID = @ProductID " &
                 "FOR UPDATE"
 
-
                 Using cmd As New MySqlCommand(
-                productQuery,
-                con,
-                transaction
-            )
+                productQuery, con, transaction)
 
-                    cmd.Parameters.AddWithValue(
-                    "@ProductID",
-                    productID
-                )
+                    cmd.Parameters.AddWithValue("@ProductID", productID)
 
+                    Using reader As MySqlDataReader = cmd.ExecuteReader()
 
-                    Dim result As Object =
-                    cmd.ExecuteScalar()
+                        If Not reader.Read() Then
+                            Throw New Exception("Selected product was not found.")
+                        End If
 
+                        previousStock = Convert.ToInt32(reader("StockQuantity"))
+                        databasePrice = Convert.ToDecimal(reader("SellingPrice"))
 
-                    If result Is Nothing OrElse
-                   result Is DBNull.Value Then
-
-                        Throw New Exception(
-                        "Selected product was not found."
-                    )
-
-                    End If
-
-
-                    previousStock =
-                    Convert.ToInt32(result)
+                    End Using
 
                 End Using
 
+                ' Use the current database price, not a client-supplied price.
+                sellingPrice = databasePrice
+                totalPrice = quantity * sellingPrice
 
                 '=================================================
-                ' 2. CHECK AVAILABLE STOCK
+                ' 2. CHECK STOCK AND PRICE
                 '=================================================
                 If quantity > previousStock Then
 
                     Throw New Exception(
                     "Insufficient stock. Available stock: " &
-                    previousStock.ToString()
-                )
+                    previousStock.ToString())
 
                 End If
 
+                If sellingPrice <= 0D Then
+                    Throw New Exception("The product selling price is invalid.")
+                End If
+
+                Dim newStock As Integer = previousStock - quantity
 
                 '=================================================
-                ' 3. CALCULATE NEW STOCK
+                ' 3. INSERT SALE HEADER
                 '=================================================
-                Dim newStock As Integer =
-                previousStock - quantity
-
-
-                '=================================================
-                ' 4. INSERT SALE HEADER
-                '=================================================
-
-
-
                 Dim saleQuery As String =
                 "INSERT INTO Sales " &
-                "(CustomerName, PaymentMethod, TotalAmount, Status) " &
+                "(CustomerName, CustomerPhone, PaymentMethod, " &
+                "TotalAmount, Status) " &
                 "VALUES " &
-                "(@CustomerName, @PaymentMethod, " &
+                "(@CustomerName, @CustomerPhone, @PaymentMethod, " &
                 "@TotalAmount, @Status)"
 
-
                 Using cmd As New MySqlCommand(
-                saleQuery,
-                con,
-                transaction
-            )
+                saleQuery, con, transaction)
 
-                    cmd.Parameters.AddWithValue(
-                    "@CustomerName",
-                    DBNull.Value
-                )
-
-                    cmd.Parameters.AddWithValue(
-                    "@PaymentMethod",
-                    "Cash"
-                )
-
-                    cmd.Parameters.AddWithValue(
-                    "@TotalAmount",
-                    totalPrice
-                )
-
-                    cmd.Parameters.AddWithValue(
-                    "@Status",
-                    "Completed"
-                )
-
+                    cmd.Parameters.AddWithValue("@CustomerName", customerName)
+                    cmd.Parameters.AddWithValue("@CustomerPhone", customerPhone)
+                    cmd.Parameters.AddWithValue("@PaymentMethod", "Cash")
+                    cmd.Parameters.AddWithValue("@TotalAmount", totalPrice)
+                    cmd.Parameters.AddWithValue("@Status", "Completed")
 
                     cmd.ExecuteNonQuery()
 
-
-                    saleID =
-                    Convert.ToInt32(
-                        cmd.LastInsertedId
-                    )
+                    saleID = Convert.ToInt32(cmd.LastInsertedId)
 
                 End Using
 
-
                 '=================================================
-                ' 5. INSERT SALE DETAIL
+                ' 4. INSERT SALE DETAIL
                 '=================================================
                 Dim detailQuery As String =
                 "INSERT INTO SaleDetails " &
-                "(SaleID, ProductID, Quantity, " &
-                "SellingPrice, TotalPrice) " &
+                "(SaleID, ProductID, Quantity, SellingPrice, TotalPrice) " &
                 "VALUES " &
-                "(@SaleID, @ProductID, @Quantity, " &
-                "@SellingPrice, @TotalPrice)"
-
+                "(@SaleID, @ProductID, @Quantity, @SellingPrice, @TotalPrice)"
 
                 Using cmd As New MySqlCommand(
-                detailQuery,
-                con,
-                transaction
-            )
+                detailQuery, con, transaction)
 
-                    cmd.Parameters.AddWithValue(
-                    "@SaleID",
-                    saleID
-                )
-
-                    cmd.Parameters.AddWithValue(
-                    "@ProductID",
-                    productID
-                )
-
-                    cmd.Parameters.AddWithValue(
-                    "@Quantity",
-                    quantity
-                )
-
-                    cmd.Parameters.AddWithValue(
-                    "@SellingPrice",
-                    sellingPrice
-                )
-
-                    cmd.Parameters.AddWithValue(
-                    "@TotalPrice",
-                    totalPrice
-                )
-
+                    cmd.Parameters.AddWithValue("@SaleID", saleID)
+                    cmd.Parameters.AddWithValue("@ProductID", productID)
+                    cmd.Parameters.AddWithValue("@Quantity", quantity)
+                    cmd.Parameters.AddWithValue("@SellingPrice", sellingPrice)
+                    cmd.Parameters.AddWithValue("@TotalPrice", totalPrice)
 
                     cmd.ExecuteNonQuery()
 
                 End Using
 
-
                 '=================================================
-                ' 6. UPDATE PRODUCT STOCK
+                ' 5. UPDATE PRODUCT STOCK
                 '=================================================
                 Dim stockQuery As String =
-                "UPDATE Products SET " &
-                "StockQuantity = @NewStock " &
+                "UPDATE Products SET StockQuantity = @NewStock " &
                 "WHERE ProductID = @ProductID"
 
-
                 Using cmd As New MySqlCommand(
-                stockQuery,
-                con,
-                transaction
-            )
+                stockQuery, con, transaction)
 
-                    cmd.Parameters.AddWithValue(
-                    "@NewStock",
-                    newStock
-                )
+                    cmd.Parameters.AddWithValue("@NewStock", newStock)
+                    cmd.Parameters.AddWithValue("@ProductID", productID)
 
-                    cmd.Parameters.AddWithValue(
-                    "@ProductID",
-                    productID
-                )
-
-
-                    Dim rowsAffected As Integer =
-                    cmd.ExecuteNonQuery()
-
-
-                    If rowsAffected = 0 Then
-
-                        Throw New Exception(
-                        "Product stock could not be updated."
-                    )
-
+                    If cmd.ExecuteNonQuery() = 0 Then
+                        Throw New Exception("Product stock could not be updated.")
                     End If
 
                 End Using
 
-
                 '=================================================
-                ' 7. INSERT STOCK HISTORY
+                ' 6. INSERT STOCK HISTORY
                 '=================================================
                 Dim historyQuery As String =
                 "INSERT INTO StockHistory " &
-                "(ProductID, ChangeType, Quantity, " &
-                "PreviousStock, NewStock, ChangeDate) " &
+                "(ProductID, ChangeType, Quantity, PreviousStock, " &
+                "NewStock, ChangeDate) " &
                 "VALUES " &
                 "(@ProductID, @ChangeType, @Quantity, " &
                 "@PreviousStock, @NewStock, NOW())"
 
-
                 Using cmd As New MySqlCommand(
-                historyQuery,
-                con,
-                transaction
-            )
+                historyQuery, con, transaction)
 
-                    cmd.Parameters.AddWithValue(
-                    "@ProductID",
-                    productID
-                )
-
-                    cmd.Parameters.AddWithValue(
-                    "@ChangeType",
-                    "SALE"
-                )
-
-                    cmd.Parameters.AddWithValue(
-                    "@Quantity",
-                    quantity
-                )
-
-                    cmd.Parameters.AddWithValue(
-                    "@PreviousStock",
-                    previousStock
-                )
-
-                    cmd.Parameters.AddWithValue(
-                    "@NewStock",
-                    newStock
-                )
-
+                    cmd.Parameters.AddWithValue("@ProductID", productID)
+                    cmd.Parameters.AddWithValue("@ChangeType", "SALE")
+                    cmd.Parameters.AddWithValue("@Quantity", quantity)
+                    cmd.Parameters.AddWithValue("@PreviousStock", previousStock)
+                    cmd.Parameters.AddWithValue("@NewStock", newStock)
 
                     cmd.ExecuteNonQuery()
 
                 End Using
 
-
                 '=================================================
-                ' 8. COMMIT TRANSACTION
+                ' 7. COMMIT TRANSACTION
                 '=================================================
                 transaction.Commit()
-
                 transaction = Nothing
 
             End Using
 
+            '-------------------------------------------------
+            ' SUCCESS AND REFRESH
+            '-------------------------------------------------
+            SendToWeb(New With {
+            .type = "saleAdded",
+            .saleID = saleID,
+            .message = "Sale completed successfully."
+        })
 
-            '=================================================
-            ' SUCCESS MESSAGE
-            '=================================================
-            SendToWeb(
-            New With {
-                .type = "saleAdded",
-                .saleID = saleID,
-                .message =
-                    "Sale completed successfully."
-            }
-        )
-
-
-            '=================================================
-            ' REFRESH SALES
-            '=================================================
             LoadSalesToWeb()
-
-
-            '=================================================
-            ' REFRESH PRODUCTS / STOCK
-            '=================================================
             LoadProductsToWeb()
-
 
         Catch ex As Exception
 
-            '-------------------------------------------------
-            ' ROLLBACK
-            '-------------------------------------------------
             Try
-
                 If transaction IsNot Nothing Then
-
                     transaction.Rollback()
-
                 End If
-
             Catch
-
-                ' Ignore rollback errors
-
+                ' Ignore rollback errors.
             End Try
 
+            SendToWeb(New With {
+            .type = "saleError",
+            .message = "Unable to complete sale: " & ex.Message
+        })
 
-            '-------------------------------------------------
-            ' SEND ERROR TO WEB UI
-            '-------------------------------------------------
-            SendToWeb(
-            New With {
-                .type = "saleError",
-                .message =
-                    "Unable to complete sale: " &
-                    ex.Message
-            }
-        )
+        Finally
+
+            If transaction IsNot Nothing Then
+                transaction.Dispose()
+            End If
 
         End Try
 
     End Sub
+
 
     '=========================================================
     ' LOAD PRODUCTS

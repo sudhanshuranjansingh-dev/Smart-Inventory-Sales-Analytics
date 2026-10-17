@@ -13,21 +13,26 @@ function loadSalesHistory() {
     if (tbody) {
         tbody.innerHTML = `
             <tr>
-                <td colspan="3" class="empty-message">
+                <td colspan="5" class="empty-message">
                     Loading sales history...
                 </td>
             </tr>`;
     }
 
-    window.parent.postMessage({
-        action: "loadSalesHistory"
-    }, "*");
+    if (window.parent && window.parent !== window) {
+        window.parent.postMessage({
+            action: "loadSalesHistory"
+        }, "*");
+    } else if (window.chrome && window.chrome.webview) {
+        window.chrome.webview.postMessage({
+            action: "loadSalesHistory"
+        });
+    }
 }
 
 // ============================================
 // RECEIVE SALES DATA
 // ============================================
-
 
 function handleSalesMessage(response) {
     if (!response || !response.type) return;
@@ -67,7 +72,6 @@ function handleSalesMessage(response) {
     }
 }
 
-
 // Receive messages from the parent page
 window.addEventListener("message", function (event) {
     handleSalesMessage(event.data);
@@ -80,29 +84,39 @@ if (window.chrome && window.chrome.webview) {
     });
 }
 
-
 // ============================================
 // FILTER SALES
+// Search by Product Code or Product Name
 // ============================================
 
 function filterSales() {
     const searchInput = document.getElementById("searchSales");
     const dateInput = document.getElementById("saleDateFilter");
 
-    if (!searchInput || !dateInput) {
-        console.error("Sales filter elements were not found.");
-        return;
-    }
+    if (!searchInput || !dateInput) return;
 
     const searchText = searchInput.value.trim().toLowerCase();
     const selectedDate = dateInput.value;
 
     const filteredSales = allSalesHistory.filter(sale => {
-        const saleId = String(sale.SaleID ?? "").toLowerCase();
-        const saleDate = String(sale.SaleDate ?? "").substring(0, 10);
+        const productCode = String(
+            sale.ProductCode ?? ""
+        ).toLowerCase();
 
-        const matchesSearch = saleId.includes(searchText);
-        const matchesDate = !selectedDate || saleDate === selectedDate;
+        const productName = String(
+            sale.ProductName ?? ""
+        ).toLowerCase();
+
+        const saleDate = String(
+            sale.SaleDate ?? ""
+        ).substring(0, 10);
+
+        const matchesSearch =
+            productCode.includes(searchText) ||
+            productName.includes(searchText);
+
+        const matchesDate =
+            !selectedDate || saleDate === selectedDate;
 
         return matchesSearch && matchesDate;
     });
@@ -121,39 +135,40 @@ function clearSalesFilter() {
     if (searchInput) searchInput.value = "";
     if (dateInput) dateInput.value = "";
 
-    renderSalesHistory(allSalesHistory);
+    filterSales();
 }
 
 // ============================================
-// RENDER TRANSACTION TABLE
+// RENDER SALES HISTORY TABLE
+// Columns: S.No., Product Code, Product Name,
+//          Total Amount, Date & Time
 // ============================================
 
 
 function renderSalesHistory(sales) {
     const tableBody = document.getElementById("salesHistoryTableBody");
 
-    console.log("Sales data received:", sales);
-    console.log("Is array:", Array.isArray(sales));
-    console.log("Number of records:", sales?.length);
-
-    if (!tableBody) {
-        console.error("Sales history table body not found.");
-        return;
-    }
+    if (!tableBody) return;
 
     if (!Array.isArray(sales) || sales.length === 0) {
         tableBody.innerHTML = `
             <tr>
-                <td colspan="3" class="empty-message">
+                <td colspan="9" class="empty-message">
                     No sales records found.
                 </td>
             </tr>`;
         return;
     }
 
-    tableBody.innerHTML = sales.map(sale => `
+    tableBody.innerHTML = sales.map((sale, index) => `
         <tr>
-            <td>${escapeHtml(sale.SaleID ?? "")}</td>
+            <td>${index + 1}</td>
+            <td>${escapeHtml(sale.ProductCode ?? "")}</td>
+            <td>${escapeHtml(sale.ProductName ?? "")}</td>
+            <td>${escapeHtml(sale.CustomerName ?? "")}</td>
+            <td>${escapeHtml(sale.CustomerPhone ?? "")}</td>
+            <td>${Number(sale.Quantity ?? sale.TotalItems ?? 0)}</td>
+            <td>₹${Number(sale.SellingPrice ?? 0).toFixed(2)}</td>
             <td>₹${Number(sale.TotalAmount ?? 0).toFixed(2)}</td>
             <td>${escapeHtml(sale.SaleDate ?? "")}</td>
         </tr>
@@ -170,13 +185,11 @@ function updateSalesSummary(sales) {
     const totalItemsElement = document.getElementById("totalItems");
     const totalRevenueElement = document.getElementById("totalRevenue");
 
-    // One row now represents one sale transaction.
     const totalSales = sales.length;
 
-    // Quantity is not included in the transaction-level query.
-    // Leave this at zero until the backend supplies TotalItems.
     const totalItems = sales.reduce(
-        (sum, sale) => sum + Number(sale.TotalItems ?? 0),
+        (sum, sale) =>
+            sum + Number(sale.TotalItems ?? sale.Quantity ?? 0),
         0
     );
 
@@ -210,7 +223,7 @@ function showSalesMessage(message) {
 
     tbody.innerHTML = `
         <tr>
-            <td colspan="3" class="empty-message">
+            <td colspan="5" class="empty-message">
                 ${escapeHtml(message)}
             </td>
         </tr>`;
