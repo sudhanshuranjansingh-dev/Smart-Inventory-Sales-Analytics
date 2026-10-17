@@ -8,99 +8,77 @@ Public Class FrmLogin
     '=========================================================
     ' FORM LOAD
     '=========================================================
+
     Private Async Sub FrmLogin_Load(
-        sender As Object,
-        e As EventArgs
-    ) Handles MyBase.Load
+    sender As Object,
+    e As EventArgs
+) Handles MyBase.Load
 
+        ' Open login form in full-screen mode
         Me.FormBorderStyle = FormBorderStyle.None
-        Me.Padding = Padding.Empty
-        Me.BackColor = Color.Magenta
+        Me.WindowState = FormWindowState.Maximized
+        Me.StartPosition = FormStartPosition.Manual
+        Me.Bounds = Screen.PrimaryScreen.Bounds
 
+        Me.Padding = Padding.Empty
+        Me.BackColor = Color.White
+
+        ' Fill the entire form with WebView2
         WebViewLogin.Dock = DockStyle.Fill
         WebViewLogin.Margin = Padding.Empty
         WebViewLogin.Padding = Padding.Empty
-        WebViewLogin.DefaultBackgroundColor = Color.Magenta
-
+        WebViewLogin.DefaultBackgroundColor = Color.White
 
         Try
-
-            '=====================================================
-            ' HIDE FORM WHILE WEBVIEW2 IS INITIALIZING
-            '=====================================================
-
+            ' Keep the form hidden until WebView2 is ready
             Me.Opacity = 0
-
-            '=====================================================
-            ' INITIALIZE WEBVIEW2
-            '=====================================================
 
             Await WebViewLogin.EnsureCoreWebView2Async()
 
-            '=====================================================
-            ' LOGIN PAGE PATH
-            '=====================================================
-
             Dim loginPath As String =
-                Path.Combine(
-                    Application.StartupPath,
-                    "WebUI",
-                    "login.html"
-                )
-
-            '=====================================================
-            ' CHECK LOGIN PAGE
-            '=====================================================
+            Path.Combine(
+                Application.StartupPath,
+                "WebUI",
+                "login.html"
+            )
 
             If Not File.Exists(loginPath) Then
-
                 Me.Opacity = 1
 
                 MessageBox.Show(
-                    "Login page was not found." &
-                    Environment.NewLine &
-                    Environment.NewLine &
-                    loginPath,
-                    "WebUI Error",
-                    MessageBoxButtons.OK,
-                    MessageBoxIcon.Error
-                )
-
-                Return
-
-            End If
-
-            '=====================================================
-            ' LOAD LOGIN PAGE
-            '=====================================================
-
-            WebViewLogin.Source =
-                New Uri(loginPath)
-
-            '=====================================================
-            ' WAIT UNTIL WEBVIEW PAGE IS LOADED
-            '=====================================================
-
-            AddHandler WebViewLogin.NavigationCompleted,
-                AddressOf WebViewLogin_NavigationCompleted
-
-        Catch ex As Exception
-
-            Me.Opacity = 1
-
-            MessageBox.Show(
-                "Unable to load Login page." &
+                "Login page was not found." &
                 Environment.NewLine &
                 Environment.NewLine &
-                ex.Message,
-                "Login Error",
+                loginPath,
+                "WebUI Error",
                 MessageBoxButtons.OK,
                 MessageBoxIcon.Error
             )
 
+                Return
+            End If
+
+            AddHandler WebViewLogin.NavigationCompleted,
+            AddressOf WebViewLogin_NavigationCompleted
+
+            WebViewLogin.Source = New Uri(loginPath)
+
+        Catch ex As Exception
+            Me.Opacity = 1
+
+            MessageBox.Show(
+            "Unable to load Login page." &
+            Environment.NewLine &
+            Environment.NewLine &
+            ex.Message,
+            "Login Error",
+            MessageBoxButtons.OK,
+            MessageBoxIcon.Error
+        )
         End Try
 
     End Sub
+
 
 
     '=========================================================

@@ -278,54 +278,42 @@ function applyStaffRestrictions() {
 
 
 
+
 /* =========================================================
-   STAFF DASHBOARD RESTRICTIONS
-   Keep summary cards visible; hide charts only.
+   STAFF DASHBOARD
+   Show summary cards and charts for Staff.
+   Sidebar restrictions remain unchanged.
    ========================================================= */
 
 function hideDashboardDataForStaff() {
 
-    // Keep these dashboard summary cards visible:
-    // Total Products, Total Sales, Low Stock, Total Units.
-
-    // Hide the monthly sales chart section.
+    // Keep dashboard summary cards visible.
+    // Show the Monthly Sales chart section.
     const salesSection =
         document.querySelector(".sales-section");
 
     if (salesSection) {
-        salesSection.style.setProperty(
-            "display",
-            "none",
-            "important"
-        );
+        salesSection.style.removeProperty("display");
     }
 
-    // Hide the inventory status chart section.
+    // Show the Inventory Status chart section.
     const inventorySection =
         document.querySelector(".inventory-section");
 
     if (inventorySection) {
-        inventorySection.style.setProperty(
-            "display",
-            "none",
-            "important"
-        );
+        inventorySection.style.removeProperty("display");
     }
 
-    // Hide an optional dashboard footer.
+    // Show the dashboard footer if it exists.
     const dashboardFooter =
         document.querySelector(".dashboard-footer");
 
     if (dashboardFooter) {
-        dashboardFooter.style.setProperty(
-            "display",
-            "none",
-            "important"
-        );
+        dashboardFooter.style.removeProperty("display");
     }
 
     console.log(
-        "Staff dashboard: summary cards visible; charts hidden."
+        "Staff dashboard: summary cards and charts enabled."
     );
 }
 

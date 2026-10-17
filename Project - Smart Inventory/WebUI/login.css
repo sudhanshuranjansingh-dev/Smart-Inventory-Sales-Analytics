@@ -1,18 +1,27 @@
 ﻿
 /* =========================================
    SALES NOVA - LOGIN PAGE
+   Clean, responsive WebView2 layout
    ========================================= */
+
 * {
     box-sizing: border-box;
 }
 
+html,
+body {
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    padding: 0;
+}
+
 html {
-    min-height: 100%;
+    overflow: hidden;
 }
 
 body {
-    margin: 0;
-    min-height: 100vh;
+    overflow: hidden;
     font-family: "Segoe UI", Arial, sans-serif;
     color: #14213d;
     background: linear-gradient( 135deg, #f2f6ff 0%, #f8faff 55%, #edf2ff 100% );
@@ -27,49 +36,65 @@ button {
     -webkit-tap-highlight-color: transparent;
 }
 
+/* =========================================
+   FULL-SCREEN CONTAINER
+   ========================================= */
+
 .login-container {
-    min-height: 100vh;
+    position: fixed;
+    inset: 0;
     width: 100%;
+    height: 100%;
+    margin: 0;
     padding: 16px;
     display: flex;
     align-items: center;
     justify-content: center;
+    overflow-x: hidden;
+    overflow-y: auto;
 }
+
+/* =========================================
+   LOGIN CARD
+   ========================================= */
 
 .login-card {
     width: 100%;
     max-width: 580px;
-    padding: 32px 50px 38px;
-    background: rgba(255, 255, 255, 0.96);
-    border: 1px solid #edf1f8;
-    border-radius: 24px;
-    box-shadow: 0 12px 38px rgba(33, 64, 125, 0.09), 0 2px 8px rgba(33, 64, 125, 0.035);
+    flex: 0 0 auto;
+    margin: auto;
+    padding: 28px 40px 30px;
+    background: #fff;
+    border: 1px solid rgba(226, 233, 245, 0.65);
+    border-radius: 26px;
+    box-shadow: 0 8px 28px rgba(45, 75, 135, 0.055);
 }
 
-
-/* HEADER */
+/* =========================================
+   HEADER
+   ========================================= */
 
 .login-header {
-    text-align: center;
     margin-bottom: 20px;
+    text-align: center;
 }
 
 .login-logo {
-    width: 86px;
-    height: 76px;
+    width: 78px;
+    height: 68px;
     margin: 0 auto 3px;
 }
 
     .login-logo svg {
+        display: block;
         width: 100%;
         height: 100%;
-        display: block;
     }
 
 .login-header h1 {
     margin: 0;
     color: #101d3b;
-    font-size: 43px;
+    font-size: 40px;
     line-height: 1.2;
     font-weight: 750;
     letter-spacing: -1.5px;
@@ -78,38 +103,44 @@ button {
 .login-header p {
     margin: 5px 0 0;
     color: #71809d;
-    font-size: 19px;
-    font-weight: 400;
+    font-size: 18px;
 }
 
-
-/* FORM */
+/* =========================================
+   FORM
+   ========================================= */
 
 .login-form {
     width: 100%;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    outline: 0;
+    box-shadow: none;
 }
 
 .form-group {
-    margin-bottom: 23px;
+    margin-bottom: 19px;
 }
 
     .form-group label {
         display: block;
-        margin-bottom: 8px;
+        margin-bottom: 7px;
         color: #172440;
-        font-size: 17px;
+        font-size: 16px;
         font-weight: 650;
     }
 
 .input-wrapper {
-    height: 53px;
     display: flex;
     align-items: center;
     gap: 13px;
-    padding: 0 16px;
+    width: 100%;
+    height: 51px;
+    padding: 0 15px;
+    background: #fff;
     border: 1.5px solid #d5deeb;
     border-radius: 12px;
-    background: #fff;
     transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
@@ -130,11 +161,11 @@ button {
     min-width: 0;
     height: 100%;
     padding: 0;
-    border: 0;
-    outline: none;
-    background: transparent;
     color: #172440;
     font-size: 15px;
+    background: transparent;
+    border: 0;
+    outline: none;
 }
 
     .input-wrapper input::placeholder {
@@ -142,21 +173,26 @@ button {
         opacity: 1;
     }
 
+/* =========================================
+   PASSWORD TOGGLE
+   ========================================= */
+
 .password-toggle {
-    width: 28px;
-    height: 36px;
-    flex-shrink: 0;
-    padding: 4px;
-    display: flex;
+    display: inline-flex;
     align-items: center;
     justify-content: center;
-    border: none;
-    background: transparent;
+    width: 28px;
+    height: 36px;
+    padding: 4px;
+    flex-shrink: 0;
     color: #8190aa;
+    background: transparent;
+    border: 0;
     cursor: pointer;
 }
 
     .password-toggle svg {
+        display: block;
         width: 22px;
         height: 22px;
     }
@@ -165,31 +201,39 @@ button {
         color: #475f96;
     }
 
+input[type="password"]::-ms-reveal,
+input[type="password"]::-ms-clear {
+    display: none;
+}
 
-/* LOGIN BUTTON */
+/* =========================================
+   LOGIN BUTTON
+   ========================================= */
 
 .login-button {
-    width: 100%;
-    height: 54px;
-    margin-top: 2px;
     display: flex;
     align-items: center;
     justify-content: center;
     gap: 12px;
-    border: none;
-    border-radius: 12px;
-    background: linear-gradient( 105deg, #287cf4 0%, #4c50f2 55%, #8741ef 100% );
+    width: 100%;
+    height: 52px;
+    margin-top: 2px;
+    padding: 0 16px;
     color: #fff;
-    font-size: 19px;
+    font-size: 18px;
     font-weight: 650;
-    cursor: pointer;
+    background: linear-gradient( 105deg, #287cf4 0%, #4c50f2 55%, #8741ef 100% );
+    border: 0;
+    border-radius: 12px;
     box-shadow: 0 5px 12px rgba(73, 82, 228, 0.18);
-    transition: transform 0.18s ease, box-shadow 0.18s ease, filter 0.18s ease;
+    cursor: pointer;
+    transition: box-shadow 0.18s ease, filter 0.18s ease;
 }
 
     .login-button svg {
         width: 23px;
         height: 23px;
+        flex-shrink: 0;
     }
 
     .login-button:hover {
@@ -197,67 +241,54 @@ button {
         box-shadow: 0 7px 17px rgba(73, 82, 228, 0.25);
     }
 
-    .login-button:active {
-        transform: scale(0.99);
-    }
+/* =========================================
+   LOGIN ERROR
+   Does not impose a fixed height on the card
+   ========================================= */
 
-    .login-button:focus-visible,
-    .exit-button:focus-visible,
-    .register-section a:focus-visible,
-    .password-toggle:focus-visible {
-        outline: 3px solid rgba(65, 110, 245, 0.35);
-        outline-offset: 3px;
-    }
-
-
-
-/* PROMINENT LOGIN ERROR */
 .login-message {
     display: none;
-    align-items: flex-start;
-    gap: 11px;
     width: 100%;
-    margin-top: 15px;
-    padding: 14px 16px;
-    border: 1px solid #f1a5a5;
-    border-left: 5px solid #dc2626;
-    border-radius: 10px;
-    background: #fff1f2;
+    margin-top: 12px;
+    padding: 10px 12px;
     color: #991b1b;
     font-size: 14px;
-    font-weight: 650;
-    line-height: 1.5;
+    font-weight: 600;
+    line-height: 1.45;
+    background: #fff1f2;
+    border: 1px solid #f1baba;
+    border-left: 4px solid #dc2626;
+    border-radius: 10px;
     overflow-wrap: anywhere;
-    box-shadow: 0 4px 12px rgba(185, 28, 28, 0.10);
+    box-shadow: 0 3px 9px rgba(185, 28, 28, 0.07);
 }
 
     .login-message:not(:empty) {
         display: block;
     }
 
-    /* Make the message text easy to read */
     .login-message::before {
         content: "⚠";
         display: inline-block;
-        margin-right: 8px;
+        margin-right: 7px;
         color: #dc2626;
-        font-size: 18px;
         font-weight: 700;
-        vertical-align: -1px;
     }
 
-
-/* REGISTER */
+/* =========================================
+   REGISTER SECTION
+   ========================================= */
 
 .register-section {
-    margin: 27px 0 21px;
     display: flex;
     align-items: center;
     justify-content: center;
     flex-wrap: wrap;
     gap: 5px 12px;
+    margin: 22px 0 18px;
     color: #71809d;
     font-size: 15px;
+    text-align: center;
 }
 
     .register-section a {
@@ -271,22 +302,24 @@ button {
             color: #823ff0;
         }
 
-
-/* EXIT BUTTON */
+/* =========================================
+   EXIT BUTTON
+   ========================================= */
 
 .exit-button {
-    width: 100%;
-    height: 49px;
     display: flex;
     align-items: center;
     justify-content: center;
     gap: 12px;
-    border: 1.5px solid #d2dbe8;
-    border-radius: 11px;
-    background: #fff;
+    width: 100%;
+    height: 47px;
+    padding: 0 16px;
     color: #283955;
     font-size: 16px;
     font-weight: 650;
+    background: #fff;
+    border: 1.5px solid #d2dbe8;
+    border-radius: 11px;
     cursor: pointer;
     transition: background 0.2s ease, border-color 0.2s ease;
 }
@@ -294,6 +327,7 @@ button {
     .exit-button svg {
         width: 22px;
         height: 22px;
+        flex-shrink: 0;
     }
 
     .exit-button:hover {
@@ -301,8 +335,21 @@ button {
         border-color: #aebbd0;
     }
 
+    /* =========================================
+   KEYBOARD ACCESSIBILITY
+   ========================================= */
 
-/* RESPONSIVE */
+    .login-button:focus-visible,
+    .exit-button:focus-visible,
+    .register-section a:focus-visible,
+    .password-toggle:focus-visible {
+        outline: 3px solid rgba(65, 110, 245, 0.35);
+        outline-offset: 3px;
+    }
+
+/* =========================================
+   NARROW WINDOWS
+   ========================================= */
 
 @media (max-width: 600px) {
     .login-container {
@@ -310,17 +357,17 @@ button {
     }
 
     .login-card {
-        padding: 28px 23px;
-        border-radius: 20px;
+        padding: 24px 22px;
+        border-radius: 22px;
     }
 
     .login-header {
-        margin-bottom: 25px;
+        margin-bottom: 18px;
     }
 
     .login-logo {
-        width: 75px;
-        height: 67px;
+        width: 68px;
+        height: 60px;
     }
 
     .login-header h1 {
@@ -332,7 +379,7 @@ button {
     }
 
     .form-group {
-        margin-bottom: 20px;
+        margin-bottom: 17px;
     }
 
         .form-group label {
@@ -340,144 +387,67 @@ button {
         }
 
     .register-section {
-        margin-top: 24px;
+        margin: 18px 0 16px;
     }
 }
+
+/* =========================================
+   SHORT WINDOWS
+   Scroll only when the content needs it
+   ========================================= */
 
 @media (max-height: 650px) {
     .login-container {
         align-items: flex-start;
+        padding: 8px 12px;
     }
 
     .login-card {
-        margin-top: 8px;
-        margin-bottom: 8px;
-        padding-top: 20px;
-        padding-bottom: 22px;
+        margin: auto;
+        padding: 16px 24px;
+        border-radius: 20px;
     }
 
     .login-header {
-        margin-bottom: 16px;
+        margin-bottom: 10px;
     }
 
     .login-logo {
-        width: 65px;
-        height: 56px;
+        width: 48px;
+        height: 42px;
     }
 
     .login-header h1 {
-        font-size: 34px;
+        font-size: 30px;
     }
 
     .login-header p {
-        font-size: 16px;
+        margin-top: 2px;
+        font-size: 14px;
     }
 
     .form-group {
-        margin-bottom: 15px;
+        margin-bottom: 10px;
+    }
+
+        .form-group label {
+            margin-bottom: 5px;
+            font-size: 14px;
+        }
+
+    .input-wrapper {
+        height: 42px;
+    }
+
+    .login-button {
+        height: 44px;
     }
 
     .register-section {
-        margin-top: 18px;
-        margin-bottom: 16px;
-    }
-}
-
-
-
-/* =========================================
-   CLEAN WEBVIEW2 LOGIN LAYOUT
-   ========================================= */
-
-html,
-body {
-    width: 100%;
-    height: 100%;
-    margin: 0;
-    padding: 0;
-    overflow: hidden;
-    border: 0;
-    outline: 0;
-    box-shadow: none;
-    background: #f4f7fc;
-}
-
-* {
-    box-sizing: border-box;
-}
-
-body {
-    min-height: 0;
-}
-
-.login-container {
-    position: fixed;
-    inset: 0;
-    width: 100%;
-    height: 100%;
-    min-height: 0;
-    margin: 0;
-    padding: 16px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    overflow: hidden;
-    border: 0;
-    outline: 0;
-    box-shadow: none;
-}
-
-.login-card {
-    position: relative;
-    flex: 0 1 580px;
-    width: 100%;
-    max-width: 580px;
-    margin: 0;
-    border: 0;
-    outline: 0;
-    box-shadow: none;
-    background: #fff;
-    animation: none;
-    transform: none;
-}
-
-/* Hide Chromium password decoration */
-input[type="password"]::-ms-reveal,
-input[type="password"]::-ms-clear {
-    display: none;
-}
-
-input[type="password"]::-webkit-credentials-auto-fill-button {
-    display: none !important;
-    visibility: hidden;
-    pointer-events: none;
-}
-
-.password-toggle {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-    padding: 5px;
-    border: 0;
-    background: transparent;
-    cursor: pointer;
-}
-
-    .password-toggle svg {
-        display: block;
-        width: 20px;
-        height: 20px;
+        margin: 10px 0;
     }
 
-/* Smaller windows */
-@media (max-height: 650px) {
-    .login-container {
-        padding: 8px;
-    }
-
-    .login-card {
-        padding-top: 16px;
-        padding-bottom: 16px;
+    .exit-button {
+        height: 40px;
     }
 }
