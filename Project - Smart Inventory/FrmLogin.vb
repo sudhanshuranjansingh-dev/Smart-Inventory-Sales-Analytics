@@ -15,19 +15,17 @@ Public Class FrmLogin
 ) Handles MyBase.Load
 
         ' Open login form in full-screen mode
+        ' Full-screen login window
         Me.FormBorderStyle = FormBorderStyle.None
         Me.WindowState = FormWindowState.Maximized
-        Me.StartPosition = FormStartPosition.Manual
-        Me.Bounds = Screen.PrimaryScreen.Bounds
-
+        Me.StartPosition = FormStartPosition.CenterScreen
         Me.Padding = Padding.Empty
-        Me.BackColor = Color.White
+        Me.BackColor = Color.Magenta
 
-        ' Fill the entire form with WebView2
         WebViewLogin.Dock = DockStyle.Fill
         WebViewLogin.Margin = Padding.Empty
         WebViewLogin.Padding = Padding.Empty
-        WebViewLogin.DefaultBackgroundColor = Color.White
+        WebViewLogin.DefaultBackgroundColor = Color.Magenta
 
         Try
             ' Keep the form hidden until WebView2 is ready
@@ -550,23 +548,20 @@ Public Class FrmLogin
                         Session.CurrentAccountStatus =
                             accountStatus
 
-
-
-
-
-                        ' Hide the login form.
+                        ' Hide login form
                         Me.Hide()
 
-                        ' Show the existing main form.
+                        ' Show dashboard in full screen
+                        FrmMain.FormBorderStyle = FormBorderStyle.None
+                        FrmMain.WindowState = FormWindowState.Maximized
+                        FrmMain.StartPosition = FormStartPosition.CenterScreen
+
                         FrmMain.Show()
-                        FrmMain.WindowState = FormWindowState.Normal
                         FrmMain.BringToFront()
                         FrmMain.Activate()
 
-                        ' Refresh the WebView2 UI with the newly logged-in user.
+                        ' Refresh the logged-in user session
                         FrmMain.RefreshUserSession()
-
-
 
                     End Using
 

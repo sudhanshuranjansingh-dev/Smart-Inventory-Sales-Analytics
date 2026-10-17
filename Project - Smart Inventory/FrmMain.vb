@@ -5,6 +5,15 @@ Imports MySql.Data.MySqlClient
 Imports Windows.Win32.System
 
 Public Class FrmMain
+
+    Private Sub KeepMainFormFullScreen()
+
+        Me.FormBorderStyle = FormBorderStyle.None
+        Me.WindowState = FormWindowState.Maximized
+        Me.StartPosition = FormStartPosition.CenterScreen
+
+    End Sub
+
     Public Sub RefreshUserSession()
 
         If Session.CurrentUserID <= 0 OrElse
@@ -4675,11 +4684,9 @@ Public Class FrmMain
 
     End Sub
 
-
     '=========================================================
     ' LOGOUT
     '=========================================================
-
     Private Sub LogoutFromMain()
 
         Try
@@ -4707,15 +4714,23 @@ Public Class FrmMain
             .type = "logoutComplete"
         })
 
-            ' Show the login form.
+            ' Restore the login form to full-screen.
             If FrmLogin IsNot Nothing Then
+
+                FrmLogin.FormBorderStyle = FormBorderStyle.None
+                FrmLogin.StartPosition = FormStartPosition.CenterScreen
+                FrmLogin.WindowState = FormWindowState.Maximized
+
                 FrmLogin.Show()
-                FrmLogin.WindowState = FormWindowState.Normal
+
+                ' Reapply maximized state after showing.
+                FrmLogin.WindowState = FormWindowState.Maximized
                 FrmLogin.BringToFront()
                 FrmLogin.Activate()
+
             End If
 
-            ' Hide the main form after initiating logout.
+            ' Hide the main dashboard.
             Me.Hide()
 
         Catch ex As Exception
@@ -4730,7 +4745,6 @@ Public Class FrmMain
         End Try
 
     End Sub
-
 
     '=========================================================
     ' LOAD REPORTS TO WEB
@@ -5304,7 +5318,6 @@ Public Class FrmMain
 
     End Sub
 
-
     Private Function IsStaffUser() As Boolean
 
         Return String.Equals(
@@ -5314,8 +5327,6 @@ Public Class FrmMain
         )
 
     End Function
-
-
 
     Private Function IsStaffRestrictedAction(action As String) As Boolean
 
