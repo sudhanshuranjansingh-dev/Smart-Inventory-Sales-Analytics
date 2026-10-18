@@ -317,3 +317,57 @@ tbody tr:hover {
     }
 
 }
+
+/* =========================================================
+   REFRESH REQUESTS BUTTON
+   ========================================================= */
+
+.refresh-requests-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 9px;
+    padding: 11px 18px;
+    min-height: 42px;
+    background: #2563eb;
+    color: #ffffff;
+    border: 1px solid #2563eb;
+    border-radius: 9px;
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    box-shadow: 0 3px 8px rgba(37, 99, 235, 0.20);
+    transition: background-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+    .refresh-requests-btn:hover {
+        background: #1d4ed8;
+        border-color: #1d4ed8;
+        box-shadow: 0 5px 12px rgba(37, 99, 235, 0.28);
+        transform: translateY(-1px);
+    }
+
+    .refresh-requests-btn:active {
+        transform: translateY(0);
+        box-shadow: 0 2px 4px rgba(37, 99, 235, 0.18);
+    }
+
+    .refresh-requests-btn:focus-visible {
+        outline: 3px solid rgba(37, 99, 235, 0.35);
+        outline-offset: 3px;
+    }
+
+.refresh-icon {
+    display: inline-block;
+    font-size: 21px;
+    line-height: 1;
+    font-weight: 700;
+}
+
+@media (max-width: 700px) {
+    .refresh-requests-btn {
+        padding: 10px 14px;
+        font-size: 13px;
+    }
+}

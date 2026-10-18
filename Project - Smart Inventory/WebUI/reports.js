@@ -1,6 +1,6 @@
-﻿/* =========================================================
-   SMART INVENTORY
-   REPORTS MODULE
+﻿
+/* =========================================================
+   SMART INVENTORY - REPORTS MODULE
    ========================================================= */
 
 
@@ -9,7 +9,6 @@
    ========================================================= */
 
 let reportData = [];
-
 let currentReportType = "sales";
 
 
@@ -18,16 +17,20 @@ let currentReportType = "sales";
    ========================================================= */
 
 document.addEventListener("DOMContentLoaded", function () {
-
     setDefaultDates();
-
     setupEvents();
-
     updateReportUI();
-
     loadReports();
-
 });
+
+
+/* =========================================================
+   DOM HELPER
+   ========================================================= */
+
+function getElement(id) {
+    return document.getElementById(id);
+}
 
 
 /* =========================================================
@@ -35,43 +38,32 @@ document.addEventListener("DOMContentLoaded", function () {
    ========================================================= */
 
 function setupEvents() {
+    const reportType = getElement("reportType");
+    const generateBtn = getElement("generateBtn");
+    const printBtn = getElement("printBtn");
+    const searchInput = getElement("searchInput");
 
-    document
-        .getElementById("reportType")
-        .addEventListener("change", function () {
-
+    if (reportType) {
+        reportType.addEventListener("change", function () {
             currentReportType = this.value;
-
             updateReportUI();
-
-        });
-
-
-    document
-        .getElementById("generateBtn")
-        .addEventListener("click", function () {
-
             loadReports();
-
         });
+    }
 
-    document
-        .getElementById("printBtn")
-        .addEventListener("click", function () {
+    if (generateBtn) {
+        generateBtn.addEventListener("click", loadReports);
+    }
 
+    if (printBtn) {
+        printBtn.addEventListener("click", function () {
             window.print();
-
         });
+    }
 
-
-    document
-        .getElementById("searchInput")
-        .addEventListener("input", function () {
-
-            renderFilteredReport();
-
-        });
-
+    if (searchInput) {
+        searchInput.addEventListener("input", renderFilteredReport);
+    }
 }
 
 
@@ -80,23 +72,16 @@ function setupEvents() {
    ========================================================= */
 
 function setDefaultDates() {
+    const fromDate = getElement("fromDate");
+    const toDate = getElement("toDate");
 
     const today = new Date();
 
-    const year = today.getFullYear();
-
-    const month = String(
-        today.getMonth() + 1
-    ).padStart(2, "0");
-
-    const day = String(
-        today.getDate()
-    ).padStart(2, "0");
-
-
-    const todayString =
-        `${year}-${month}-${day}`;
-
+    const todayString = [
+        today.getFullYear(),
+        String(today.getMonth() + 1).padStart(2, "0"),
+        String(today.getDate()).padStart(2, "0")
+    ].join("-");
 
     const firstDay = new Date(
         today.getFullYear(),
@@ -104,100 +89,41 @@ function setDefaultDates() {
         1
     );
 
+    const firstDayString = [
+        firstDay.getFullYear(),
+        String(firstDay.getMonth() + 1).padStart(2, "0"),
+        String(firstDay.getDate()).padStart(2, "0")
+    ].join("-");
 
-    const firstYear =
-        firstDay.getFullYear();
-
-    const firstMonth =
-        String(
-            firstDay.getMonth() + 1
-        ).padStart(2, "0");
-
-    const firstDayNumber =
-        String(
-            firstDay.getDate()
-        ).padStart(2, "0");
-
-
-    const firstDayString =
-        `${firstYear}-${firstMonth}-${firstDayNumber}`;
-
-
-    document.getElementById(
-        "fromDate"
-    ).value = firstDayString;
-
-
-    document.getElementById(
-        "toDate"
-    ).value = todayString;
+    if (fromDate) fromDate.value = firstDayString;
+    if (toDate) toDate.value = todayString;
 }
 
 
 /* =========================================================
-   UPDATE UI
+   UPDATE REPORT UI
    ========================================================= */
 
 function updateReportUI() {
+    const dateControls = getElement("dateControls");
+    const title = getElement("reportTitle");
 
-    const dateControls =
-        document.getElementById("dateControls");
+    const reportTitles = {
+        "sales": "Sales Report",
+        "inventory": "Inventory Report",
+        "low-stock": "Low Stock Report",
+        "product-performance": "Product Performance"
+    };
 
-    const title =
-        document.getElementById("reportTitle");
-
-    const subtitle =
-        document.getElementById("reportSubtitle");
-
-
-    if (currentReportType === "sales") {
-
-        dateControls.style.display = "flex";
-
-        title.textContent = "Sales Report";
-
-        subtitle.textContent =
-            "View sales transactions and revenue";
-
+    if (dateControls) {
+        dateControls.style.display =
+            currentReportType === "sales" ? "flex" : "none";
     }
 
-    else if (currentReportType === "inventory") {
-
-        dateControls.style.display = "none";
-
-        title.textContent = "Inventory Report";
-
-        subtitle.textContent =
-            "View current inventory and stock valuation";
-
-    }
-
-    else if (currentReportType === "low-stock") {
-
-        dateControls.style.display = "none";
-
-        title.textContent = "Low Stock Report";
-
-        subtitle.textContent =
-            "Identify products that require restocking";
-
-    }
-
-    else if (
-        currentReportType ===
-        "product-performance"
-    ) {
-
-        dateControls.style.display = "none";
-
+    if (title) {
         title.textContent =
-            "Product Performance";
-
-        subtitle.textContent =
-            "Analyze product sales performance";
-
+            reportTitles[currentReportType] || "Reports";
     }
-
 }
 
 
@@ -206,210 +132,136 @@ function updateReportUI() {
    ========================================================= */
 
 function loadReports() {
+    const status = getElement("reportStatus");
+    const reportType = getElement("reportType");
+    const fromDate = getElement("fromDate");
+    const toDate = getElement("toDate");
 
-    const status =
-        document.getElementById("reportStatus");
+    if (reportType) {
+        currentReportType = reportType.value;
+    }
 
+    if (status) {
+        status.textContent = "Generating report...";
+    }
 
-    status.textContent =
-        "Generating report...";
-
-
-    const fromDate =
-        document.getElementById(
-            "fromDate"
-        ).value;
-
-
-    const toDate =
-        document.getElementById(
-            "toDate"
-        ).value;
-
+    // Validate date range for Sales Report.
+    if (currentReportType === "sales" && fromDate && toDate) {
+        if (
+            fromDate.value &&
+            toDate.value &&
+            fromDate.value > toDate.value
+        ) {
+            if (status) {
+                status.textContent =
+                    "From date cannot be later than To date.";
+            }
+            return;
+        }
+    }
 
     const request = {
-
         action: "loadReports",
-
-        reportType:
-            currentReportType,
-
-        fromDate:
-            fromDate,
-
-        toDate:
-            toDate
-
+        reportType: currentReportType,
+        fromDate: fromDate ? fromDate.value : "",
+        toDate: toDate ? toDate.value : ""
     };
 
+    console.log("[Reports] Sending request:", request);
 
-    console.log(
-        "Requesting report:",
-        request
-    );
-
-
-    /*
-     * IMPORTANT:
-     * Reports is inside the iframe.
-     * Therefore send the request to main.js.
-     */
-
+    // Reports page is inside the main page iframe.
     if (
         window.parent &&
         window.parent !== window
     ) {
-
-        window.parent.postMessage(
-            request,
-            "*"
-        );
-
+        window.parent.postMessage(request, "*");
         return;
     }
 
-
-    /*
-     * Fallback for direct WebView2 usage.
-     */
-
-    if (
-        window.chrome &&
-        window.chrome.webview
-    ) {
-
-        window.chrome.webview.postMessage(
-            request
-        );
-
+    // Fallback when running directly inside WebView2.
+    if (window.chrome && window.chrome.webview) {
+        window.chrome.webview.postMessage(request);
         return;
     }
 
-
-    status.textContent =
-        "WebView2 communication is unavailable.";
-
+    if (status) {
+        status.textContent =
+            "Unable to communicate with the application.";
+    }
 }
 
 
 /* =========================================================
-   RECEIVE MESSAGE FROM MAIN.JS
+   RECEIVE MESSAGES FROM MAIN.JS
    ========================================================= */
 
-window.addEventListener(
-    "message",
-    function (event) {
+window.addEventListener("message", function (event) {
+    const message = event.data;
 
-        const message =
-            event.data;
-
-
-        if (!message) {
-            return;
-        }
-
-
-        console.log(
-            "Reports received:",
-            message
-        );
-
-
-        /* ---------------- REPORT DATA ---------------- */
-
-        if (
-            message.type ===
-            "reports"
-        ) {
-
-            reportData =
-                Array.isArray(
-                    message.data
-                )
-                    ? message.data
-                    : [];
-
-
-            if (
-                message.reportType
-            ) {
-
-                currentReportType =
-                    message.reportType;
-
-                document.getElementById(
-                    "reportType"
-                ).value =
-                    currentReportType;
-
-            }
-
-
-            updateReportUI();
-
-
-            updateSummary(
-                message.summary
-            );
-
-
-            renderFilteredReport();
-
-
-            document.getElementById(
-                "reportStatus"
-            ).textContent =
-                `${reportData.length} record(s) loaded.`;
-
-        }
-
-
-        /* ---------------- ERROR ---------------- */
-
-        else if (
-            message.type ===
-            "reportsError"
-        ) {
-
-            reportData = [];
-
-            updateSummary(null);
-
-            renderTable([]);
-
-
-            document.getElementById(
-                "reportStatus"
-            ).textContent =
-                message.message ||
-                "Unable to generate report.";
-
-        }
-
+    if (!message || typeof message !== "object") {
+        return;
     }
-);
 
+    console.log("[Reports] Message received:", message);
+
+    if (message.type === "reports") {
+        reportData = Array.isArray(message.data)
+            ? message.data
+            : [];
+
+        if (message.reportType) {
+            currentReportType = message.reportType;
+
+            const reportType = getElement("reportType");
+
+            if (reportType) {
+                reportType.value = currentReportType;
+            }
+        }
+
+        updateReportUI();
+        updateSummary(message.summary);
+        renderFilteredReport();
+
+        const status = getElement("reportStatus");
+
+        if (status) {
+            status.textContent =
+                `${reportData.length} record(s) loaded.`;
+        }
+
+        return;
+    }
+
+    if (message.type === "reportsError") {
+        reportData = [];
+
+        updateSummary(null);
+        renderTable([]);
+
+        const status = getElement("reportStatus");
+
+        if (status) {
+            status.textContent =
+                message.message || "Unable to generate report.";
+        }
+
+        console.error("[Reports] Backend error:", message.message);
+    }
+});
 
 
 /* =========================================================
-   SUMMARY - SAFE WHEN SUMMARY CARDS ARE REMOVED
+   SUMMARY - OPTIONAL ELEMENTS
    ========================================================= */
 
 function updateSummary(summary) {
+    const totalRecords = getElement("totalRecords");
+    const totalUnits = getElement("totalUnits");
+    const totalAmount = getElement("totalAmount");
+    const totalAlerts = getElement("totalAlerts");
 
-    const totalRecords =
-        document.getElementById("totalRecords");
-
-    const totalUnits =
-        document.getElementById("totalUnits");
-
-    const totalAmount =
-        document.getElementById("totalAmount");
-
-    const totalAlerts =
-        document.getElementById("totalAlerts");
-
-    // Summary cards are optional.
+    // Summary cards are optional in reports.html.
     if (
         !totalRecords ||
         !totalUnits ||
@@ -422,74 +274,50 @@ function updateSummary(summary) {
     if (!summary) {
         totalRecords.textContent = "0";
         totalUnits.textContent = "0";
-        totalAmount.textContent = "₹0.00";
+        totalAmount.textContent = formatCurrency(0);
         totalAlerts.textContent = "0";
         return;
     }
 
     totalRecords.textContent =
-        formatNumber(summary.totalRecords || 0);
+        formatNumber(summary.totalRecords);
 
     totalUnits.textContent =
-        formatNumber(summary.totalUnits || 0);
+        formatNumber(summary.totalUnits);
 
     totalAmount.textContent =
-        formatCurrency(summary.totalAmount || 0);
+        formatCurrency(summary.totalAmount);
 
     totalAlerts.textContent =
-        formatNumber(summary.totalAlerts || 0);
+        formatNumber(summary.totalAlerts);
 }
 
 
-
 /* =========================================================
-   SEARCH
+   SEARCH AND FILTER
    ========================================================= */
 
 function renderFilteredReport() {
+    const searchInput = getElement("searchInput");
 
-    const search =
-        document.getElementById(
-            "searchInput"
-        ).value
-            .trim()
-            .toLowerCase();
-
+    const search = searchInput
+        ? searchInput.value.trim().toLowerCase()
+        : "";
 
     if (!search) {
-
-        renderTable(
-            reportData
-        );
-
+        renderTable(reportData);
         return;
     }
 
-
-    const filtered =
-        reportData.filter(
-            function (item) {
-
-                return Object
-                    .values(item)
-                    .some(
-                        function (value) {
-
-                            return String(
-                                value ?? ""
-                            )
-                                .toLowerCase()
-                                .includes(search);
-
-                        }
-                    );
-
-            }
-        );
-
+    const filtered = reportData.filter(function (item) {
+        return Object.values(item).some(function (value) {
+            return String(value ?? "")
+                .toLowerCase()
+                .includes(search);
+        });
+    });
 
     renderTable(filtered);
-
 }
 
 
@@ -498,481 +326,207 @@ function renderFilteredReport() {
    ========================================================= */
 
 function renderTable(data) {
+    const head = getElement("reportTableHead");
+    const body = getElement("reportTableBody");
 
-    const head =
-        document.getElementById(
-            "reportTableHead"
+    if (!head || !body) {
+        console.error(
+            "[Reports] Table elements are missing from reports.html."
         );
+        return;
+    }
 
-    const body =
-        document.getElementById(
-            "reportTableBody"
-        );
+    const rows = Array.isArray(data) ? data : [];
 
+    /* -----------------------------------------------------
+       SALES REPORT
+       ----------------------------------------------------- */
 
-    if (
-        currentReportType ===
-        "sales"
-    ) {
-
+    if (currentReportType === "sales") {
         head.innerHTML = `
-
             <tr>
-
-                <th>Sale ID</th>
-
+                <th>S.No</th>
                 <th>Product</th>
-
                 <th>Quantity</th>
-
                 <th>Selling Price</th>
-
                 <th>Total</th>
-
                 <th>Date</th>
-
             </tr>
-
         `;
 
-
-        if (!data.length) {
-
-            showEmpty(
-                body,
-                6
-            );
-
+        if (rows.length === 0) {
+            showEmpty(body, 6);
             return;
-
         }
 
+        body.innerHTML = rows.map(function (item, index) {
+            return `
+                <tr>
+                    <td>${index + 1}</td>
+                    <td>${safe(item.ProductName)}</td>
+                    <td>${formatNumber(item.Quantity)}</td>
+                    <td>${formatCurrency(item.SellingPrice)}</td>
+                    <td>${formatCurrency(item.TotalAmount)}</td>
+                    <td>${safe(item.SaleDate)}</td>
+                </tr>
+            `;
+        }).join("");
 
-        body.innerHTML =
-            data.map(
-                function (item) {
-
-                    return `
-
-                        <tr>
-
-                            <td>
-                                ${safe(item.SaleID)}
-                            </td>
-
-                            <td>
-                                ${safe(item.ProductName)}
-                            </td>
-
-                            <td>
-                                ${formatNumber(
-                        item.Quantity
-                    )}
-                            </td>
-
-                            <td>
-                                ${formatCurrency(
-                        item.SellingPrice
-                    )}
-                            </td>
-
-                            <td>
-                                ${formatCurrency(
-                        item.TotalAmount
-                    )}
-                            </td>
-
-                            <td>
-                                ${safe(item.SaleDate)}
-                            </td>
-
-                        </tr>
-
-                    `;
-
-                }
-            ).join("");
-
+        return;
     }
 
+    /* -----------------------------------------------------
+       INVENTORY REPORT
+       ----------------------------------------------------- */
 
-    /* =====================================================
-       INVENTORY
-       ===================================================== */
-
-    else if (
-        currentReportType ===
-        "inventory"
-    ) {
-
+    if (currentReportType === "inventory") {
         head.innerHTML = `
-
             <tr>
-
                 <th>Product Code</th>
-
                 <th>Product Name</th>
-
                 <th>Category</th>
-
                 <th>Current Stock</th>
-
                 <th>Minimum Stock</th>
-
                 <th>Status</th>
-
                 <th>Purchase Price</th>
-
                 <th>Selling Price</th>
-
                 <th>Stock Value</th>
-
             </tr>
-
         `;
 
-
-        if (!data.length) {
-
-            showEmpty(
-                body,
-                9
-            );
-
+        if (rows.length === 0) {
+            showEmpty(body, 9);
             return;
-
         }
 
+        body.innerHTML = rows.map(function (item) {
+            return `
+                <tr>
+                    <td>${safe(item.ProductCode)}</td>
+                    <td>${safe(item.ProductName)}</td>
+                    <td>${safe(item.CategoryName)}</td>
+                    <td>${formatNumber(item.StockQuantity)}</td>
+                    <td>${formatNumber(item.MinimumStock)}</td>
+                    <td>${getStockStatus(
+                item.StockQuantity,
+                item.MinimumStock
+            )}</td>
+                    <td>${formatCurrency(item.PurchasePrice)}</td>
+                    <td>${formatCurrency(item.SellingPrice)}</td>
+                    <td>${formatCurrency(item.StockValue)}</td>
+                </tr>
+            `;
+        }).join("");
 
-        body.innerHTML =
-            data.map(
-                function (item) {
-
-                    return `
-
-                        <tr>
-
-                            <td>
-                                ${safe(
-                        item.ProductCode
-                    )}
-                            </td>
-
-                            <td>
-                                ${safe(
-                        item.ProductName
-                    )}
-                            </td>
-
-                            <td>
-                                ${safe(
-                        item.CategoryName
-                    )}
-                            </td>
-
-                            <td>
-                                ${formatNumber(
-                        item.StockQuantity
-                    )}
-                            </td>
-
-                            <td>
-                                ${formatNumber(
-                        item.MinimumStock
-                    )}
-                            </td>
-
-                            <td>
-                                ${getStockStatus(
-                        item.StockQuantity,
-                        item.MinimumStock
-                    )}
-                            </td>
-
-                            <td>
-                                ${formatCurrency(
-                        item.PurchasePrice
-                    )}
-                            </td>
-
-                            <td>
-                                ${formatCurrency(
-                        item.SellingPrice
-                    )}
-                            </td>
-
-                            <td>
-                                ${formatCurrency(
-                        item.StockValue
-                    )}
-                            </td>
-
-                        </tr>
-
-                    `;
-
-                }
-            ).join("");
-
+        return;
     }
 
+    /* -----------------------------------------------------
+       LOW STOCK REPORT
+       ----------------------------------------------------- */
 
-    /* =====================================================
-       LOW STOCK
-       ===================================================== */
-
-    else if (
-        currentReportType ===
-        "low-stock"
-    ) {
-
+    if (currentReportType === "low-stock") {
         head.innerHTML = `
-
             <tr>
-
                 <th>Product Code</th>
-
                 <th>Product Name</th>
-
                 <th>Category</th>
-
                 <th>Current Stock</th>
-
                 <th>Minimum Stock</th>
-
                 <th>Shortage</th>
-
                 <th>Status</th>
-
             </tr>
-
         `;
 
-
-        if (!data.length) {
-
-            showEmpty(
-                body,
-                7
-            );
-
+        if (rows.length === 0) {
+            showEmpty(body, 7);
             return;
-
         }
 
+        body.innerHTML = rows.map(function (item) {
+            const shortage = Math.max(
+                Number(item.MinimumStock || 0) -
+                Number(item.StockQuantity || 0),
+                0
+            );
 
-        body.innerHTML =
-            data.map(
-                function (item) {
+            return `
+                <tr>
+                    <td>${safe(item.ProductCode)}</td>
+                    <td>${safe(item.ProductName)}</td>
+                    <td>${safe(item.CategoryName)}</td>
+                    <td>${formatNumber(item.StockQuantity)}</td>
+                    <td>${formatNumber(item.MinimumStock)}</td>
+                    <td>${formatNumber(shortage)}</td>
+                    <td>${getStockStatus(
+                item.StockQuantity,
+                item.MinimumStock
+            )}</td>
+                </tr>
+            `;
+        }).join("");
 
-                    const shortage =
-                        Math.max(
-                            Number(
-                                item.MinimumStock || 0
-                            ) -
-                            Number(
-                                item.StockQuantity || 0
-                            ),
-                            0
-                        );
-
-
-                    return `
-
-                        <tr>
-
-                            <td>
-                                ${safe(
-                        item.ProductCode
-                    )}
-                            </td>
-
-                            <td>
-                                ${safe(
-                        item.ProductName
-                    )}
-                            </td>
-
-                            <td>
-                                ${safe(
-                        item.CategoryName
-                    )}
-                            </td>
-
-                            <td>
-                                ${formatNumber(
-                        item.StockQuantity
-                    )}
-                            </td>
-
-                            <td>
-                                ${formatNumber(
-                        item.MinimumStock
-                    )}
-                            </td>
-
-                            <td>
-                                ${formatNumber(
-                        shortage
-                    )}
-                            </td>
-
-                            <td>
-                                ${getStockStatus(
-                        item.StockQuantity,
-                        item.MinimumStock
-                    )}
-                            </td>
-
-                        </tr>
-
-                    `;
-
-                }
-            ).join("");
-
+        return;
     }
 
+    /* -----------------------------------------------------
+       PRODUCT PERFORMANCE REPORT
+       ----------------------------------------------------- */
 
-    /* =====================================================
-       PRODUCT PERFORMANCE
-       ===================================================== */
-
-    else if (
-        currentReportType ===
-        "product-performance"
-    ) {
-
+    if (currentReportType === "product-performance") {
         head.innerHTML = `
-
             <tr>
-
                 <th>Product Code</th>
-
                 <th>Product Name</th>
-
                 <th>Category</th>
-
                 <th>Current Stock</th>
-
                 <th>Units Sold</th>
-
                 <th>Selling Price</th>
-
                 <th>Total Sales</th>
-
                 <th>Performance</th>
-
             </tr>
-
         `;
 
-
-        if (!data.length) {
-
-            showEmpty(
-                body,
-                8
-            );
-
+        if (rows.length === 0) {
+            showEmpty(body, 8);
             return;
-
         }
 
+        body.innerHTML = rows.map(function (item) {
+            return `
+                <tr>
+                    <td>${safe(item.ProductCode)}</td>
+                    <td>${safe(item.ProductName)}</td>
+                    <td>${safe(item.CategoryName)}</td>
+                    <td>${formatNumber(item.StockQuantity)}</td>
+                    <td>${formatNumber(item.UnitsSold)}</td>
+                    <td>${formatCurrency(item.SellingPrice)}</td>
+                    <td>${formatCurrency(item.TotalSales)}</td>
+                    <td>${getPerformanceStatus(item.Performance)}</td>
+                </tr>
+            `;
+        }).join("");
 
-        body.innerHTML =
-            data.map(
-                function (item) {
-
-                    return `
-
-                        <tr>
-
-                            <td>
-                                ${safe(
-                        item.ProductCode
-                    )}
-                            </td>
-
-                            <td>
-                                ${safe(
-                        item.ProductName
-                    )}
-                            </td>
-
-                            <td>
-                                ${safe(
-                        item.CategoryName
-                    )}
-                            </td>
-
-                            <td>
-                                ${formatNumber(
-                        item.StockQuantity
-                    )}
-                            </td>
-
-                            <td>
-                                ${formatNumber(
-                        item.UnitsSold
-                    )}
-                            </td>
-
-                            <td>
-                                ${formatCurrency(
-                        item.SellingPrice
-                    )}
-                            </td>
-
-                            <td>
-                                ${formatCurrency(
-                        item.TotalSales
-                    )}
-                            </td>
-
-                            <td>
-                                ${getPerformanceStatus(
-                        item.Performance
-                    )}
-                            </td>
-
-                        </tr>
-
-                    `;
-
-                }
-            ).join("");
-
+        return;
     }
 
+    head.innerHTML = "";
+    showEmpty(body, 1, "Unknown report type.");
 }
 
 
 /* =========================================================
-   EMPTY TABLE
+   EMPTY TABLE STATE
    ========================================================= */
 
-function showEmpty(
-    body,
-    columnCount
-) {
-
+function showEmpty(body, columnCount, message) {
     body.innerHTML = `
-
         <tr>
-
-            <td
-                colspan="${columnCount}"
-                class="empty-state">
-
-                No report data available.
-
+            <td colspan="${columnCount}" class="empty-state">
+                ${safe(message || "No report data available.")}
             </td>
-
         </tr>
-
     `;
-
 }
 
 
@@ -980,165 +534,100 @@ function showEmpty(
    STOCK STATUS
    ========================================================= */
 
-function getStockStatus(
-    stock,
-    minimum
-) {
-
-    stock =
-        Number(stock || 0);
-
-    minimum =
-        Number(minimum || 0);
-
+function getStockStatus(stock, minimum) {
+    stock = Number(stock || 0);
+    minimum = Number(minimum || 0);
 
     if (stock <= 0) {
-
         return `
-            <span
-                class="status-badge status-out-stock">
+            <span class="status-badge status-out-stock">
                 Out of Stock
             </span>
         `;
-
     }
 
-
     if (stock <= minimum) {
-
         return `
-            <span
-                class="status-badge status-low-stock">
+            <span class="status-badge status-low-stock">
                 Low Stock
             </span>
         `;
-
     }
 
-
     return `
-        <span
-            class="status-badge status-in-stock">
+        <span class="status-badge status-in-stock">
             In Stock
         </span>
     `;
-
 }
 
 
 /* =========================================================
-   PERFORMANCE STATUS
+   PRODUCT PERFORMANCE STATUS
    ========================================================= */
 
-function getPerformanceStatus(
-    performance
-) {
-
-    const value =
-        String(
-            performance || "never"
-        ).toLowerCase();
-
+function getPerformanceStatus(performance) {
+    const value = String(performance || "never").toLowerCase();
 
     if (value === "top") {
-
         return `
-            <span
-                class="status-badge status-top">
-                Top
-            </span>
+            <span class="status-badge status-top">Top</span>
         `;
-
     }
-
 
     if (value === "medium") {
-
         return `
-            <span
-                class="status-badge status-medium">
-                Medium
-            </span>
+            <span class="status-badge status-medium">Medium</span>
         `;
-
     }
-
 
     if (value === "low") {
-
         return `
-            <span
-                class="status-badge status-low">
-                Low
-            </span>
+            <span class="status-badge status-low">Low</span>
         `;
-
     }
 
-
     return `
-        <span
-            class="status-badge status-never">
+        <span class="status-badge status-never">
             Never Sold
         </span>
     `;
-
 }
 
 
 /* =========================================================
-   NUMBER FORMAT
+   NUMBER FORMATTING
    ========================================================= */
 
 function formatNumber(value) {
+    const number = Number(value ?? 0);
 
-    const number =
-        Number(value || 0);
-
-    return number.toLocaleString(
-        "en-IN"
-    );
-
+    return number.toLocaleString("en-IN");
 }
 
 
 /* =========================================================
-   CURRENCY FORMAT
+   CURRENCY FORMATTING
    ========================================================= */
 
 function formatCurrency(value) {
+    const number = Number(value ?? 0);
 
-    const number =
-        Number(value || 0);
-
-
-    return "₹" +
-        number.toLocaleString(
-            "en-IN",
-            {
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 2
-            }
-        );
-
+    return "₹" + number.toLocaleString("en-IN", {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+    });
 }
 
 
 /* =========================================================
-   SAFE HTML
+   SAFE HTML OUTPUT
    ========================================================= */
 
 function safe(value) {
-
-    if (
-        value === null ||
-        value === undefined
-    ) {
-
+    if (value === null || value === undefined) {
         return "";
-
     }
-
 
     return String(value)
         .replaceAll("&", "&amp;")
@@ -1146,5 +635,4 @@ function safe(value) {
         .replaceAll(">", "&gt;")
         .replaceAll('"', "&quot;")
         .replaceAll("'", "&#039;");
-
 }

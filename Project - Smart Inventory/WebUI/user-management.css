@@ -429,3 +429,30 @@ button {
         animation-duration: 0.01ms !important;
     }
 }
+
+
+/* Remove empty header and information sections */
+.page-container > .page-header:empty,
+.page-container > .info-card:empty {
+    display: none !important;
+}
+
+/* Hide sections that contain only whitespace */
+.page-container > .page-header:not(:has(h1:not(:empty))),
+.page-container > .info-card:not(:has(h3:not(:empty), p:not(:empty))) {
+    display: none !important;
+}
+
+/* Keep the page background consistent with the application */
+html,
+body {
+    margin: 0;
+    padding: 0;
+    min-height: 100%;
+    background: var(--background, #f4f6f9);
+}
+
+/* Remove any unwanted top gap before the user table */
+.page-container {
+    padding-top: 20px;
+}

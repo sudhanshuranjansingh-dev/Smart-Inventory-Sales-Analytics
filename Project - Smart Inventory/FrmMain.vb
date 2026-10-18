@@ -341,6 +341,7 @@ Public Class FrmMain
                         Debug.WriteLine("=== SALES ANALYTICS REQUEST COMPLETED ===")
 
                     Case "loadReports"
+                        Debug.WriteLine("REPORTS DEBUG: loadReports received")
                         LoadReportsToWeb(root)
 
                     Case "loadPendingAdmins"
@@ -4996,7 +4997,11 @@ Public Class FrmMain
     '=========================================================
     ' LOAD REPORTS TO WEB
     '=========================================================
+
     Private Sub LoadReportsToWeb(root As JsonElement)
+
+        Debug.WriteLine("========================================")
+        Debug.WriteLine("REPORT TRACE: LoadReportsToWeb started.")
 
         Try
 
@@ -5012,6 +5017,7 @@ Public Class FrmMain
 
             reportType = reportType.Trim().ToLowerInvariant()
 
+            Debug.WriteLine("REPORT TRACE: Report type = " & reportType)
 
             '=====================================================
             ' GET DATE VALUES
@@ -5046,12 +5052,12 @@ Public Class FrmMain
             fromDate = fromDate.Date
             toDate = toDate.Date
 
-            If fromDate > toDate Then
-                Throw New Exception(
-                "From date cannot be later than To date."
-            )
-            End If
+            Debug.WriteLine("REPORT TRACE: From date = " & fromDate.ToString("yyyy-MM-dd"))
+            Debug.WriteLine("REPORT TRACE: To date = " & toDate.ToString("yyyy-MM-dd"))
 
+            If fromDate > toDate Then
+                Throw New Exception("From date cannot be later than To date.")
+            End If
 
             '=====================================================
             ' REPORT VARIABLES
@@ -5063,15 +5069,14 @@ Public Class FrmMain
             Dim totalAmount As Decimal = 0D
             Dim totalAlerts As Integer = 0
 
-
             '=====================================================
-            ' DATABASE CONNECTION
+            ' DATABASE CONNECTION - UNCHANGED
             '=====================================================
-            Using conn As MySqlConnection =
-            DBConnection.GetConnection()
+            Using conn As MySqlConnection = DBConnection.GetConnection()
 
                 conn.Open()
 
+                Debug.WriteLine("REPORT TRACE: Database connection opened.")
 
                 '=================================================
                 ' 1. SALES REPORT
@@ -5095,60 +5100,38 @@ Public Class FrmMain
 
                     Using cmd As New MySqlCommand(query, conn)
 
-                        cmd.Parameters.AddWithValue(
-                        "@FromDate", fromDate
-                    )
+                        cmd.Parameters.AddWithValue("@FromDate", fromDate)
+                        cmd.Parameters.AddWithValue("@ToDate", toDate)
 
-                        cmd.Parameters.AddWithValue(
-                        "@ToDate", toDate
-                    )
-
-                        Using reader As MySqlDataReader =
-                        cmd.ExecuteReader()
+                        Using reader As MySqlDataReader = cmd.ExecuteReader()
 
                             While reader.Read()
 
                                 Dim saleID As Integer =
-                                If(reader.IsDBNull(
-                                    reader.GetOrdinal("SaleID")
-                                ), 0,
-                                Convert.ToInt32(reader("SaleID")))
+                                If(reader.IsDBNull(reader.GetOrdinal("SaleID")),
+                                   0, Convert.ToInt32(reader("SaleID")))
 
                                 Dim productName As String =
-                                If(reader.IsDBNull(
-                                    reader.GetOrdinal("ProductName")
-                                ), "Unknown Product",
-                                reader("ProductName").ToString())
+                                If(reader.IsDBNull(reader.GetOrdinal("ProductName")),
+                                   "Unknown Product", reader("ProductName").ToString())
 
                                 Dim quantity As Integer =
-                                If(reader.IsDBNull(
-                                    reader.GetOrdinal("Quantity")
-                                ), 0,
-                                Convert.ToInt32(reader("Quantity")))
+                                If(reader.IsDBNull(reader.GetOrdinal("Quantity")),
+                                   0, Convert.ToInt32(reader("Quantity")))
 
                                 Dim sellingPrice As Decimal =
-                                If(reader.IsDBNull(
-                                    reader.GetOrdinal("SellingPrice")
-                                ), 0D,
-                                Convert.ToDecimal(reader("SellingPrice")))
+                                If(reader.IsDBNull(reader.GetOrdinal("SellingPrice")),
+                                   0D, Convert.ToDecimal(reader("SellingPrice")))
 
                                 Dim totalPrice As Decimal =
-                                If(reader.IsDBNull(
-                                    reader.GetOrdinal("TotalPrice")
-                                ), 0D,
-                                Convert.ToDecimal(reader("TotalPrice")))
+                                If(reader.IsDBNull(reader.GetOrdinal("TotalPrice")),
+                                   0D, Convert.ToDecimal(reader("TotalPrice")))
 
                                 Dim saleDate As String = ""
 
-                                If Not reader.IsDBNull(
-                                reader.GetOrdinal("SaleDate")
-                            ) Then
-
-                                    saleDate =
-                                    Convert.ToDateTime(
-                                        reader("SaleDate")
-                                    ).ToString("yyyy-MM-dd HH:mm")
-
+                                If Not reader.IsDBNull(reader.GetOrdinal("SaleDate")) Then
+                                    saleDate = Convert.ToDateTime(reader("SaleDate")).
+                                    ToString("yyyy-MM-dd HH:mm")
                                 End If
 
                                 reportData.Add(
@@ -5169,9 +5152,7 @@ Public Class FrmMain
                             End While
 
                         End Using
-
                     End Using
-
 
                     '=================================================
                     ' 2. INVENTORY REPORT
@@ -5185,14 +5166,12 @@ Public Class FrmMain
                     "p.PurchasePrice, p.SellingPrice, " &
                     "c.CategoryName " &
                     "FROM Products p " &
-                    "LEFT JOIN Categories c " &
-                    "ON p.CategoryID = c.CategoryID " &
+                    "LEFT JOIN Categories c ON p.CategoryID = c.CategoryID " &
                     "ORDER BY p.ProductName ASC"
 
                     Using cmd As New MySqlCommand(query, conn)
 
-                        Using reader As MySqlDataReader =
-                        cmd.ExecuteReader()
+                        Using reader As MySqlDataReader = cmd.ExecuteReader()
 
                             While reader.Read()
 
@@ -5200,46 +5179,32 @@ Public Class FrmMain
                                 Convert.ToInt32(reader("ProductID"))
 
                                 Dim productCode As String =
-                                If(reader.IsDBNull(
-                                    reader.GetOrdinal("ProductCode")
-                                ), "",
-                                reader("ProductCode").ToString())
+                                If(reader.IsDBNull(reader.GetOrdinal("ProductCode")),
+                                   "", reader("ProductCode").ToString())
 
                                 Dim productName As String =
-                                If(reader.IsDBNull(
-                                    reader.GetOrdinal("ProductName")
-                                ), "",
-                                reader("ProductName").ToString())
+                                If(reader.IsDBNull(reader.GetOrdinal("ProductName")),
+                                   "", reader("ProductName").ToString())
 
                                 Dim categoryName As String =
-                                If(reader.IsDBNull(
-                                    reader.GetOrdinal("CategoryName")
-                                ), "Uncategorized",
-                                reader("CategoryName").ToString())
+                                If(reader.IsDBNull(reader.GetOrdinal("CategoryName")),
+                                   "Uncategorized", reader("CategoryName").ToString())
 
                                 Dim stockQuantity As Integer =
-                                If(reader.IsDBNull(
-                                    reader.GetOrdinal("StockQuantity")
-                                ), 0,
-                                Convert.ToInt32(reader("StockQuantity")))
+                                If(reader.IsDBNull(reader.GetOrdinal("StockQuantity")),
+                                   0, Convert.ToInt32(reader("StockQuantity")))
 
                                 Dim minimumStock As Integer =
-                                If(reader.IsDBNull(
-                                    reader.GetOrdinal("MinimumStock")
-                                ), 0,
-                                Convert.ToInt32(reader("MinimumStock")))
+                                If(reader.IsDBNull(reader.GetOrdinal("MinimumStock")),
+                                   0, Convert.ToInt32(reader("MinimumStock")))
 
                                 Dim purchasePrice As Decimal =
-                                If(reader.IsDBNull(
-                                    reader.GetOrdinal("PurchasePrice")
-                                ), 0D,
-                                Convert.ToDecimal(reader("PurchasePrice")))
+                                If(reader.IsDBNull(reader.GetOrdinal("PurchasePrice")),
+                                   0D, Convert.ToDecimal(reader("PurchasePrice")))
 
                                 Dim sellingPrice As Decimal =
-                                If(reader.IsDBNull(
-                                    reader.GetOrdinal("SellingPrice")
-                                ), 0D,
-                                Convert.ToDecimal(reader("SellingPrice")))
+                                If(reader.IsDBNull(reader.GetOrdinal("SellingPrice")),
+                                   0D, Convert.ToDecimal(reader("SellingPrice")))
 
                                 Dim stockValue As Decimal =
                                 stockQuantity * purchasePrice
@@ -5247,13 +5212,9 @@ Public Class FrmMain
                                 Dim status As String = "In Stock"
 
                                 If stockQuantity <= 0 Then
-
                                     status = "Out of Stock"
-
                                 ElseIf stockQuantity <= minimumStock Then
-
                                     status = "Low Stock"
-
                                 End If
 
                                 reportData.Add(
@@ -5282,9 +5243,7 @@ Public Class FrmMain
                             End While
 
                         End Using
-
                     End Using
-
 
                     '=================================================
                     ' 3. LOW STOCK REPORT
@@ -5294,18 +5253,15 @@ Public Class FrmMain
                     Dim query As String =
                     "SELECT " &
                     "p.ProductID, p.ProductCode, p.ProductName, " &
-                    "p.StockQuantity, p.MinimumStock, " &
-                    "c.CategoryName " &
+                    "p.StockQuantity, p.MinimumStock, c.CategoryName " &
                     "FROM Products p " &
-                    "LEFT JOIN Categories c " &
-                    "ON p.CategoryID = c.CategoryID " &
+                    "LEFT JOIN Categories c ON p.CategoryID = c.CategoryID " &
                     "WHERE p.StockQuantity <= p.MinimumStock " &
                     "ORDER BY p.StockQuantity ASC, p.ProductName ASC"
 
                     Using cmd As New MySqlCommand(query, conn)
 
-                        Using reader As MySqlDataReader =
-                        cmd.ExecuteReader()
+                        Using reader As MySqlDataReader = cmd.ExecuteReader()
 
                             While reader.Read()
 
@@ -5313,34 +5269,24 @@ Public Class FrmMain
                                 Convert.ToInt32(reader("ProductID"))
 
                                 Dim productCode As String =
-                                If(reader.IsDBNull(
-                                    reader.GetOrdinal("ProductCode")
-                                ), "",
-                                reader("ProductCode").ToString())
+                                If(reader.IsDBNull(reader.GetOrdinal("ProductCode")),
+                                   "", reader("ProductCode").ToString())
 
                                 Dim productName As String =
-                                If(reader.IsDBNull(
-                                    reader.GetOrdinal("ProductName")
-                                ), "",
-                                reader("ProductName").ToString())
+                                If(reader.IsDBNull(reader.GetOrdinal("ProductName")),
+                                   "", reader("ProductName").ToString())
 
                                 Dim categoryName As String =
-                                If(reader.IsDBNull(
-                                    reader.GetOrdinal("CategoryName")
-                                ), "Uncategorized",
-                                reader("CategoryName").ToString())
+                                If(reader.IsDBNull(reader.GetOrdinal("CategoryName")),
+                                   "Uncategorized", reader("CategoryName").ToString())
 
                                 Dim stockQuantity As Integer =
-                                If(reader.IsDBNull(
-                                    reader.GetOrdinal("StockQuantity")
-                                ), 0,
-                                Convert.ToInt32(reader("StockQuantity")))
+                                If(reader.IsDBNull(reader.GetOrdinal("StockQuantity")),
+                                   0, Convert.ToInt32(reader("StockQuantity")))
 
                                 Dim minimumStock As Integer =
-                                If(reader.IsDBNull(
-                                    reader.GetOrdinal("MinimumStock")
-                                ), 0,
-                                Convert.ToInt32(reader("MinimumStock")))
+                                If(reader.IsDBNull(reader.GetOrdinal("MinimumStock")),
+                                   0, Convert.ToInt32(reader("MinimumStock")))
 
                                 reportData.Add(
                                 New With {
@@ -5360,138 +5306,92 @@ Public Class FrmMain
                             End While
 
                         End Using
-
                     End Using
-
 
                     '=================================================
                     ' 4. PRODUCT PERFORMANCE REPORT
                     '=================================================
                 ElseIf reportType = "product-performance" Then
 
-                    Dim temporaryData As New List(
-                    Of ProductAnalysisTemp
-                )()
+                    Dim temporaryData As New List(Of ProductAnalysisTemp)()
 
                     Dim query As String =
                     "SELECT " &
                     "p.ProductID, p.ProductCode, p.ProductName, " &
-                    "p.StockQuantity, p.SellingPrice, " &
-                    "c.CategoryName, " &
+                    "p.StockQuantity, p.SellingPrice, c.CategoryName, " &
                     "COALESCE(SUM(sd.Quantity), 0) AS UnitsSold, " &
                     "COALESCE(SUM(sd.TotalPrice), 0) AS TotalSales " &
                     "FROM Products p " &
-                    "LEFT JOIN Categories c " &
-                    "ON p.CategoryID = c.CategoryID " &
-                    "LEFT JOIN SaleDetails sd " &
-                    "ON p.ProductID = sd.ProductID " &
-                    "GROUP BY p.ProductID, p.ProductCode, " &
-                    "p.ProductName, p.StockQuantity, " &
-                    "p.SellingPrice, c.CategoryName " &
+                    "LEFT JOIN Categories c ON p.CategoryID = c.CategoryID " &
+                    "LEFT JOIN SaleDetails sd ON p.ProductID = sd.ProductID " &
+                    "GROUP BY p.ProductID, p.ProductCode, p.ProductName, " &
+                    "p.StockQuantity, p.SellingPrice, c.CategoryName " &
                     "ORDER BY TotalSales DESC, p.ProductName ASC"
 
                     Using cmd As New MySqlCommand(query, conn)
 
-                        Using reader As MySqlDataReader =
-                        cmd.ExecuteReader()
+                        Using reader As MySqlDataReader = cmd.ExecuteReader()
 
                             While reader.Read()
 
                                 Dim item As New ProductAnalysisTemp()
 
-                                item.ProductID =
-                                Convert.ToInt32(reader("ProductID"))
+                                item.ProductID = Convert.ToInt32(reader("ProductID"))
 
                                 item.ProductCode =
-                                If(reader.IsDBNull(
-                                    reader.GetOrdinal("ProductCode")
-                                ), "",
-                                reader("ProductCode").ToString())
+                                If(reader.IsDBNull(reader.GetOrdinal("ProductCode")),
+                                   "", reader("ProductCode").ToString())
 
                                 item.ProductName =
-                                If(reader.IsDBNull(
-                                    reader.GetOrdinal("ProductName")
-                                ), "",
-                                reader("ProductName").ToString())
+                                If(reader.IsDBNull(reader.GetOrdinal("ProductName")),
+                                   "", reader("ProductName").ToString())
 
                                 item.CategoryName =
-                                If(reader.IsDBNull(
-                                    reader.GetOrdinal("CategoryName")
-                                ), "Uncategorized",
-                                reader("CategoryName").ToString())
+                                If(reader.IsDBNull(reader.GetOrdinal("CategoryName")),
+                                   "Uncategorized", reader("CategoryName").ToString())
 
                                 item.StockQuantity =
-                                If(reader.IsDBNull(
-                                    reader.GetOrdinal("StockQuantity")
-                                ), 0,
-                                Convert.ToInt32(reader("StockQuantity")))
+                                If(reader.IsDBNull(reader.GetOrdinal("StockQuantity")),
+                                   0, Convert.ToInt32(reader("StockQuantity")))
 
                                 item.SellingPrice =
-                                If(reader.IsDBNull(
-                                    reader.GetOrdinal("SellingPrice")
-                                ), 0D,
-                                Convert.ToDecimal(reader("SellingPrice")))
+                                If(reader.IsDBNull(reader.GetOrdinal("SellingPrice")),
+                                   0D, Convert.ToDecimal(reader("SellingPrice")))
 
-                                item.UnitsSold =
-                                Convert.ToInt32(reader("UnitsSold"))
-
-                                item.TotalSales =
-                                Convert.ToDecimal(reader("TotalSales"))
+                                item.UnitsSold = Convert.ToInt32(reader("UnitsSold"))
+                                item.TotalSales = Convert.ToDecimal(reader("TotalSales"))
 
                                 temporaryData.Add(item)
 
                             End While
 
                         End Using
-
                     End Using
 
-
-                    '---------------------------------------------
-                    ' FIND HIGHEST UNITS SOLD
-                    '---------------------------------------------
                     Dim highestUnitsSold As Integer = 0
 
-                    For Each item As ProductAnalysisTemp _
-                    In temporaryData
-
+                    For Each item As ProductAnalysisTemp In temporaryData
                         If item.UnitsSold > highestUnitsSold Then
                             highestUnitsSold = item.UnitsSold
                         End If
-
                     Next
 
-
-                    '---------------------------------------------
-                    ' BUILD PERFORMANCE DATA
-                    '---------------------------------------------
-                    For Each item As ProductAnalysisTemp _
-                    In temporaryData
+                    For Each item As ProductAnalysisTemp In temporaryData
 
                         Dim performance As String = "never"
 
-                        If item.UnitsSold <= 0 Then
-
-                            performance = "never"
-
-                        ElseIf highestUnitsSold > 0 Then
+                        If item.UnitsSold > 0 AndAlso highestUnitsSold > 0 Then
 
                             Dim percentage As Double =
                             (CDbl(item.UnitsSold) /
                              CDbl(highestUnitsSold)) * 100
 
                             If percentage >= 70 Then
-
                                 performance = "top"
-
                             ElseIf percentage >= 30 Then
-
                                 performance = "medium"
-
                             Else
-
                                 performance = "low"
-
                             End If
 
                         End If
@@ -5516,19 +5416,21 @@ Public Class FrmMain
 
                     Next
 
-
                 Else
 
-                    Throw New Exception(
-                    "Invalid report type: " & reportType
-                )
+                    Throw New Exception("Invalid report type: " & reportType)
 
                 End If
-
 
                 '=================================================
                 ' SEND REPORT TO WEBVIEW2
                 '=================================================
+                Debug.WriteLine(
+                "REPORT TRACE: Sending " &
+                reportData.Count.ToString() &
+                " records; type=" & reportType
+            )
+
                 SendToWeb(
                 New With {
                     .type = "reports",
@@ -5543,27 +5445,25 @@ Public Class FrmMain
                 }
             )
 
-            End Using
+                Debug.WriteLine("REPORT TRACE: SendToWeb returned.")
 
+            End Using
 
         Catch ex As Exception
 
-            Debug.WriteLine(
-            "LoadReportsToWeb error: " & ex.ToString()
-        )
+            Debug.WriteLine("LoadReportsToWeb error: " & ex.ToString())
 
             SendToWeb(
             New With {
                 .type = "reportsError",
-                .message =
-                    "Unable to generate report: " &
-                    ex.Message
+                .message = "Unable to generate report: " & ex.Message
             }
         )
 
         End Try
 
     End Sub
+
 
     Private Function IsStaffUser() As Boolean
 
