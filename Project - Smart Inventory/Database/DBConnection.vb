@@ -1,4 +1,4 @@
-﻿
+
 Imports MySql.Data.MySqlClient
 
 Public Class DBConnection
@@ -21,7 +21,7 @@ Public Class DBConnection
             .UserID = "avnadmin",
             .Password = dbPassword,
             .SslMode = MySqlSslMode.VerifyCA,
-            .SslCa = "C:\Users\75478\Downloads\ca.pem"
+            .SslCa = "C:\Users\wasif\Downloads\ca.pem"
         }
 
         Return New MySqlConnection(builder.ConnectionString)
