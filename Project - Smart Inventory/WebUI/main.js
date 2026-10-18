@@ -92,7 +92,6 @@ let hasInitializedUser = false;
    PAGE PERMISSIONS
    ========================================================= */
 
-// Pages hidden from Staff users.
 const staffRestrictedPages = [
     "products",
     "categories",
@@ -104,7 +103,6 @@ const staffRestrictedPages = [
     "user-management"
 ];
 
-// Pages available only to administrators.
 const adminOnlyPages = [
     "admin-approval",
     "user-management"
@@ -131,11 +129,12 @@ function sendToHost(message) {
         window.chrome &&
         window.chrome.webview
     ) {
+        console.log("[WebView2] Sending to VB.NET:", message);
         window.chrome.webview.postMessage(message);
         return true;
     }
 
-    console.error("WebView2 is not available.");
+    console.error("[WebView2] WebView2 communication is unavailable.");
     return false;
 }
 
@@ -186,15 +185,12 @@ function applyRoleBasedNavigation(role) {
             return;
         }
 
-        // Only Admin can see Admin-only navigation items.
         if (isAdminOnlyPage(pageName)) {
             button.style.display =
                 normalizedRole === "admin" ? "" : "none";
-
             return;
         }
 
-        // Hide restricted pages from Staff.
         if (
             normalizedRole === "staff" &&
             staffRestrictedPages.includes(pageName)
@@ -365,7 +361,6 @@ function navigate(pageName) {
         return;
     }
 
-    // Enforce page permissions before loading.
     if (
         isAdminOnlyPage(pageName) &&
         currentUserRole !== "admin"
@@ -440,7 +435,6 @@ function logout() {
    LOGOUT RESPONSE HANDLERS
    ========================================================= */
 
-// Called when the user cancels logout.
 function logoutCancelled() {
     logoutPending = false;
 
@@ -452,8 +446,6 @@ function logoutCancelled() {
     console.log("Logout cancelled. Session preserved.");
 }
 
-
-// Called when logout is confirmed.
 function completeLogout() {
     logoutPending = false;
 
@@ -501,9 +493,15 @@ window.addEventListener("message", function (event) {
     }
 
     const data = event.data;
+    console.log("[Reports] WebView2 received:", data);
+    
 
     if (!data || typeof data !== "object" || !data.action) {
         return;
+    }
+
+    if (data.action === "loadReports") {
+        console.log("[Reports Debug] Request received by main.js:", data);
     }
 
     if (logoutPending || !isLoggedIn) {
@@ -526,13 +524,23 @@ if (window.chrome && window.chrome.webview) {
     window.chrome.webview.addEventListener("message", function (event) {
         const data = event.data;
 
+        console.log("[DEBUG 1] Raw WebView2 message:", data);
+
         if (!data || typeof data !== "object") {
+            console.warn("[DEBUG] Message ignored: invalid data.");
             return;
         }
 
         const messageType = String(
             data.type || data.action || ""
         ).toLowerCase();
+
+        if (
+            messageType === "reports" ||
+            messageType === "reportserror"
+        ) {
+            console.log("[Reports Debug] Response from VB.NET:", data);
+        }
 
         if (messageType === "currentuser") {
             updateUserHeader(data);
@@ -564,19 +572,42 @@ if (window.chrome && window.chrome.webview) {
             return;
         }
 
-        // Do not forward messages from a previous session.
         if (!isLoggedIn || logoutPending) {
+            console.warn(
+                "[DEBUG 2] Response blocked by session state:",
+                {
+                    messageType: messageType,
+                    isLoggedIn: isLoggedIn,
+                    logoutPending: logoutPending
+                }
+            );
             return;
         }
 
         if (
-            data.type &&
             pageFrame &&
             pageFrame.contentWindow
         ) {
+            console.log(
+                "[WebView2] Forwarding response to iframe:",
+                messageType,
+                "Logged in:",
+                isLoggedIn,
+                "Page:",
+                pageFrame.src
+            );
+
             pageFrame.contentWindow.postMessage(data, "*");
+        } else {
+            console.error(
+                "[WebView2] Cannot forward response: iframe unavailable."
+            );
         }
     });
+} else {
+    console.error(
+        "[WebView2] chrome.webview is unavailable in main.js."
+    );
 }
 
 

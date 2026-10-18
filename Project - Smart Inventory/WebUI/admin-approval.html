@@ -23,26 +23,24 @@
                 <h1>Admin Approval</h1>
             </div>
 
+
             <button type="button"
                     id="refreshApprovalsBtn"
-                    class="btn btn-primary">
-                Refresh Requests
-            </button>
-        </header>
+                    class="refresh-requests-btn"
+                    aria-label="Refresh registration requests">
 
-        <!-- INFORMATION CARD -->
-        <section class="info-card">
-            
-           
-        </section>
+                <span class="refresh-icon" aria-hidden="true">↻</span>
+                <span>Refresh Requests</span>
+
+            </button>
+
+        </header>
 
         <!-- APPROVAL TABLE -->
         <section class="table-card">
 
             <div class="table-header">
-                <div>
-                    <h2>Registration Requests</h2>
-                </div>
+               
             </div>
 
             <div class="table-wrapper">
@@ -85,19 +83,24 @@
     <!-- Refresh button handler -->
     <script>
                 document.addEventListener("DOMContentLoaded", function () {
+
                     const refreshButton =
                         document.getElementById("refreshApprovalsBtn");
 
                     if (refreshButton) {
                         refreshButton.addEventListener("click", function () {
+
                             window.postMessage(
                                 { action: "loadPendingAdmins" },
                                 "*"
                             );
+
                         });
                     }
+
                 });
     </script>
 
 </body>
+
 </html>
