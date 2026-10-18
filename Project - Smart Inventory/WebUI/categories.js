@@ -1,29 +1,31 @@
-﻿document.addEventListener("DOMContentLoaded", function () {
+﻿
+document.addEventListener("DOMContentLoaded", function () {
 
     const categoryForm = document.getElementById("categoryForm");
     const categoryName = document.getElementById("categoryName");
-    const btnClear = document.getElementById("btnClear");
     const message = document.getElementById("categoryMessage");
     const tableBody = document.getElementById("categoriesTableBody");
     const categoryCount = document.getElementById("categoryCount");
+    const addButton = document.getElementById("btnAddCategory");
 
+    let categoriesLoaded = false;
 
     // =========================================================
-    // SEND MESSAGE TO VB.NET THROUGH MAIN IFRAME
+    // SEND MESSAGE TO VB.NET THROUGH THE PARENT IFRAME
     // =========================================================
+
     function sendToVB(data) {
-
         try {
+            if (!window.parent || window.parent === window) {
+                throw new Error("Parent page / iframe bridge is unavailable.");
+            }
 
-            // Categories page is inside page-frame iframe.
             window.parent.postMessage(data, "*");
 
         } catch (error) {
-
             console.error("Unable to communicate with VB.NET:", error);
-
+            showMessage("Unable to communicate with the application.");
         }
-
     }
 
     // =========================================================
@@ -31,133 +33,17 @@
     // =========================================================
 
     function showMessage(text, success = false) {
-
         message.textContent = text;
-
-        if (success) {
-
-            message.style.color = "#198754";
-
-        } else {
-
-            message.style.color = "#d32f2f";
-
-        }
-
+        message.style.color = success ? "#198754" : "#d32f2f";
     }
 
     // =========================================================
-    // LOAD CATEGORIES
-    // =========================================================
-
-    function loadCategories() {
-
-        tableBody.innerHTML =
-            `<tr>
-                <td colspan="3" class="empty-row">
-                    Loading categories...
-                </td>
-            </tr>`;
-
-        sendToVB({
-            action: "loadCategories"
-        });
-
-    }
-
-    /* =========================================================
-       DISPLAY CATEGORIES IN ALPHABETICAL ORDER
-       ========================================================= */
-    function renderCategories(categories) {
-
-        tableBody.innerHTML = "";
-
-        if (!Array.isArray(categories) || categories.length === 0) {
-
-            tableBody.innerHTML = `
-            <tr>
-                <td colspan="3" class="empty-row">
-                    No categories found.
-                </td>
-            </tr>
-        `;
-
-            categoryCount.textContent = "0";
-            return;
-        }
-
-        // Sort alphabetically by category name (A-Z).
-        const sortedCategories = [...categories].sort(
-            function (a, b) {
-                return String(a.CategoryName || "").localeCompare(
-                    String(b.CategoryName || ""),
-                    undefined,
-                    { sensitivity: "base" }
-                );
-            }
-        );
-
-        categoryCount.textContent = sortedCategories.length;
-
-        sortedCategories.forEach(function (category, index) {
-
-            const row = document.createElement("tr");
-
-            row.innerHTML = `
-            <td>${index + 1}</td>
-
-            <td>
-                ${escapeHtml(category.CategoryName)}
-            </td>
-
-            <td>
-                <button
-                    type="button"
-                    class="delete-button"
-                    data-id="${category.CategoryID}"
-                    data-name="${escapeHtml(category.CategoryName)}">
-                    Delete
-                </button>
-            </td>
-        `;
-
-            tableBody.appendChild(row);
-
-        });
-
-        // Attach delete events.
-        const deleteButtons =
-            document.querySelectorAll(".delete-button");
-
-        deleteButtons.forEach(function (button) {
-
-            button.addEventListener("click", function () {
-
-                const categoryID = parseInt(button.dataset.id);
-
-                const categoryNameValue = button.dataset.name;
-
-                deleteCategory(
-                    categoryID,
-                    categoryNameValue
-                );
-
-            });
-
-        });
-
-    }
-
-    // =========================================================
-    // HTML ESCAPE
+    // ESCAPE HTML
     // =========================================================
 
     function escapeHtml(value) {
-
         if (value === null || value === undefined) {
-
             return "";
-
         }
 
         return String(value)
@@ -166,7 +52,108 @@
             .replace(/>/g, "&gt;")
             .replace(/"/g, "&quot;")
             .replace(/'/g, "&#039;");
+    }
 
+    // =========================================================
+    // LOAD CATEGORIES
+    // =========================================================
+
+    function loadCategories() {
+
+        categoriesLoaded = false;
+
+        tableBody.innerHTML = `
+            <tr>
+                <td colspan="3" class="empty-row">
+                    Loading categories...
+                </td>
+            </tr>
+        `;
+
+        categoryCount.textContent = "0";
+
+        sendToVB({
+            action: "loadCategories"
+        });
+    }
+
+    // =========================================================
+    // RENDER CATEGORIES IN ALPHABETICAL ORDER
+    // =========================================================
+
+    function renderCategories(categories) {
+
+        tableBody.innerHTML = "";
+
+        if (!Array.isArray(categories) || categories.length === 0) {
+
+            tableBody.innerHTML = `
+                <tr>
+                    <td colspan="3" class="empty-row">
+                        No categories found.
+                    </td>
+                </tr>
+            `;
+
+            categoryCount.textContent = "0";
+            categoriesLoaded = true;
+            return;
+        }
+
+        const sortedCategories = [...categories].sort(function (a, b) {
+
+            return String(a.CategoryName || "").localeCompare(
+                String(b.CategoryName || ""),
+                undefined,
+                {
+                    sensitivity: "base",
+                    numeric: true
+                }
+            );
+        });
+
+        categoryCount.textContent = String(sortedCategories.length);
+
+        sortedCategories.forEach(function (category, index) {
+
+            const row = document.createElement("tr");
+
+            const categoryID = Number(category.CategoryID);
+            const name = String(category.CategoryName || "");
+
+            const serialCell = document.createElement("td");
+            serialCell.textContent = String(index + 1);
+
+            const nameCell = document.createElement("td");
+            nameCell.textContent = name;
+
+            const actionCell = document.createElement("td");
+
+            const deleteButton = document.createElement("button");
+            deleteButton.type = "button";
+            deleteButton.className = "delete-button";
+            deleteButton.textContent = "Delete";
+            deleteButton.dataset.id = String(categoryID);
+            deleteButton.dataset.name = name;
+            deleteButton.setAttribute(
+                "aria-label",
+                "Delete category " + name
+            );
+
+            deleteButton.addEventListener("click", function () {
+                deleteCategory(categoryID, name);
+            });
+
+            actionCell.appendChild(deleteButton);
+
+            row.appendChild(serialCell);
+            row.appendChild(nameCell);
+            row.appendChild(actionCell);
+
+            tableBody.appendChild(row);
+        });
+
+        categoriesLoaded = true;
     }
 
     // =========================================================
@@ -185,19 +172,14 @@
             return;
         }
 
-        const confirmed = confirm(
-            `Are you sure you want to add the category "${name}"?`
-        );
-
-        if (!confirmed) {
-            return;
+        if (addButton) {
+            addButton.disabled = true;
         }
 
         sendToVB({
             action: "addCategory",
             CategoryName: name
         });
-
     });
 
     // =========================================================
@@ -206,70 +188,49 @@
 
     function deleteCategory(categoryID, name) {
 
-        const confirmed =
-            confirm(
-                `Are you sure you want to delete "${name}"?`
-            );
+        if (!Number.isInteger(categoryID) || categoryID <= 0) {
+            showMessage("Invalid category ID.");
+            return;
+        }
+
+        const confirmed = confirm(
+            'Are you sure you want to delete "' + name + '"?'
+        );
 
         if (!confirmed) {
-
             return;
-
         }
 
         sendToVB({
-
             action: "deleteCategory",
-
             CategoryID: categoryID
-
         });
-
     }
 
     // =========================================================
-    // CLEAR BUTTON
-    // =========================================================
-
-    btnClear.addEventListener("click", function () {
-
-        categoryName.value = "";
-
-        message.textContent = "";
-
-        categoryName.focus();
-
-    });
-
-    // =========================================================
-    // RECEIVE DATA FROM VB.NET
+    // RECEIVE RESPONSES FROM VB.NET
     // =========================================================
 
     window.addEventListener("message", function (event) {
 
-        if (!event.data) {
-
-            return;
-
-        }
-
         const data = event.data;
 
-        // -----------------------------------------------------
-        // CATEGORIES LOADED
-        // -----------------------------------------------------
+        if (!data || typeof data !== "object") {
+            return;
+        }
 
+        // Categories loaded
         if (data.type === "categories") {
 
             renderCategories(data.data);
-
         }
 
-        // -----------------------------------------------------
-        // CATEGORY ADDED
-        // -----------------------------------------------------
-
+        // Category added
         else if (data.type === "categoryAdded") {
+
+            if (addButton) {
+                addButton.disabled = false;
+            }
 
             showMessage(
                 data.message || "Category added successfully.",
@@ -279,13 +240,9 @@
             categoryName.value = "";
 
             loadCategories();
-
         }
 
-        // -----------------------------------------------------
-        // CATEGORY DELETED
-        // -----------------------------------------------------
-
+        // Category deleted
         else if (data.type === "categoryDeleted") {
 
             showMessage(
@@ -294,21 +251,30 @@
             );
 
             loadCategories();
-
         }
 
-        // -----------------------------------------------------
-        // CATEGORY ERROR
-        // -----------------------------------------------------
-
+        // Category error
         else if (data.type === "categoryError") {
+
+            if (addButton) {
+                addButton.disabled = false;
+            }
 
             showMessage(
                 data.message || "Unable to process category."
             );
 
+            // Avoid leaving the table stuck on the loading placeholder.
+            if (!categoriesLoaded) {
+                tableBody.innerHTML = `
+                    <tr>
+                        <td colspan="3" class="empty-row">
+                            Unable to load categories.
+                        </td>
+                    </tr>
+                `;
+            }
         }
-
     });
 
     // =========================================================

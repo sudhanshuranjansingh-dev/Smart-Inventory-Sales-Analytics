@@ -13,9 +13,6 @@ document.addEventListener("DOMContentLoaded", function () {
     const tableBody =
         document.getElementById("approvalTableBody");
 
-    const refreshButton =
-        document.getElementById("btnRefresh");
-
     const message =
         document.getElementById("message");
 
@@ -351,26 +348,25 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     );
 
-
-    /* =====================================================
-       REFRESH BUTTON
-       ===================================================== */
-
-    if (refreshButton) {
-
-        refreshButton.addEventListener(
-            "click",
-            function () {
-                loadPendingAdmins();
-            }
-        );
-    }
-
-
     /* =====================================================
        INITIAL LOAD
        ===================================================== */
 
     loadPendingAdmins();
 
+});
+
+document.addEventListener("DOMContentLoaded", function () {
+    const refreshButton = document.getElementById(
+        "refreshApprovalsBtn"
+    );
+
+    if (refreshButton) {
+        refreshButton.addEventListener("click", function () {
+            window.postMessage(
+                { action: "loadPendingAdmins" },
+                "*"
+            );
+        });
+    }
 });

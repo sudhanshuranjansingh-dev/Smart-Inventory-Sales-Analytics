@@ -1,125 +1,103 @@
-﻿<!DOCTYPE html>
+﻿
+<!DOCTYPE html>
 <html lang="en">
 
 <head>
-
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <meta name="viewport"
-          content="width=device-width, initial-scale=1.0">
+    <title>Admin Approval | Smart Inventory</title>
 
-    <title>Admin Approval</title>
+    <!-- Shared application styles -->
     <link rel="stylesheet" href="theme.css">
-    <link rel="stylesheet"
-          href="admin-approval.css">
-
+    <link rel="stylesheet" href="admin-approval.css">
 </head>
 
 <body>
 
-    <div class="page-container">
+    <main class="page-container">
 
-        <!-- HEADER -->
-
-        <div class="page-header">
-
+        <!-- PAGE HEADER -->
+        <header class="page-header">
             <div>
-
                 <h1>Admin Approval</h1>
-
-                <p>
-                    Review and manage Admin access requests.
-                </p>
-
             </div>
 
-            <button
-                id="btnRefresh"
-                class="btn-refresh">
-
-                Refresh
-
+            <button type="button"
+                    id="refreshApprovalsBtn"
+                    class="btn btn-primary">
+                Refresh Requests
             </button>
+        </header>
 
-        </div>
+        <!-- INFORMATION CARD -->
+        <section class="info-card">
+            
+           
+        </section>
 
+        <!-- APPROVAL TABLE -->
+        <section class="table-card">
 
-        <!-- INFORMATION -->
-
-        <div class="info-card">
-
-            <h3>Pending Admin Requests</h3>
-
-            <p>
-                New users requesting Admin access must be
-                approved by an existing Admin.
-            </p>
-
-        </div>
-
-
-        <!-- TABLE -->
-
-        <div class="table-card">
+            <div class="table-header">
+                <div>
+                    <h2>Registration Requests</h2>
+                </div>
+            </div>
 
             <div class="table-wrapper">
-
                 <table>
-
                     <thead>
-
                         <tr>
-
-                            <th>User ID</th>
-
-                            <th>Username</th>
-
-                            <th>Full Name</th>
-
-                            <th>Role</th>
-
-                            <th>Status</th>
-
-                            <th>Requested</th>
-
-                            <th>Action</th>
-
+                            <th scope="col">User ID</th>
+                            <th scope="col">Username</th>
+                            <th scope="col">Full Name</th>
+                            <th scope="col">Role</th>
+                            <th scope="col">Status</th>
+                            <th scope="col">Requested</th>
+                            <th scope="col">Action</th>
                         </tr>
-
                     </thead>
 
                     <tbody id="approvalTableBody">
-
                         <tr>
-
-                            <td
-                                colspan="7"
-                                class="empty-message">
-
+                            <td colspan="7" class="empty-message">
                                 Loading requests...
-
                             </td>
-
                         </tr>
-
                     </tbody>
-
                 </table>
-
             </div>
 
-        </div>
+        </section>
 
+        <!-- STATUS AND ERROR MESSAGES -->
+        <p id="message"
+           role="status"
+           aria-live="polite">
+        </p>
 
-        <!-- MESSAGE -->
+    </main>
 
-        <p id="message"></p>
-
-    </div>
-
-
+    <!-- Page JavaScript -->
     <script src="admin-approval.js"></script>
 
-</body>
+    <!-- Refresh button handler -->
+    <script>
+                document.addEventListener("DOMContentLoaded", function () {
+                    const refreshButton =
+                        document.getElementById("refreshApprovalsBtn");
 
+                    if (refreshButton) {
+                        refreshButton.addEventListener("click", function () {
+                            window.postMessage(
+                                { action: "loadPendingAdmins" },
+                                "*"
+                            );
+                        });
+                    }
+                });
+    </script>
+
+</body>
 </html>

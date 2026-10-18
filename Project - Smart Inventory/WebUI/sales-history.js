@@ -144,7 +144,6 @@ function clearSalesFilter() {
 //          Total Amount, Date & Time
 // ============================================
 
-
 function renderSalesHistory(sales) {
     const tableBody = document.getElementById("salesHistoryTableBody");
 
@@ -174,7 +173,6 @@ function renderSalesHistory(sales) {
         </tr>
     `).join("");
 }
-
 
 // ============================================
 // SUMMARY CARDS

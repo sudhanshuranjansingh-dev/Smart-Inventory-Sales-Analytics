@@ -442,28 +442,6 @@ if (stockFilter) {
 }
 
 /* =========================================================
-   REFRESH BUTTON
-   ========================================================= */
-
-const refreshButton =
-    document.getElementById(
-        "refreshInventory"
-    );
-
-if (refreshButton) {
-
-    refreshButton.addEventListener(
-        "click",
-        function () {
-
-            loadInventory();
-
-        }
-    );
-
-}
-
-/* =========================================================
    HTML ESCAPE
    ========================================================= */
 function escapeHtml(value) {

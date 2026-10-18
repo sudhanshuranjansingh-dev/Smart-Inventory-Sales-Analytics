@@ -55,16 +55,6 @@ function setupEvents() {
 
         });
 
-
-    document
-        .getElementById("refreshBtn")
-        .addEventListener("click", function () {
-
-            loadReports();
-
-        });
-
-
     document
         .getElementById("printBtn")
         .addEventListener("click", function () {
@@ -400,72 +390,56 @@ window.addEventListener(
 );
 
 
+
 /* =========================================================
-   SUMMARY
+   SUMMARY - SAFE WHEN SUMMARY CARDS ARE REMOVED
    ========================================================= */
 
 function updateSummary(summary) {
 
     const totalRecords =
-        document.getElementById(
-            "totalRecords"
-        );
+        document.getElementById("totalRecords");
 
     const totalUnits =
-        document.getElementById(
-            "totalUnits"
-        );
+        document.getElementById("totalUnits");
 
     const totalAmount =
-        document.getElementById(
-            "totalAmount"
-        );
+        document.getElementById("totalAmount");
 
     const totalAlerts =
-        document.getElementById(
-            "totalAlerts"
-        );
+        document.getElementById("totalAlerts");
 
-
-    if (!summary) {
-
-        totalRecords.textContent = "0";
-
-        totalUnits.textContent = "0";
-
-        totalAmount.textContent =
-            "₹0.00";
-
-        totalAlerts.textContent = "0";
-
+    // Summary cards are optional.
+    if (
+        !totalRecords ||
+        !totalUnits ||
+        !totalAmount ||
+        !totalAlerts
+    ) {
         return;
     }
 
+    if (!summary) {
+        totalRecords.textContent = "0";
+        totalUnits.textContent = "0";
+        totalAmount.textContent = "₹0.00";
+        totalAlerts.textContent = "0";
+        return;
+    }
 
     totalRecords.textContent =
-        formatNumber(
-            summary.totalRecords || 0
-        );
-
+        formatNumber(summary.totalRecords || 0);
 
     totalUnits.textContent =
-        formatNumber(
-            summary.totalUnits || 0
-        );
-
+        formatNumber(summary.totalUnits || 0);
 
     totalAmount.textContent =
-        formatCurrency(
-            summary.totalAmount || 0
-        );
-
+        formatCurrency(summary.totalAmount || 0);
 
     totalAlerts.textContent =
-        formatNumber(
-            summary.totalAlerts || 0
-        );
-
+        formatNumber(summary.totalAlerts || 0);
 }
+
 
 
 /* =========================================================

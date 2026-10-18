@@ -298,3 +298,41 @@ tbody tr:hover {
         width: 100%;
     }
 }
+
+
+/* Blue Clear Button */
+
+#btnClear,
+#clearPurchaseBtn,
+.clear-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    min-width: 130px;
+    padding: 14px 24px;
+    background: #EFF6FF;
+    color: #2563EB;
+    border: 1px solid #BFDBFE;
+    border-radius: 10px;
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+    #btnClear:hover,
+    #clearPurchaseBtn:hover,
+    .clear-button:hover {
+        background: #DBEAFE;
+        border-color: #93C5FD;
+        box-shadow: 0 4px 12px rgba(37, 99, 235, 0.15);
+        transform: translateY(-1px);
+    }
+
+    #btnClear:active,
+    #clearPurchaseBtn:active,
+    .clear-button:active {
+        transform: translateY(0);
+    }

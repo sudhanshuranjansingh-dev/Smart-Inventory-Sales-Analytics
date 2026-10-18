@@ -56,6 +56,9 @@
     <None Remove="WebUI\suppliers.css" />
     <None Remove="WebUI\suppliers.html" />
     <None Remove="WebUI\suppliers.js" />
+    <None Remove="WebUI\user-management.css" />
+    <None Remove="WebUI\user-management.html" />
+    <None Remove="WebUI\user-management.js" />
   </ItemGroup>
 
   <ItemGroup>
@@ -195,6 +198,15 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="WebUI\suppliers.js">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="WebUI\user-management.css">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="WebUI\user-management.html">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="WebUI\user-management.js">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>

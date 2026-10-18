@@ -6,7 +6,11 @@
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
+	<meta name="description"
+		  content="Smart Inventory and Sales Management System">
+
 	<title>Smart Inventory</title>
+
 	<link rel="stylesheet" href="theme.css">
 	<link rel="stylesheet" href="main.css">
 </head>
@@ -31,89 +35,116 @@
 			<!-- NAVIGATION -->
 			<nav class="navigation">
 
+				<!-- MAIN -->
 				<div class="section-title">MAIN</div>
 
-				<button class="nav-item active" type="button"
+				<button class="nav-item active"
+						id="btnDashboard"
+						type="button"
 						onclick="navigate('dashboard')">
 					<span class="nav-icon">⌂</span>
 					<span>Dashboard</span>
 				</button>
 
+				<!-- INVENTORY -->
 				<div class="section-title">INVENTORY</div>
 
-				<button class="nav-item" type="button"
+				<button class="nav-item"
+						type="button"
 						onclick="navigate('products')">
 					<span class="nav-icon">▣</span>
 					<span>Products</span>
 				</button>
 
-				<button class="nav-item" type="button"
+				<button class="nav-item"
+						type="button"
 						onclick="navigate('categories')">
 					<span class="nav-icon">▦</span>
 					<span>Categories</span>
 				</button>
 
-				<button class="nav-item" type="button"
+				<button class="nav-item"
+						type="button"
 						onclick="navigate('suppliers')">
 					<span class="nav-icon">♙</span>
 					<span>Suppliers</span>
 				</button>
 
+				<!-- TRANSACTIONS -->
 				<div class="section-title">TRANSACTIONS</div>
 
-				<button class="nav-item" type="button"
+				<button class="nav-item"
+						type="button"
 						onclick="navigate('purchases')">
 					<span class="nav-icon">🛒</span>
 					<span>Purchases</span>
 				</button>
 
-				<button class="nav-item" type="button"
+				<button class="nav-item"
+						type="button"
 						onclick="navigate('sales')">
 					<span class="nav-icon">₹</span>
 					<span>Sales</span>
 				</button>
 
-				<button class="nav-item" type="button"
+				<button class="nav-item"
+						type="button"
 						onclick="navigate('sales-history')">
 					<span class="nav-icon">☷</span>
 					<span>Sales History</span>
 				</button>
 
+				<!-- ANALYTICS -->
 				<div class="section-title">ANALYTICS</div>
 
-				<button class="nav-item" type="button"
+				<button class="nav-item"
+						type="button"
 						onclick="navigate('inventory')">
 					<span class="nav-icon">▤</span>
 					<span>Inventory</span>
 				</button>
 
-				<button class="nav-item" type="button"
+				<button class="nav-item"
+						type="button"
 						onclick="navigate('product-analysis')">
 					<span class="nav-icon">◈</span>
 					<span>Product Analysis</span>
 				</button>
 
-				<button class="nav-item" type="button"
+				<button class="nav-item"
+						type="button"
 						onclick="navigate('sales-analytics')">
 					<span class="nav-icon">◉</span>
 					<span>Sales Analytics</span>
 				</button>
 
+				<!-- REPORTING -->
 				<div class="section-title">REPORTING</div>
 
-				<button class="nav-item" type="button"
+				<button class="nav-item"
+						type="button"
 						onclick="navigate('reports')">
 					<span class="nav-icon">▤</span>
 					<span>Reports</span>
 				</button>
 
+				<!-- ADMINISTRATION -->
 				<div class="section-title">ADMINISTRATION</div>
 
-				<button class="nav-item" id="btnAdminApproval"
+				<button class="nav-item"
+						id="btnAdminApproval"
 						type="button"
 						onclick="navigate('admin-approval')">
 					<span class="nav-icon">♟</span>
 					<span>Admin Approval</span>
+				</button>
+
+				<button class="nav-item"
+						id="btnUserManagement"
+						type="button"
+						onclick="navigate('user-management')">
+					<span class="nav-icon">👥</span>
+					<span>User Management</span>
 				</button>
 
 			</nav>
@@ -121,7 +152,9 @@
 			<!-- SIDEBAR BOTTOM -->
 			<div class="sidebar-bottom">
 
-				<button class="nav-item" type="button"
+				<button class="nav-item"
+						id="btnLogout"
+						type="button"
 						onclick="logout()">
 					<span class="nav-icon">↪</span>
 					<span>Logout</span>
@@ -139,6 +172,7 @@
 
 				<div class="page-heading">
 					<h1 id="page-title">Dashboard</h1>
+
 					<p id="page-subtitle">
 						Overview of your inventory and sales
 					</p>
@@ -179,15 +213,26 @@
 	<!-- APPLICATION JAVASCRIPT -->
 	<script src="main.js"></script>
 
-</body>
-</html>
+	<!-- SIDEBAR DEBUG LOGGING -->
+	<script>
+				document.addEventListener("DOMContentLoaded", function () {
 
-<script>
-document.addEventListener("DOMContentLoaded", function () {
-		document.querySelectorAll(".nav-item").forEach(function (button) {
-			button.addEventListener("click", function () {
-				console.log("SIDEBAR CLICK DETECTED:", button.textContent.trim());
-			});
-		});
-});
-</script>
+					document.querySelectorAll(".nav-item").forEach(function (button) {
+
+						button.addEventListener("click", function () {
+
+							console.log(
+								"SIDEBAR CLICK DETECTED:",
+								button.textContent.trim()
+							);
+
+						});
+
+					});
+
+				});
+	</script>
+
+</body>
+
+</html>

@@ -21,23 +21,6 @@ document.addEventListener(
             "Smart Inventory Dashboard Loaded"
         );
 
-        // Refresh Dashboard Button
-        const refreshButton =
-            document.getElementById("refreshBtn");
-
-        if (refreshButton) {
-
-            refreshButton.addEventListener(
-                "click",
-                function () {
-
-                    requestDashboardData();
-
-                }
-            );
-
-        }
-
         // Request logged-in user details
         requestCurrentUser();
 
