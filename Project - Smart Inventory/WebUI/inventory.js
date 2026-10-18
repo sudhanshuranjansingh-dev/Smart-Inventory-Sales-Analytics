@@ -4,12 +4,9 @@
 
 let inventoryData = [];
 
-
-
 /* =========================================================
    REQUEST INVENTORY DATA
    ========================================================= */
-
 function loadInventory() {
 
     console.log("Requesting inventory data...");
@@ -51,7 +48,6 @@ function loadInventory() {
 
 }
 
-
 /* =========================================================
    RECEIVE DATA FROM MAIN PAGE
    ========================================================= */
@@ -88,7 +84,6 @@ window.addEventListener(
 
         }
 
-
         /* ---------------------------------------------
            ERROR
         --------------------------------------------- */
@@ -123,11 +118,9 @@ window.addEventListener(
     }
 );
 
-
 /* =========================================================
    UPDATE SUMMARY CARDS
    ========================================================= */
-
 function updateSummary() {
 
     let totalProducts = inventoryData.length;
@@ -138,7 +131,6 @@ function updateSummary() {
 
     let outOfStock = 0;
 
-
     inventoryData.forEach(function (product) {
 
         const stock =
@@ -147,9 +139,7 @@ function updateSummary() {
         const minimumStock =
             Number(product.MinimumStock) || 0;
 
-
         totalStock += stock;
-
 
         if (stock <= 0) {
 
@@ -164,21 +154,17 @@ function updateSummary() {
 
     });
 
-
     document.getElementById(
         "totalProducts"
     ).textContent = totalProducts;
-
 
     document.getElementById(
         "totalStock"
     ).textContent = totalStock;
 
-
     document.getElementById(
         "lowStock"
     ).textContent = lowStock;
-
 
     document.getElementById(
         "outOfStock"
@@ -186,11 +172,9 @@ function updateSummary() {
 
 }
 
-
 /* =========================================================
    RENDER INVENTORY TABLE
    ========================================================= */
-
 function renderInventory() {
 
     const tableBody =
@@ -202,18 +186,15 @@ function renderInventory() {
         return;
     }
 
-
     const searchInput =
         document.getElementById(
             "inventorySearch"
         );
 
-
     const filterSelect =
         document.getElementById(
             "stockFilter"
         );
-
 
     const searchText =
         searchInput
@@ -222,12 +203,10 @@ function renderInventory() {
                 .toLowerCase()
             : "";
 
-
     const filter =
         filterSelect
             ? filterSelect.value
             : "all";
-
 
     const filteredProducts =
         inventoryData.filter(
@@ -238,39 +217,32 @@ function renderInventory() {
                         product.ProductCode || ""
                     ).toLowerCase();
 
-
                 const productName =
                     String(
                         product.ProductName || ""
                     ).toLowerCase();
-
 
                 const category =
                     String(
                         product.CategoryName || ""
                     ).toLowerCase();
 
-
                 const stock =
                     Number(
                         product.StockQuantity
                     ) || 0;
-
 
                 const minimumStock =
                     Number(
                         product.MinimumStock
                     ) || 0;
 
-
                 const matchesSearch =
                     productCode.includes(searchText) ||
                     productName.includes(searchText) ||
                     category.includes(searchText);
 
-
                 let matchesFilter = true;
-
 
                 if (filter === "in-stock") {
 
@@ -278,7 +250,6 @@ function renderInventory() {
                         stock > minimumStock;
 
                 }
-
 
                 if (filter === "low-stock") {
 
@@ -288,14 +259,12 @@ function renderInventory() {
 
                 }
 
-
                 if (filter === "out-of-stock") {
 
                     matchesFilter =
                         stock <= 0;
 
                 }
-
 
                 return (
                     matchesSearch &&
@@ -323,7 +292,6 @@ function renderInventory() {
 
     }
 
-
     tableBody.innerHTML =
         filteredProducts
             .map(function (product) {
@@ -333,17 +301,14 @@ function renderInventory() {
                         product.StockQuantity
                     ) || 0;
 
-
                 const minimumStock =
                     Number(
                         product.MinimumStock
                     ) || 0;
 
-
                 let statusText = "In Stock";
 
                 let statusClass = "in-stock";
-
 
                 if (stock <= 0) {
 
@@ -364,18 +329,15 @@ function renderInventory() {
 
                 }
 
-
                 const purchasePrice =
                     Number(
                         product.PurchasePrice
                     ) || 0;
 
-
                 const sellingPrice =
                     Number(
                         product.SellingPrice
                     ) || 0;
-
 
                 return `
                     <tr>
@@ -435,7 +397,6 @@ function renderInventory() {
 
 }
 
-
 /* =========================================================
    SEARCH
    ========================================================= */
@@ -444,7 +405,6 @@ const searchInput =
     document.getElementById(
         "inventorySearch"
     );
-
 
 if (searchInput) {
 
@@ -459,7 +419,6 @@ if (searchInput) {
 
 }
 
-
 /* =========================================================
    STOCK FILTER
    ========================================================= */
@@ -468,7 +427,6 @@ const stockFilter =
     document.getElementById(
         "stockFilter"
     );
-
 
 if (stockFilter) {
 
@@ -483,7 +441,6 @@ if (stockFilter) {
 
 }
 
-
 /* =========================================================
    REFRESH BUTTON
    ========================================================= */
@@ -492,7 +449,6 @@ const refreshButton =
     document.getElementById(
         "refreshInventory"
     );
-
 
 if (refreshButton) {
 
@@ -507,11 +463,9 @@ if (refreshButton) {
 
 }
 
-
 /* =========================================================
    HTML ESCAPE
    ========================================================= */
-
 function escapeHtml(value) {
 
     return String(value)
@@ -522,7 +476,6 @@ function escapeHtml(value) {
         .replaceAll("'", "&#039;");
 
 }
-
 
 /* =========================================================
    INITIAL LOAD
