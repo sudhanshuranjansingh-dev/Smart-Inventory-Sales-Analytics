@@ -2,6 +2,29 @@
 /* =========================================
    SALES NOVA - LOGIN PAGE
    Clean, responsive WebView2 layout
+   Navy + blue branding
+   ========================================= */
+
+:root {
+    --brand-navy: #123b7a;
+    --brand-blue: #1769ff;
+    --brand-blue-light: #13a8f5;
+    --brand-pale: #e8f2ff;
+    --text-primary: #172440;
+    --text-secondary: #71809d;
+    --border-color: #d5deeb;
+    --surface: #ffffff;
+    --page-background: #f2f6ff;
+    --error-text: #991b1b;
+    --error-background: #fff1f2;
+    --error-border: #dc2626;
+    --success-text: #166534;
+    --success-background: #f0fdf4;
+    --success-border: #16a34a;
+}
+
+/* =========================================
+   RESET
    ========================================= */
 
 * {
@@ -11,20 +34,20 @@
 html,
 body {
     width: 100%;
-    height: 100%;
+    min-height: 100%;
     margin: 0;
     padding: 0;
 }
 
 html {
-    overflow: hidden;
+    overflow-x: hidden;
 }
 
 body {
-    overflow: hidden;
+    min-height: 100vh;
     font-family: "Segoe UI", Arial, sans-serif;
-    color: #14213d;
-    background: linear-gradient( 135deg, #f2f6ff 0%, #f8faff 55%, #edf2ff 100% );
+    color: var(--text-primary);
+    background: linear-gradient( 135deg, #f2f6ff 0%, #f8faff 55%, #edf4ff 100% );
 }
 
 button,
@@ -43,13 +66,12 @@ button {
 .login-container {
     position: fixed;
     inset: 0;
-    width: 100%;
-    height: 100%;
-    margin: 0;
-    padding: 16px;
     display: flex;
     align-items: center;
     justify-content: center;
+    width: 100%;
+    height: 100%;
+    padding: 16px;
     overflow-x: hidden;
     overflow-y: auto;
 }
@@ -64,25 +86,28 @@ button {
     flex: 0 0 auto;
     margin: auto;
     padding: 28px 40px 30px;
-    background: #fff;
-    border: 1px solid rgba(226, 233, 245, 0.65);
+    background: var(--surface);
+    border: 1px solid #e2e9f5;
     border-radius: 26px;
-    box-shadow: 0 8px 28px rgba(45, 75, 135, 0.055);
+    box-shadow: 0 8px 28px rgb(45 75 135 / 7%);
 }
 
 /* =========================================
-   HEADER
+   HEADER AND SALES NOVA BRANDING
    ========================================= */
 
 .login-header {
-    margin-bottom: 20px;
+    margin-bottom: 22px;
     text-align: center;
 }
 
 .login-logo {
-    width: 78px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 68px;
     height: 68px;
-    margin: 0 auto 3px;
+    margin: 0 auto 12px;
 }
 
     .login-logo svg {
@@ -93,21 +118,44 @@ button {
 
 .login-header h1 {
     margin: 0;
-    color: #101d3b;
-    font-size: 40px;
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: clamp(30px, 4vw, 38px);
+    font-weight: 800;
     line-height: 1.2;
-    font-weight: 750;
-    letter-spacing: -1.5px;
+    letter-spacing: -1.2px;
+    color: var(--brand-navy);
 }
 
-.login-header p {
-    margin: 5px 0 0;
-    color: #71809d;
-    font-size: 18px;
+.brand-sales {
+    color: var(--brand-navy);
+}
+
+.brand-nova {
+    color: var(--brand-blue);
+}
+
+/* Brand tagline */
+.brand-tagline {
+    margin: 8px 0 18px;
+    color: #6681a5;
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 10px;
+    font-weight: 700;
+    line-height: 1.5;
+    letter-spacing: 1.7px;
+}
+
+/* Login subtitle */
+.login-subtitle,
+.login-header > p:not(.brand-tagline) {
+    margin: 8px 0 0;
+    color: var(--text-secondary);
+    font-size: 16px;
+    line-height: 1.5;
 }
 
 /* =========================================
-   FORM
+   LOGIN FORM
    ========================================= */
 
 .login-form {
@@ -126,34 +174,39 @@ button {
     .form-group label {
         display: block;
         margin-bottom: 7px;
-        color: #172440;
-        font-size: 16px;
+        color: var(--text-primary);
+        font-size: 15px;
         font-weight: 650;
     }
+
+/* =========================================
+   INPUT FIELDS
+   ========================================= */
 
 .input-wrapper {
     display: flex;
     align-items: center;
-    gap: 13px;
+    gap: 12px;
     width: 100%;
     height: 51px;
-    padding: 0 15px;
-    background: #fff;
-    border: 1.5px solid #d5deeb;
+    padding: 0 14px;
+    background: #ffffff;
+    border: 1.5px solid var(--border-color);
     border-radius: 12px;
-    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
 }
 
     .input-wrapper:focus-within {
-        border-color: #5981f7;
-        box-shadow: 0 0 0 3px rgba(70, 111, 245, 0.10);
+        background: #ffffff;
+        border-color: var(--brand-blue);
+        box-shadow: 0 0 0 3px rgb(23 105 255 / 12%);
     }
 
 .input-icon {
-    flex-shrink: 0;
+    flex: 0 0 auto;
     width: 22px;
     height: 22px;
-    color: #8291ad;
+    color: #6681a5;
 }
 
 .input-wrapper input {
@@ -161,7 +214,7 @@ button {
     min-width: 0;
     height: 100%;
     padding: 0;
-    color: #172440;
+    color: var(--text-primary);
     font-size: 15px;
     background: transparent;
     border: 0;
@@ -173,22 +226,30 @@ button {
         opacity: 1;
     }
 
+/* Remove the built-in password reveal button in Edge/WebView2 */
+input[type="password"]::-ms-reveal,
+input[type="password"]::-ms-clear {
+    display: none;
+}
+
 /* =========================================
-   PASSWORD TOGGLE
+   PASSWORD VISIBILITY BUTTON
    ========================================= */
 
 .password-toggle {
     display: inline-flex;
+    flex: 0 0 30px;
     align-items: center;
     justify-content: center;
-    width: 28px;
+    width: 30px;
     height: 36px;
     padding: 4px;
-    flex-shrink: 0;
-    color: #8190aa;
+    color: #6681a5;
     background: transparent;
     border: 0;
+    border-radius: 6px;
     cursor: pointer;
+    transition: color 0.2s ease, background 0.2s ease;
 }
 
     .password-toggle svg {
@@ -198,85 +259,146 @@ button {
     }
 
     .password-toggle:hover {
-        color: #475f96;
+        color: var(--brand-blue);
+        background: var(--brand-pale);
     }
 
-input[type="password"]::-ms-reveal,
-input[type="password"]::-ms-clear {
-    display: none;
-}
-
 /* =========================================
-   LOGIN BUTTON
+   PRIMARY LOGIN BUTTON
    ========================================= */
 
 .login-button {
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 12px;
+    gap: 11px;
     width: 100%;
-    height: 52px;
-    margin-top: 2px;
-    padding: 0 16px;
-    color: #fff;
-    font-size: 18px;
-    font-weight: 650;
-    background: linear-gradient( 105deg, #287cf4 0%, #4c50f2 55%, #8741ef 100% );
+    min-height: 52px;
+    margin-top: 3px;
+    padding: 12px 16px;
+    color: #ffffff;
+    font-size: 17px;
+    font-weight: 700;
+    background: linear-gradient( 100deg, var(--brand-blue), var(--brand-blue-light) );
     border: 0;
     border-radius: 12px;
-    box-shadow: 0 5px 12px rgba(73, 82, 228, 0.18);
+    box-shadow: 0 5px 12px rgb(23 105 255 / 18%);
     cursor: pointer;
-    transition: box-shadow 0.18s ease, filter 0.18s ease;
+    transition: background 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
 }
 
     .login-button svg {
-        width: 23px;
-        height: 23px;
-        flex-shrink: 0;
+        flex: 0 0 auto;
+        width: 22px;
+        height: 22px;
     }
 
     .login-button:hover {
-        filter: brightness(1.04);
-        box-shadow: 0 7px 17px rgba(73, 82, 228, 0.25);
+        background: linear-gradient(100deg, #1257df, #078bd6);
+        box-shadow: 0 7px 17px rgb(23 105 255 / 25%);
+    }
+
+    .login-button:active {
+        transform: translateY(1px);
+    }
+
+    .login-button:disabled {
+        opacity: 0.65;
+        cursor: not-allowed;
+        box-shadow: none;
     }
 
 /* =========================================
-   LOGIN ERROR
-   Does not impose a fixed height on the card
+   LOGIN MESSAGES
+   Error, success, and informational states
    ========================================= */
 
 .login-message {
     display: none;
+    align-items: flex-start;
+    gap: 9px;
     width: 100%;
-    margin-top: 12px;
-    padding: 10px 12px;
-    color: #991b1b;
+    margin-top: 13px;
+    padding: 12px 14px;
     font-size: 14px;
-    font-weight: 600;
-    line-height: 1.45;
-    background: #fff1f2;
-    border: 1px solid #f1baba;
-    border-left: 4px solid #dc2626;
+    font-weight: 650;
+    line-height: 1.5;
+    border: 1px solid transparent;
     border-radius: 10px;
     overflow-wrap: anywhere;
-    box-shadow: 0 3px 9px rgba(185, 28, 28, 0.07);
 }
 
-    .login-message:not(:empty) {
-        display: block;
+    .login-message:empty {
+        display: none !important;
+        visibility: hidden;
+        margin: 0;
+        padding: 0;
+        border: 0;
+        box-shadow: none;
     }
+
+    .login-message:not(:empty) {
+        display: flex;
+        visibility: visible;
+    }
+
+    .login-message:empty {
+        display: none !important;
+    }
+
+/* Default message styling */
+.login-message {
+    color: var(--error-text);
+    background: var(--error-background);
+    border-color: #f1baba;
+    border-left: 4px solid var(--error-border);
+    box-shadow: 0 3px 9px rgb(185 28 28 / 7%);
+}
 
     .login-message::before {
-        content: "⚠";
-        display: inline-block;
-        margin-right: 7px;
-        color: #dc2626;
-        font-weight: 700;
+        content: "!";
+        display: inline-flex;
+        flex: 0 0 20px;
+        width: 20px;
+        height: 20px;
+        align-items: center;
+        justify-content: center;
+        margin-top: 1px;
+        color: #ffffff;
+        background: var(--error-border);
+        border-radius: 50%;
+        font-size: 13px;
+        font-weight: 800;
     }
 
+    /* Optional success class for login.js */
+    .login-message.success-message {
+        color: var(--success-text);
+        background: var(--success-background);
+        border-color: #bbf7d0;
+        border-left-color: var(--success-border);
+    }
+
+        .login-message.success-message::before {
+            content: "✓";
+            background: var(--success-border);
+        }
+
+    /* Optional information class */
+    .login-message.info-message {
+        color: #1e40af;
+        background: #eff6ff;
+        border-color: #bfdbfe;
+        border-left-color: var(--brand-blue);
+    }
+
+        .login-message.info-message::before {
+            content: "i";
+            background: var(--brand-blue);
+        }
+
 /* =========================================
-   REGISTER SECTION
+   REGISTRATION SECTION
    ========================================= */
 
 .register-section {
@@ -284,22 +406,25 @@ input[type="password"]::-ms-clear {
     align-items: center;
     justify-content: center;
     flex-wrap: wrap;
-    gap: 5px 12px;
+    gap: 5px 10px;
     margin: 22px 0 18px;
-    color: #71809d;
-    font-size: 15px;
+    color: var(--text-secondary);
+    font-size: 14px;
+    line-height: 1.5;
     text-align: center;
 }
 
     .register-section a {
-        color: #3e51d9;
-        font-weight: 650;
-        text-decoration: underline;
-        text-underline-offset: 2px;
+        color: var(--brand-blue);
+        font-weight: 700;
+        text-decoration: none;
+        text-underline-offset: 3px;
+        transition: color 0.2s ease;
     }
 
         .register-section a:hover {
-            color: #823ff0;
+            color: var(--brand-navy);
+            text-decoration: underline;
         }
 
 /* =========================================
@@ -310,45 +435,62 @@ input[type="password"]::-ms-clear {
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 12px;
+    gap: 10px;
     width: 100%;
-    height: 47px;
-    padding: 0 16px;
-    color: #283955;
-    font-size: 16px;
+    min-height: 46px;
+    padding: 10px 16px;
+    color: #34445f;
+    font-size: 15px;
     font-weight: 650;
-    background: #fff;
-    border: 1.5px solid #d2dbe8;
+    background: #ffffff;
+    border: 1.5px solid var(--border-color);
     border-radius: 11px;
     cursor: pointer;
-    transition: background 0.2s ease, border-color 0.2s ease;
+    transition: color 0.2s ease, background 0.2s ease, border-color 0.2s ease;
 }
 
     .exit-button svg {
-        width: 22px;
-        height: 22px;
-        flex-shrink: 0;
+        flex: 0 0 auto;
+        width: 21px;
+        height: 21px;
     }
 
     .exit-button:hover {
-        background: #f5f7fc;
-        border-color: #aebbd0;
-    }
-
-    /* =========================================
-   KEYBOARD ACCESSIBILITY
-   ========================================= */
-
-    .login-button:focus-visible,
-    .exit-button:focus-visible,
-    .register-section a:focus-visible,
-    .password-toggle:focus-visible {
-        outline: 3px solid rgba(65, 110, 245, 0.35);
-        outline-offset: 3px;
+        color: var(--brand-blue);
+        background: #f5f9ff;
+        border-color: #b8d4ff;
     }
 
 /* =========================================
-   NARROW WINDOWS
+   FOOTER BRANDING
+   ========================================= */
+
+.login-footer {
+    margin-top: 20px;
+    color: #8294ad;
+    font-size: 11px;
+    line-height: 1.5;
+    text-align: center;
+}
+
+/* =========================================
+   KEYBOARD ACCESSIBILITY
+   ========================================= */
+
+.login-button:focus-visible,
+.exit-button:focus-visible,
+.register-section a:focus-visible,
+.password-toggle:focus-visible {
+    outline: 3px solid rgb(23 105 255 / 35%);
+    outline-offset: 3px;
+}
+
+.input-wrapper input:focus-visible {
+    outline: none;
+}
+
+/* =========================================
+   RESPONSIVE: NARROW WINDOWS
    ========================================= */
 
 @media (max-width: 600px) {
@@ -366,34 +508,55 @@ input[type="password"]::-ms-clear {
     }
 
     .login-logo {
-        width: 68px;
+        width: 60px;
         height: 60px;
+        margin-bottom: 10px;
     }
 
     .login-header h1 {
-        font-size: 35px;
+        font-size: 34px;
     }
 
-    .login-header p {
-        font-size: 16px;
+    .brand-tagline {
+        font-size: 9px;
+        letter-spacing: 1.3px;
+        margin-bottom: 15px;
+    }
+
+    .login-subtitle,
+    .login-header > p:not(.brand-tagline) {
+        font-size: 15px;
     }
 
     .form-group {
-        margin-bottom: 17px;
+        margin-bottom: 16px;
     }
 
         .form-group label {
-            font-size: 15px;
+            font-size: 14px;
         }
+
+    .input-wrapper {
+        height: 48px;
+    }
+
+    .login-button {
+        min-height: 49px;
+        font-size: 16px;
+    }
 
     .register-section {
         margin: 18px 0 16px;
     }
+
+    .login-footer {
+        margin-top: 16px;
+    }
 }
 
 /* =========================================
-   SHORT WINDOWS
-   Scroll only when the content needs it
+   RESPONSIVE: SHORT WINDOWS
+   Keep the form accessible on small screens
    ========================================= */
 
 @media (max-height: 650px) {
@@ -409,21 +572,29 @@ input[type="password"]::-ms-clear {
     }
 
     .login-header {
-        margin-bottom: 10px;
+        margin-bottom: 12px;
     }
 
     .login-logo {
-        width: 48px;
-        height: 42px;
+        width: 44px;
+        height: 44px;
+        margin-bottom: 6px;
     }
 
     .login-header h1 {
-        font-size: 30px;
+        font-size: 29px;
     }
 
-    .login-header p {
-        margin-top: 2px;
-        font-size: 14px;
+    .brand-tagline {
+        margin: 5px 0 8px;
+        font-size: 9px;
+        letter-spacing: 1.2px;
+    }
+
+    .login-subtitle,
+    .login-header > p:not(.brand-tagline) {
+        margin-top: 4px;
+        font-size: 13px;
     }
 
     .form-group {
@@ -432,22 +603,80 @@ input[type="password"]::-ms-clear {
 
         .form-group label {
             margin-bottom: 5px;
-            font-size: 14px;
+            font-size: 13px;
         }
 
     .input-wrapper {
-        height: 42px;
+        height: 41px;
     }
 
     .login-button {
-        height: 44px;
+        min-height: 43px;
+        padding: 9px 14px;
+    }
+
+    .login-message {
+        margin-top: 8px;
+        padding: 9px 11px;
+        font-size: 13px;
     }
 
     .register-section {
         margin: 10px 0;
+        font-size: 13px;
     }
 
     .exit-button {
-        height: 40px;
+        min-height: 38px;
+        padding: 8px 12px;
     }
+
+    .login-footer {
+        margin-top: 10px;
+    }
+}
+
+/* =========================================
+   VERY NARROW WINDOWS
+   ========================================= */
+
+@media (max-width: 360px) {
+    .login-container {
+        padding: 8px;
+    }
+
+    .login-card {
+        padding: 20px 16px;
+        border-radius: 18px;
+    }
+
+    .login-header h1 {
+        font-size: 30px;
+    }
+
+    .brand-tagline {
+        font-size: 8px;
+        letter-spacing: 1px;
+    }
+
+    .input-wrapper {
+        gap: 8px;
+        padding: 0 10px;
+    }
+}
+
+/* Keep the message box hidden when the login page opens */
+#message.login-message:empty {
+    display: none !important;
+    visibility: hidden !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: none !important;
+    box-shadow: none !important;
+}
+
+/* Show the box only when it contains a message */
+#message.login-message:not(:empty) {
+    display: flex;
+    visibility: visible;
 }

@@ -230,7 +230,37 @@ Public Class FrmMain
                 End If
 
                 ' Process actions
+
+
                 Select Case action
+
+                    Case "login"
+                        Dim username As String = ""
+                        Dim password As String = ""
+
+                        Dim usernameElement As JsonElement
+                        Dim passwordElement As JsonElement
+
+                        If Not root.TryGetProperty("username", usernameElement) OrElse
+                           usernameElement.ValueKind <> JsonValueKind.String OrElse
+                           Not root.TryGetProperty("password", passwordElement) OrElse
+                           passwordElement.ValueKind <> JsonValueKind.String Then
+
+                            SendToWeb(New With {
+                                .message = "Please enter your username and password."
+                            })
+
+                            Return
+                        End If
+
+                        username = usernameElement.GetString()
+                        password = passwordElement.GetString()
+
+                        Debug.WriteLine("Login request received for username: " & username)
+
+                        ' Connect this to your existing login-validation method.
+                        ' Do not add new database validation here.
+                        Debug.WriteLine("Login request needs to be passed to the existing login handler.")
 
                     Case "getCurrentUser"
                         Debug.WriteLine("GET CURRENT USER requested")
