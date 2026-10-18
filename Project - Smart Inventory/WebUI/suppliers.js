@@ -6,7 +6,6 @@
 
 let suppliers = [];
 
-
 /* =========================================================
    WEBVIEW2 / IFRAME BRIDGE
    ========================================================= */
@@ -22,7 +21,6 @@ function sendToVB(data) {
 
 }
 
-
 /* =========================================================
    LOAD SUPPLIERS
    ========================================================= */
@@ -34,7 +32,6 @@ function loadSuppliers() {
     });
 
 }
-
 
 /* =========================================================
    SHOW MESSAGE
@@ -64,7 +61,6 @@ function showMessage(message, type = "success") {
 
 }
 
-
 /* =========================================================
    RENDER SUPPLIERS
    ========================================================= */
@@ -92,7 +88,6 @@ function renderSuppliers(data) {
                 : " Suppliers");
     }
 
-
     if (suppliers.length === 0) {
 
         tableBody.innerHTML = `
@@ -106,7 +101,6 @@ function renderSuppliers(data) {
         return;
     }
 
-
     tableBody.innerHTML = suppliers.map((supplier, index) => `
     <tr data-supplier-id="${escapeHtml(supplier.SupplierID)}">
         <td>${index + 1}</td>
@@ -118,7 +112,6 @@ function renderSuppliers(data) {
 `).join("");
 
 }
-
 
 /* =========================================================
    ESCAPE HTML
@@ -138,7 +131,6 @@ function escapeHtml(value) {
         .replace(/'/g, "&#039;");
 
 }
-
 
 /* =========================================================
    OPEN SUPPLIER FORM
@@ -162,7 +154,6 @@ function openSupplierForm() {
 
 }
 
-
 /* =========================================================
    CLOSE SUPPLIER FORM
    ========================================================= */
@@ -184,8 +175,6 @@ function closeSupplierForm() {
     }
 
 }
-
-
 
 /* =========================================================
    ADD SUPPLIER - VALIDATE ALL REQUIRED FIELDS
@@ -264,8 +253,6 @@ function addSupplier(event) {
 
 }
 
-
-
 /* =========================================================
    RECEIVE MESSAGES FROM VB.NET
    ========================================================= */
@@ -307,7 +294,6 @@ window.addEventListener("message", function (event) {
     }
 
 });
-
 
 /* =========================================================
    INITIALIZE EVENTS

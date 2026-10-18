@@ -1,0 +1,103 @@
+﻿
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>User Management</title>
+
+    <link rel="stylesheet" href="theme.css">
+    <link rel="stylesheet" href="user-management.css">
+</head>
+
+<body>
+    <div class="page-container">
+
+        <div class="page-header">
+            <div>
+                <h1> </h1>
+                <p> </p>
+            </div>
+        </div>
+
+        <div class="info-card">
+            <h3> </h3>
+            <p> </p>
+        </div>
+
+        <div class="table-card">
+            <div class="user-toolbar">
+                <input type="search"
+                       id="userSearch"
+                       placeholder="Search by username, name, role, or status..."
+                       aria-label="Search users">
+
+                <button type="button" id="refreshUsersBtn">
+                    Refresh
+                </button>
+            </div>
+
+            <div class="table-wrapper">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>User ID</th>
+                            <th>Username</th>
+                            <th>Full Name</th>
+                            <th>Role</th>
+                            <th>Account Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+
+                    <tbody id="usersTableBody">
+                        <tr>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <p id="userMessage" role="status"></p>
+
+        <dialog id="editUserDialog">
+            <form id="editUserForm">
+                <h2>Update User</h2>
+
+                <input type="hidden" id="editUserId">
+
+                <label for="editUsername">Username</label>
+                <input id="editUsername"
+                       maxlength="50"
+                       required>
+
+                <label for="editFullName">Full Name</label>
+                <input id="editFullName"
+                       maxlength="100">
+
+                <label for="editRole">Role</label>
+                <input id="editRole"
+                       maxlength="30">
+
+                <label for="editAccountStatus">Account Status</label>
+                <select id="editAccountStatus" required>
+                    <option value="Pending">Pending</option>
+                    <option value="Approved">Approved</option>
+                    <option value="Rejected">Rejected</option>
+                </select>
+
+                <div class="dialog-actions">
+                    <button type="submit">Save Changes</button>
+                    <button type="button" id="cancelEditBtn">
+                        Cancel
+                    </button>
+                </div>
+            </form>
+        </dialog>
+
+    </div>
+
+    <script src="user-management.js"></script>
+</body>
+</html>

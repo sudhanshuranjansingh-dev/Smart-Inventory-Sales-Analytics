@@ -1,297 +1,1158 @@
-﻿<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+﻿/* =========================================================
+   SMART INVENTORY
+   REPORTS MODULE
+   ========================================================= */
 
-    <title>Reports</title>
 
-    <link rel="stylesheet" href="theme.css">
-    <link rel="stylesheet" href="reports.css">
-</head>
+/* =========================================================
+   GLOBAL DATA
+   ========================================================= */
 
-<body>
+let reportData = [];
 
-    <div class="reports-container">
+let currentReportType = "sales";
 
-        <!-- ================= HEADER ================= -->
 
-        <div class="page-header">
+/* =========================================================
+   PAGE INITIALIZATION
+   ========================================================= */
 
-            <div>
-                <h1>Reports</h1>
-                <p>Generate and analyze inventory and sales reports</p>
-            </div>
+document.addEventListener("DOMContentLoaded", function () {
 
-            <div class="header-actions">
+    setDefaultDates();
 
-                <button id="refreshBtn"
-                        class="btn btn-secondary">
-                    ↻ Refresh
-                </button>
+    setupEvents();
 
-                <button id="printBtn"
-                        class="btn btn-primary">
-                    🖨 Print
-                </button>
+    updateReportUI();
 
-            </div>
+    loadReports();
 
-        </div>
+});
 
 
-        <!-- ================= REPORT CONTROLS ================= -->
+/* =========================================================
+   EVENTS
+   ========================================================= */
 
-        <div class="report-controls">
+function setupEvents() {
 
-            <div class="control-group">
+    document
+        .getElementById("reportType")
+        .addEventListener("change", function () {
 
-                <label for="reportType">
-                    Report Type
-                </label>
+            currentReportType = this.value;
 
-                <select id="reportType">
+            updateReportUI();
 
-                    <option value="sales">
-                        Sales Report
-                    </option>
+        });
 
-                    <option value="inventory">
-                        Inventory Report
-                    </option>
 
-                    <option value="low-stock">
-                        Low Stock Report
-                    </option>
+    document
+        .getElementById("generateBtn")
+        .addEventListener("click", function () {
 
-                    <option value="product-performance">
-                        Product Performance
-                    </option>
+            loadReports();
 
-                </select>
+        });
 
-            </div>
+    document
+        .getElementById("printBtn")
+        .addEventListener("click", function () {
 
+            window.print();
 
-            <div id="dateControls"
-                 class="date-controls">
+        });
 
-                <div class="control-group">
 
-                    <label for="fromDate">
-                        From Date
-                    </label>
+    document
+        .getElementById("searchInput")
+        .addEventListener("input", function () {
 
-                    <input type="date"
-                           id="fromDate">
+            renderFilteredReport();
 
-                </div>
+        });
 
+}
 
-                <div class="control-group">
 
-                    <label for="toDate">
-                        To Date
-                    </label>
+/* =========================================================
+   DEFAULT DATES
+   ========================================================= */
 
-                    <input type="date"
-                           id="toDate">
+function setDefaultDates() {
 
-                </div>
+    const today = new Date();
 
-            </div>
+    const year = today.getFullYear();
 
+    const month = String(
+        today.getMonth() + 1
+    ).padStart(2, "0");
 
-            <div class="control-group search-group">
+    const day = String(
+        today.getDate()
+    ).padStart(2, "0");
 
-                <label for="searchInput">
-                    Search
-                </label>
 
-                <input type="text"
-                       id="searchInput"
-                       placeholder="Search report...">
+    const todayString =
+        `${year}-${month}-${day}`;
 
-            </div>
 
+    const firstDay = new Date(
+        today.getFullYear(),
+        today.getMonth(),
+        1
+    );
 
-            <div class="control-group generate-group">
 
-                <label>&nbsp;</label>
+    const firstYear =
+        firstDay.getFullYear();
 
-                <button id="generateBtn"
-                        class="btn btn-primary">
-                    Generate Report
-                </button>
+    const firstMonth =
+        String(
+            firstDay.getMonth() + 1
+        ).padStart(2, "0");
 
-            </div>
+    const firstDayNumber =
+        String(
+            firstDay.getDate()
+        ).padStart(2, "0");
 
-        </div>
 
+    const firstDayString =
+        `${firstYear}-${firstMonth}-${firstDayNumber}`;
 
-        <!-- ================= SUMMARY ================= -->
 
-        <div class="summary-grid">
+    document.getElementById(
+        "fromDate"
+    ).value = firstDayString;
 
-            <div class="summary-card">
 
-                <div class="summary-icon">
-                    📊
-                </div>
+    document.getElementById(
+        "toDate"
+    ).value = todayString;
+}
 
-                <div>
 
-                    <span class="summary-label">
-                        Total Records
-                    </span>
+/* =========================================================
+   UPDATE UI
+   ========================================================= */
 
-                    <strong id="totalRecords">
-                        0
-                    </strong>
+function updateReportUI() {
 
-                </div>
+    const dateControls =
+        document.getElementById("dateControls");
 
-            </div>
+    const title =
+        document.getElementById("reportTitle");
 
+    const subtitle =
+        document.getElementById("reportSubtitle");
 
-            <div class="summary-card">
 
-                <div class="summary-icon">
-                    📦
-                </div>
+    if (currentReportType === "sales") {
 
-                <div>
+        dateControls.style.display = "flex";
 
-                    <span class="summary-label">
-                        Total Units
-                    </span>
+        title.textContent = "Sales Report";
 
-                    <strong id="totalUnits">
-                        0
-                    </strong>
+        subtitle.textContent =
+            "View sales transactions and revenue";
 
-                </div>
+    }
 
-            </div>
+    else if (currentReportType === "inventory") {
 
+        dateControls.style.display = "none";
 
-            <div class="summary-card">
+        title.textContent = "Inventory Report";
 
-                <div class="summary-icon">
-                    💰
-                </div>
+        subtitle.textContent =
+            "View current inventory and stock valuation";
 
-                <div>
+    }
 
-                    <span class="summary-label">
-                        Total Amount
-                    </span>
+    else if (currentReportType === "low-stock") {
 
-                    <strong id="totalAmount">
-                        ₹0.00
-                    </strong>
+        dateControls.style.display = "none";
 
-                </div>
+        title.textContent = "Low Stock Report";
 
-            </div>
+        subtitle.textContent =
+            "Identify products that require restocking";
 
+    }
 
-            <div class="summary-card">
+    else if (
+        currentReportType ===
+        "product-performance"
+    ) {
 
-                <div class="summary-icon">
-                    ⚠
-                </div>
+        dateControls.style.display = "none";
 
-                <div>
+        title.textContent =
+            "Product Performance";
 
-                    <span class="summary-label">
-                        Alerts
-                    </span>
+        subtitle.textContent =
+            "Analyze product sales performance";
 
-                    <strong id="totalAlerts">
-                        0
-                    </strong>
+    }
 
-                </div>
+}
 
-            </div>
 
-        </div>
+/* =========================================================
+   LOAD REPORTS
+   ========================================================= */
 
+function loadReports() {
 
-        <!-- ================= REPORT TITLE ================= -->
+    const status =
+        document.getElementById("reportStatus");
 
-        <div class="report-heading">
 
-            <div>
+    status.textContent =
+        "Generating report...";
 
-                <h2 id="reportTitle">
-                    Sales Report
-                </h2>
 
-                <p id="reportSubtitle">
-                    View sales transactions and revenue
-                </p>
+    const fromDate =
+        document.getElementById(
+            "fromDate"
+        ).value;
 
-            </div>
 
-        </div>
+    const toDate =
+        document.getElementById(
+            "toDate"
+        ).value;
 
 
-        <!-- ================= TABLE ================= -->
+    const request = {
 
-        <div class="table-container">
+        action: "loadReports",
 
-            <table id="reportTable">
+        reportType:
+            currentReportType,
 
-                <thead id="reportTableHead">
+        fromDate:
+            fromDate,
 
-                    <tr>
+        toDate:
+            toDate
 
-                        <th>Sale ID</th>
-                        <th>Product</th>
-                        <th>Quantity</th>
-                        <th>Selling Price</th>
-                        <th>Total</th>
-                        <th>Date</th>
+    };
 
-                    </tr>
 
-                </thead>
+    console.log(
+        "Requesting report:",
+        request
+    );
 
-                <tbody id="reportTableBody">
 
-                    <tr>
+    /*
+     * IMPORTANT:
+     * Reports is inside the iframe.
+     * Therefore send the request to main.js.
+     */
 
-                        <td colspan="6"
-                            class="empty-state">
+    if (
+        window.parent &&
+        window.parent !== window
+    ) {
 
-                            No report data available.
+        window.parent.postMessage(
+            request,
+            "*"
+        );
 
-                        </td>
+        return;
+    }
 
-                    </tr>
 
-                </tbody>
+    /*
+     * Fallback for direct WebView2 usage.
+     */
 
-            </table>
+    if (
+        window.chrome &&
+        window.chrome.webview
+    ) {
 
-        </div>
+        window.chrome.webview.postMessage(
+            request
+        );
 
+        return;
+    }
 
-        <!-- ================= STATUS ================= -->
 
-        <div id="reportStatus"
-             class="report-status">
+    status.textContent =
+        "WebView2 communication is unavailable.";
 
-            Ready to generate report.
+}
 
-        </div>
 
-    </div>
+/* =========================================================
+   RECEIVE MESSAGE FROM MAIN.JS
+   ========================================================= */
 
+window.addEventListener(
+    "message",
+    function (event) {
 
-    <script src="reports.js"></script>
+        const message =
+            event.data;
 
-</body>
-</html>
+
+        if (!message) {
+            return;
+        }
+
+
+        console.log(
+            "Reports received:",
+            message
+        );
+
+
+        /* ---------------- REPORT DATA ---------------- */
+
+        if (
+            message.type ===
+            "reports"
+        ) {
+
+            reportData =
+                Array.isArray(
+                    message.data
+                )
+                    ? message.data
+                    : [];
+
+
+            if (
+                message.reportType
+            ) {
+
+                currentReportType =
+                    message.reportType;
+
+                document.getElementById(
+                    "reportType"
+                ).value =
+                    currentReportType;
+
+            }
+
+
+            updateReportUI();
+
+
+            updateSummary(
+                message.summary
+            );
+
+
+            renderFilteredReport();
+
+
+            document.getElementById(
+                "reportStatus"
+            ).textContent =
+                `${reportData.length} record(s) loaded.`;
+
+        }
+
+
+        /* ---------------- ERROR ---------------- */
+
+        else if (
+            message.type ===
+            "reportsError"
+        ) {
+
+            reportData = [];
+
+            updateSummary(null);
+
+            renderTable([]);
+
+
+            document.getElementById(
+                "reportStatus"
+            ).textContent =
+                message.message ||
+                "Unable to generate report.";
+
+        }
+
+    }
+);
+
+
+/* =========================================================
+   SUMMARY
+   ========================================================= */
+
+function updateSummary(summary) {
+
+    const totalRecords =
+        document.getElementById(
+            "totalRecords"
+        );
+
+    const totalUnits =
+        document.getElementById(
+            "totalUnits"
+        );
+
+    const totalAmount =
+        document.getElementById(
+            "totalAmount"
+        );
+
+    const totalAlerts =
+        document.getElementById(
+            "totalAlerts"
+        );
+
+
+    if (!summary) {
+
+        totalRecords.textContent = "0";
+
+        totalUnits.textContent = "0";
+
+        totalAmount.textContent =
+            "₹0.00";
+
+        totalAlerts.textContent = "0";
+
+        return;
+    }
+
+
+    totalRecords.textContent =
+        formatNumber(
+            summary.totalRecords || 0
+        );
+
+
+    totalUnits.textContent =
+        formatNumber(
+            summary.totalUnits || 0
+        );
+
+
+    totalAmount.textContent =
+        formatCurrency(
+            summary.totalAmount || 0
+        );
+
+
+    totalAlerts.textContent =
+        formatNumber(
+            summary.totalAlerts || 0
+        );
+
+}
+
+
+/* =========================================================
+   SEARCH
+   ========================================================= */
+
+function renderFilteredReport() {
+
+    const search =
+        document.getElementById(
+            "searchInput"
+        ).value
+            .trim()
+            .toLowerCase();
+
+
+    if (!search) {
+
+        renderTable(
+            reportData
+        );
+
+        return;
+    }
+
+
+    const filtered =
+        reportData.filter(
+            function (item) {
+
+                return Object
+                    .values(item)
+                    .some(
+                        function (value) {
+
+                            return String(
+                                value ?? ""
+                            )
+                                .toLowerCase()
+                                .includes(search);
+
+                        }
+                    );
+
+            }
+        );
+
+
+    renderTable(filtered);
+
+}
+
+
+/* =========================================================
+   TABLE RENDERER
+   ========================================================= */
+
+function renderTable(data) {
+
+    const head =
+        document.getElementById(
+            "reportTableHead"
+        );
+
+    const body =
+        document.getElementById(
+            "reportTableBody"
+        );
+
+
+    if (
+        currentReportType ===
+        "sales"
+    ) {
+
+        head.innerHTML = `
+
+<tr>
+
+    <th>Sale ID</th>
+
+    <th>Product</th>
+
+    <th>Quantity</th>
+
+    <th>Selling Price</th>
+
+    <th>Total</th>
+
+    <th>Date</th>
+
+</tr>
+
+        `;
+
+
+        if (!data.length) {
+
+            showEmpty(
+                body,
+                6
+            );
+
+            return;
+
+        }
+
+
+        body.innerHTML =
+            data.map(
+                function (item) {
+
+                    return `
+
+<tr>
+
+    <td>
+        ${safe(item.SaleID)}
+    </td>
+
+    <td>
+        ${safe(item.ProductName)}
+    </td>
+
+    <td>
+        ${formatNumber(
+        item.Quantity
+        )}
+    </td>
+
+    <td>
+        ${formatCurrency(
+        item.SellingPrice
+        )}
+    </td>
+
+    <td>
+        ${formatCurrency(
+        item.TotalAmount
+        )}
+    </td>
+
+    <td>
+        ${safe(item.SaleDate)}
+    </td>
+
+</tr>
+
+                    `;
+
+                }
+            ).join("");
+
+    }
+
+
+    /* =====================================================
+       INVENTORY
+       ===================================================== */
+
+    else if (
+        currentReportType ===
+        "inventory"
+    ) {
+
+        head.innerHTML = `
+
+<tr>
+
+    <th>Product Code</th>
+
+    <th>Product Name</th>
+
+    <th>Category</th>
+
+    <th>Current Stock</th>
+
+    <th>Minimum Stock</th>
+
+    <th>Status</th>
+
+    <th>Purchase Price</th>
+
+    <th>Selling Price</th>
+
+    <th>Stock Value</th>
+
+</tr>
+
+        `;
+
+
+        if (!data.length) {
+
+            showEmpty(
+                body,
+                9
+            );
+
+            return;
+
+        }
+
+
+        body.innerHTML =
+            data.map(
+                function (item) {
+
+                    return `
+
+<tr>
+
+    <td>
+        ${safe(
+        item.ProductCode
+        )}
+    </td>
+
+    <td>
+        ${safe(
+        item.ProductName
+        )}
+    </td>
+
+    <td>
+        ${safe(
+        item.CategoryName
+        )}
+    </td>
+
+    <td>
+        ${formatNumber(
+        item.StockQuantity
+        )}
+    </td>
+
+    <td>
+        ${formatNumber(
+        item.MinimumStock
+        )}
+    </td>
+
+    <td>
+        ${getStockStatus(
+        item.StockQuantity,
+        item.MinimumStock
+        )}
+    </td>
+
+    <td>
+        ${formatCurrency(
+        item.PurchasePrice
+        )}
+    </td>
+
+    <td>
+        ${formatCurrency(
+        item.SellingPrice
+        )}
+    </td>
+
+    <td>
+        ${formatCurrency(
+        item.StockValue
+        )}
+    </td>
+
+</tr>
+
+                    `;
+
+                }
+            ).join("");
+
+    }
+
+
+    /* =====================================================
+       LOW STOCK
+       ===================================================== */
+
+    else if (
+        currentReportType ===
+        "low-stock"
+    ) {
+
+        head.innerHTML = `
+
+<tr>
+
+    <th>Product Code</th>
+
+    <th>Product Name</th>
+
+    <th>Category</th>
+
+    <th>Current Stock</th>
+
+    <th>Minimum Stock</th>
+
+    <th>Shortage</th>
+
+    <th>Status</th>
+
+</tr>
+
+        `;
+
+
+        if (!data.length) {
+
+            showEmpty(
+                body,
+                7
+            );
+
+            return;
+
+        }
+
+
+        body.innerHTML =
+            data.map(
+                function (item) {
+
+                    const shortage =
+                        Math.max(
+                            Number(
+                                item.MinimumStock || 0
+                            ) -
+                            Number(
+                                item.StockQuantity || 0
+                            ),
+                            0
+                        );
+
+
+                    return `
+
+<tr>
+
+    <td>
+        ${safe(
+        item.ProductCode
+        )}
+    </td>
+
+    <td>
+        ${safe(
+        item.ProductName
+        )}
+    </td>
+
+    <td>
+        ${safe(
+        item.CategoryName
+        )}
+    </td>
+
+    <td>
+        ${formatNumber(
+        item.StockQuantity
+        )}
+    </td>
+
+    <td>
+        ${formatNumber(
+        item.MinimumStock
+        )}
+    </td>
+
+    <td>
+        ${formatNumber(
+        shortage
+        )}
+    </td>
+
+    <td>
+        ${getStockStatus(
+        item.StockQuantity,
+        item.MinimumStock
+        )}
+    </td>
+
+</tr>
+
+                    `;
+
+                }
+            ).join("");
+
+    }
+
+
+    /* =====================================================
+       PRODUCT PERFORMANCE
+       ===================================================== */
+
+    else if (
+        currentReportType ===
+        "product-performance"
+    ) {
+
+        head.innerHTML = `
+
+<tr>
+
+    <th>Product Code</th>
+
+    <th>Product Name</th>
+
+    <th>Category</th>
+
+    <th>Current Stock</th>
+
+    <th>Units Sold</th>
+
+    <th>Selling Price</th>
+
+    <th>Total Sales</th>
+
+    <th>Performance</th>
+
+</tr>
+
+        `;
+
+
+        if (!data.length) {
+
+            showEmpty(
+                body,
+                8
+            );
+
+            return;
+
+        }
+
+
+        body.innerHTML =
+            data.map(
+                function (item) {
+
+                    return `
+
+<tr>
+
+    <td>
+        ${safe(
+        item.ProductCode
+        )}
+    </td>
+
+    <td>
+        ${safe(
+        item.ProductName
+        )}
+    </td>
+
+    <td>
+        ${safe(
+        item.CategoryName
+        )}
+    </td>
+
+    <td>
+        ${formatNumber(
+        item.StockQuantity
+        )}
+    </td>
+
+    <td>
+        ${formatNumber(
+        item.UnitsSold
+        )}
+    </td>
+
+    <td>
+        ${formatCurrency(
+        item.SellingPrice
+        )}
+    </td>
+
+    <td>
+        ${formatCurrency(
+        item.TotalSales
+        )}
+    </td>
+
+    <td>
+        ${getPerformanceStatus(
+        item.Performance
+        )}
+    </td>
+
+</tr>
+
+                    `;
+
+                }
+            ).join("");
+
+    }
+
+}
+
+
+/* =========================================================
+   EMPTY TABLE
+   ========================================================= */
+
+function showEmpty(
+    body,
+    columnCount
+) {
+
+    body.innerHTML = `
+
+<tr>
+
+    <td colspan="${columnCount}"
+        class="empty-state">
+
+        No report data available.
+
+    </td>
+
+</tr>
+
+    `;
+
+}
+
+
+/* =========================================================
+   STOCK STATUS
+   ========================================================= */
+
+function getStockStatus(
+    stock,
+    minimum
+) {
+
+    stock =
+        Number(stock || 0);
+
+    minimum =
+        Number(minimum || 0);
+
+
+    if (stock <= 0) {
+
+        return `
+<span class="status-badge status-out-stock">
+    Out of Stock
+</span>
+        `;
+
+    }
+
+
+    if (stock <= minimum) {
+
+        return `
+<span class="status-badge status-low-stock">
+    Low Stock
+</span>
+        `;
+
+    }
+
+
+    return `
+<span class="status-badge status-in-stock">
+    In Stock
+</span>
+    `;
+
+}
+
+
+/* =========================================================
+   PERFORMANCE STATUS
+   ========================================================= */
+
+function getPerformanceStatus(
+    performance
+) {
+
+    const value =
+        String(
+            performance || "never"
+        ).toLowerCase();
+
+
+    if (value === "top") {
+
+        return `
+<span class="status-badge status-top">
+    Top
+</span>
+        `;
+
+    }
+
+
+    if (value === "medium") {
+
+        return `
+<span class="status-badge status-medium">
+    Medium
+</span>
+        `;
+
+    }
+
+
+    if (value === "low") {
+
+        return `
+<span class="status-badge status-low">
+    Low
+</span>
+        `;
+
+    }
+
+
+    return `
+<span class="status-badge status-never">
+    Never Sold
+</span>
+    `;
+
+}
+
+
+/* =========================================================
+   NUMBER FORMAT
+   ========================================================= */
+
+function formatNumber(value) {
+
+    const number =
+        Number(value || 0);
+
+    return number.toLocaleString(
+        "en-IN"
+    );
+
+}
+
+
+/* =========================================================
+   CURRENCY FORMAT
+   ========================================================= */
+
+function formatCurrency(value) {
+
+    const number =
+        Number(value || 0);
+
+
+    return "₹" +
+        number.toLocaleString(
+            "en-IN",
+            {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            }
+        );
+
+}
+
+
+/* =========================================================
+   SAFE HTML
+   ========================================================= */
+
+function safe(value) {
+
+    if (
+        value === null ||
+        value === undefined
+    ) {
+
+        return "";
+
+    }
+
+
+    return String(value)
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+
+}

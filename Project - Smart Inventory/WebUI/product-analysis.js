@@ -61,12 +61,6 @@ function showMessage(message, isError = false) {
 function setLoading(isLoading) {
     requestInProgress = isLoading;
 
-    const refreshButton = getElement("refreshAnalysis");
-
-    if (refreshButton) {
-        refreshButton.disabled = isLoading;
-    }
-
     const tableBody = getElement("analysisTableBody");
 
     if (isLoading && tableBody) {

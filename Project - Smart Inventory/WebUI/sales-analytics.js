@@ -29,14 +29,9 @@ function initializeSalesAnalytics() {
     window.addEventListener("message", handleSalesAnalyticsMessage);
 
     const btnApply = document.getElementById("btnApply");
-    const btnRefresh = document.getElementById("btnRefresh");
 
     if (btnApply) {
         btnApply.addEventListener("click", loadSalesAnalytics);
-    }
-
-    if (btnRefresh) {
-        btnRefresh.addEventListener("click", loadSalesAnalytics);
     }
 
     // Load analytics when the page opens.

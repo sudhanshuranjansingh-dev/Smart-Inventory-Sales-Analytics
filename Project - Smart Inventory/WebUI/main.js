@@ -4,16 +4,17 @@
    ========================================================= */
 
 /* PAGE CONFIGURATION */
+
 const pages = {
     dashboard: {
         file: "dashboard.html",
         title: "Dashboard",
-        subtitle: "Overview of your inventory and sales"
+        subtitle: "Overview of your inventory"
     },
     products: {
         file: "products.html",
         title: "Products",
-        subtitle: "Manage your inventory products"
+        subtitle: "Manage products"
     },
     categories: {
         file: "categories.html",
@@ -23,27 +24,27 @@ const pages = {
     suppliers: {
         file: "suppliers.html",
         title: "Suppliers",
-        subtitle: "Manage your suppliers"
+        subtitle: "Manage suppliers"
     },
     purchases: {
         file: "purchases.html",
         title: "Purchases",
-        subtitle: "Manage purchase transactions"
+        subtitle: "Manage purchases"
     },
     sales: {
         file: "sales.html",
         title: "Sales",
-        subtitle: "Manage sales transactions"
+        subtitle: "Manage sales"
     },
     "sales-history": {
         file: "sales-history.html",
         title: "Sales History",
-        subtitle: "View previous sales transactions"
+        subtitle: "View previous sales"
     },
     inventory: {
         file: "inventory.html",
         title: "Inventory",
-        subtitle: "Monitor your stock levels"
+        subtitle: "Monitor stock levels"
     },
     "product-analysis": {
         file: "product-analysis.html",
@@ -58,14 +59,20 @@ const pages = {
     reports: {
         file: "reports.html",
         title: "Reports",
-        subtitle: "Generate inventory and sales reports"
+        subtitle: "View business reports"
     },
     "admin-approval": {
         file: "admin-approval.html",
         title: "Admin Approval",
-        subtitle: "Review and manage access requests"
+        subtitle: "Review administrator requests"
+    },
+    "user-management": {
+        file: "user-management.html",
+        title: "User Management",
+        subtitle: "Manage registered accounts"
     }
 };
+
 
 /* =========================================================
    SESSION STATE
@@ -80,10 +87,12 @@ let logoutPending = false;
 let currentPage = "dashboard";
 let hasInitializedUser = false;
 
+
 /* =========================================================
-   STAFF PERMISSIONS
+   PAGE PERMISSIONS
    ========================================================= */
 
+// Pages hidden from Staff users.
 const staffRestrictedPages = [
     "products",
     "categories",
@@ -91,7 +100,14 @@ const staffRestrictedPages = [
     "product-analysis",
     "sales-analytics",
     "reports",
-    "admin-approval"
+    "admin-approval",
+    "user-management"
+];
+
+// Pages available only to administrators.
+const adminOnlyPages = [
+    "admin-approval",
+    "user-management"
 ];
 
 function isStaffRestrictedPage(pageName) {
@@ -100,6 +116,11 @@ function isStaffRestrictedPage(pageName) {
         staffRestrictedPages.includes(pageName)
     );
 }
+
+function isAdminOnlyPage(pageName) {
+    return adminOnlyPages.includes(pageName);
+}
+
 
 /* =========================================================
    WEBVIEW2 HELPER
@@ -118,9 +139,9 @@ function sendToHost(message) {
     return false;
 }
 
+
 /* =========================================================
    APPLICATION VISIBILITY
-   Requires .app.logged-out CSS below.
    ========================================================= */
 
 function setLoggedOutState(loggedOut) {
@@ -133,51 +154,59 @@ function setLoggedOutState(loggedOut) {
     isLoggedIn = !loggedOut;
 }
 
+
+/* =========================================================
+   NAVIGATION BUTTON HELPERS
+   ========================================================= */
+
+function getNavigationPageName(button) {
+    const onclick = button.getAttribute("onclick") || "";
+
+    const match = onclick.match(
+        /navigate\(\s*['"]([^'"]+)['"]\s*\)/
+    );
+
+    return match ? match[1] : null;
+}
+
+
 /* =========================================================
    ROLE-BASED NAVIGATION
    ========================================================= */
 
-
 function applyRoleBasedNavigation(role) {
-    const normalizedRole = String(role || "").trim().toLowerCase();
-
-    // Features restricted to Staff
-    const staffRestrictedPages = [
-        "products",
-        "categories",
-        "suppliers",
-        "product-analysis",
-        "sales-analytics",
-        "reports",
-        "admin-approval"
-    ];
-
-    // Admin Approval is only available to Admin users
-    const adminOnlyPages = [
-        "admin-approval"
-    ];
+    const normalizedRole = String(role || "")
+        .trim()
+        .toLowerCase();
 
     document.querySelectorAll(".nav-item").forEach(button => {
-        const onclick = button.getAttribute("onclick") || "";
-        const match = onclick.match(/navigate\(['"]([^'"]+)['"]\)/);
+        const pageName = getNavigationPageName(button);
 
-        if (!match) return;
+        if (!pageName) {
+            return;
+        }
 
-        const pageName = match[1];
-
-        if (adminOnlyPages.includes(pageName)) {
+        // Only Admin can see Admin-only navigation items.
+        if (isAdminOnlyPage(pageName)) {
             button.style.display =
                 normalizedRole === "admin" ? "" : "none";
-        } else if (
+
+            return;
+        }
+
+        // Hide restricted pages from Staff.
+        if (
             normalizedRole === "staff" &&
             staffRestrictedPages.includes(pageName)
         ) {
             button.style.display = "none";
-        } else {
-            button.style.display = "";
+            return;
         }
+
+        button.style.display = "";
     });
 }
+
 
 /* =========================================================
    RESET USER HEADER
@@ -192,20 +221,29 @@ function resetUserHeader() {
     const roleElement = document.getElementById("user-role");
     const avatarElement = document.getElementById("user-avatar");
 
-    if (nameElement) nameElement.textContent = "User";
-    if (roleElement) roleElement.textContent = "User";
-    if (avatarElement) avatarElement.textContent = "U";
+    if (nameElement) {
+        nameElement.textContent = "User";
+    }
 
-    // Remove active selection without hiding sidebar buttons.
-    document.querySelectorAll(".nav-item").forEach(function (button) {
+    if (roleElement) {
+        roleElement.textContent = "User";
+    }
+
+    if (avatarElement) {
+        avatarElement.textContent = "U";
+    }
+
+    document.querySelectorAll(".nav-item").forEach(button => {
         button.classList.remove("active");
         button.style.display = "";
     });
 }
+
+
 /* =========================================================
    APPLY AUTHENTICATED USER
-   Do not reload the dashboard for duplicate responses.
    ========================================================= */
+
 function updateUserHeader(response) {
     console.log("Current-user response received:", response);
 
@@ -214,7 +252,9 @@ function updateUserHeader(response) {
         return;
     }
 
-    if (logoutPending) return;
+    if (logoutPending) {
+        return;
+    }
 
     const user =
         response.currentUser ||
@@ -252,7 +292,7 @@ function updateUserHeader(response) {
     if (!name || !role) {
         console.error(
             "Cannot initialize session: name or role is missing.",
-            JSON.stringify(response, null, 2)
+            response
         );
 
         setLoggedOutState(true);
@@ -272,7 +312,9 @@ function updateUserHeader(response) {
     const roleElement = document.getElementById("user-role");
     const avatarElement = document.getElementById("user-avatar");
 
-    if (nameElement) nameElement.textContent = name;
+    if (nameElement) {
+        nameElement.textContent = name;
+    }
 
     if (roleElement) {
         roleElement.textContent =
@@ -297,6 +339,8 @@ function updateUserHeader(response) {
         isLoggedIn: isLoggedIn
     });
 }
+
+
 /* =========================================================
    NAVIGATION
    ========================================================= */
@@ -310,10 +354,7 @@ function navigate(pageName) {
     }
 
     if (!isLoggedIn || !currentUserRole) {
-        console.warn(
-            "Navigation blocked: session is not initialized.",
-            { isLoggedIn, currentUserRole }
-        );
+        console.warn("Navigation blocked: session is not initialized.");
         return;
     }
 
@@ -321,6 +362,15 @@ function navigate(pageName) {
 
     if (!page) {
         console.error("Unknown page:", pageName);
+        return;
+    }
+
+    // Enforce page permissions before loading.
+    if (
+        isAdminOnlyPage(pageName) &&
+        currentUserRole !== "admin"
+    ) {
+        alert("Administrator access is required for this page.");
         return;
     }
 
@@ -341,16 +391,18 @@ function navigate(pageName) {
     const title = document.getElementById("page-title");
     const subtitle = document.getElementById("page-subtitle");
 
-    if (title) title.textContent = page.title;
-    if (subtitle) subtitle.textContent = page.subtitle;
+    if (title) {
+        title.textContent = page.title;
+    }
 
-    document.querySelectorAll(".nav-item").forEach(function (button) {
+    if (subtitle) {
+        subtitle.textContent = page.subtitle;
+    }
+
+    document.querySelectorAll(".nav-item").forEach(button => {
         button.classList.remove("active");
 
-        const onclick = button.getAttribute("onclick") || "";
-        const match = onclick.match(/navigate\(['"]([^'"]+)['"]\)/);
-
-        if (match && match[1] === pageName) {
+        if (getNavigationPageName(button) === pageName) {
             button.classList.add("active");
         }
     });
@@ -360,13 +412,12 @@ function navigate(pageName) {
     }
 
     console.log("Navigation successful:", page.file);
-}/* =========================================================
+}
+
+
+/* =========================================================
    LOGOUT REQUEST
-   Do not clear or modify the current screen before
-   the user confirms logout in the VB.NET dialog.
    ========================================================= */
-
-
 
 function logout() {
     if (!isLoggedIn || logoutPending) {
@@ -389,50 +440,55 @@ function logout() {
    LOGOUT RESPONSE HANDLERS
    ========================================================= */
 
-// Called when the user selects NO in the VB.NET dialog.
+// Called when the user cancels logout.
 function logoutCancelled() {
     logoutPending = false;
 
-    // Preserve the existing authenticated session.
     if (currentUserRole) {
         setLoggedOutState(false);
         applyRoleBasedNavigation(currentUserRole);
     }
 
     console.log("Logout cancelled. Session preserved.");
-    console.log("isLoggedIn:", isLoggedIn);
-    console.log("currentUserRole:", currentUserRole);
 }
 
-// Called when the user selects YES in the VB.NET dialog.
 
+// Called when logout is confirmed.
 function completeLogout() {
     logoutPending = false;
 
-    // Clear the previous user's session in JavaScript.
     isLoggedIn = false;
     currentUserRole = "";
     currentUserName = "";
     currentUsername = "";
     hasInitializedUser = false;
 
-    // Reset the sidebar and user header.
     resetUserHeader();
     setLoggedOutState(true);
 
-    // Reset the visible page.
     currentPage = "dashboard";
 
     const titleElement = document.getElementById("page-title");
     const subtitleElement = document.getElementById("page-subtitle");
 
-    if (titleElement) titleElement.textContent = "Login";
+    if (titleElement) {
+        titleElement.textContent = "Login";
+    }
+
     if (subtitleElement) {
         subtitleElement.textContent = "Please sign in to continue.";
     }
 
+    const pageFrame = document.getElementById("page-frame");
+
+    if (pageFrame) {
+        pageFrame.setAttribute("src", "about:blank");
+    }
+
     console.log("Logout complete. Previous user state cleared.");
 }
+
+
 /* =========================================================
    RECEIVE IFRAME MESSAGES
    ========================================================= */
@@ -458,6 +514,8 @@ window.addEventListener("message", function (event) {
     console.log("Forwarding action to VB.NET:", data.action);
     sendToHost(data);
 });
+
+
 /* =========================================================
    RECEIVE VB.NET / WEBVIEW2 MESSAGES
    ========================================================= */
@@ -465,60 +523,62 @@ window.addEventListener("message", function (event) {
 const pageFrame = document.getElementById("page-frame");
 
 if (window.chrome && window.chrome.webview) {
-    window.chrome.webview.addEventListener(
-        "message",
-        function (event) {
-            const data = event.data;
+    window.chrome.webview.addEventListener("message", function (event) {
+        const data = event.data;
 
-            if (!data || typeof data !== "object") {
-                return;
-            }
+        if (!data || typeof data !== "object") {
+            return;
+        }
 
-            const messageType = String(
-                data.type || data.action || ""
-            ).toLowerCase();
+        const messageType = String(
+            data.type || data.action || ""
+        ).toLowerCase();
 
-            if (messageType === "currentuser") {
-                updateUserHeader(data);
-
-                if (isLoggedIn && pageFrame && pageFrame.contentWindow) {
-                    pageFrame.contentWindow.postMessage(data, "*");
-                }
-
-                return;
-            }
+        if (messageType === "currentuser") {
+            updateUserHeader(data);
 
             if (
-                messageType === "logoutcancelled" ||
-                messageType === "logoutcanceled"
-            ) {
-                logoutCancelled();
-                return;
-            }
-
-            if (
-                messageType === "logoutcomplete" ||
-                messageType === "logoutconfirmed"
-            ) {
-                completeLogout();
-                return;
-            }
-
-            // Never forward old session data after logout.
-            if (!isLoggedIn || logoutPending) {
-                return;
-            }
-
-            if (
-                data.type &&
+                isLoggedIn &&
                 pageFrame &&
                 pageFrame.contentWindow
             ) {
                 pageFrame.contentWindow.postMessage(data, "*");
             }
+
+            return;
         }
-    );
+
+        if (
+            messageType === "logoutcancelled" ||
+            messageType === "logoutcanceled"
+        ) {
+            logoutCancelled();
+            return;
+        }
+
+        if (
+            messageType === "logoutcomplete" ||
+            messageType === "logoutconfirmed"
+        ) {
+            completeLogout();
+            return;
+        }
+
+        // Do not forward messages from a previous session.
+        if (!isLoggedIn || logoutPending) {
+            return;
+        }
+
+        if (
+            data.type &&
+            pageFrame &&
+            pageFrame.contentWindow
+        ) {
+            pageFrame.contentWindow.postMessage(data, "*");
+        }
+    });
 }
+
 
 /* =========================================================
    PAGE FRAME LOAD
@@ -526,9 +586,13 @@ if (window.chrome && window.chrome.webview) {
 
 if (pageFrame) {
     pageFrame.addEventListener("load", function () {
-        console.log("Page loaded:", pageFrame.getAttribute("src"));
+        console.log(
+            "Page loaded:",
+            pageFrame.getAttribute("src")
+        );
     });
 }
+
 
 /* =========================================================
    HIDE NOTIFICATION ELEMENTS
@@ -541,12 +605,13 @@ function hideNotificationBell() {
         ".notification-bell, #notification, " +
         "#notification-btn, #notification-button, " +
         "#notification-bell"
-    ).forEach(function (element) {
-        element.remove();
-    });
+    ).forEach(element => element.remove());
 }
 
 
+/* =========================================================
+   REQUEST CURRENT USER
+   ========================================================= */
 
 function requestCurrentUser() {
     if (!window.chrome?.webview) {
@@ -560,7 +625,6 @@ function requestCurrentUser() {
         action: "getCurrentUser"
     });
 }
-
 
 
 /* =========================================================

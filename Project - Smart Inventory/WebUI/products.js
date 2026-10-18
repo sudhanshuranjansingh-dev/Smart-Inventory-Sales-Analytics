@@ -966,28 +966,24 @@ function deleteProduct(id) {
 
 function renderProducts(list = products) {
 
-    const tbody =
-        document.getElementById("product-table-body");
+    const tbody = document.getElementById("product-table-body");
 
     if (!tbody) {
         console.error("Product table body not found.");
         return;
     }
 
-    const role =
-        String(currentUserRole || "")
-            .trim()
-            .toLowerCase();
+    const role = String(currentUserRole || "")
+        .trim()
+        .toLowerCase();
 
-    const isStaff =
-        role === "staff";
+    const isStaff = role === "staff";
 
-    const table =
-        tbody.closest("table");
+    // Hide the Actions heading for staff users.
+    const table = tbody.closest("table");
 
     if (table) {
-        const headers =
-            table.querySelectorAll("thead th");
+        const headers = table.querySelectorAll("thead th");
 
         if (headers.length > 0) {
             headers[headers.length - 1].style.display =
@@ -995,27 +991,42 @@ function renderProducts(list = products) {
         }
     }
 
+    // Handle an empty product list.
     if (!list || list.length === 0) {
         tbody.innerHTML = `
             <tr>
-                <td colspan="${isStaff ? 9 : 10}" class="empty-state">
+                <td colspan="${isStaff ? 9 : 10}"
+                    class="empty-state">
                     No products available
                 </td>
             </tr>
         `;
-
         return;
     }
 
+    // Sort a copy alphabetically by Product Name (A-Z).
+    // The original products array remains unchanged.
+    const sortedProducts = [...list].sort(function (a, b) {
+
+        const nameA = String(a.ProductName || "").trim();
+        const nameB = String(b.ProductName || "").trim();
+
+        return nameA.localeCompare(
+            nameB,
+            undefined,
+            {
+                sensitivity: "base",
+                numeric: true
+            }
+        );
+    });
+
     tbody.innerHTML = "";
 
-    list.forEach(function (product) {
+    sortedProducts.forEach(function (product, index) {
 
-        const stock =
-            Number(product.StockQuantity || 0);
-
-        const minimum =
-            Number(product.MinimumStock || 10);
+        const stock = Number(product.StockQuantity || 0);
+        const minimum = Number(product.MinimumStock || 10);
 
         let status = "";
         let statusClass = "";
@@ -1033,36 +1044,40 @@ function renderProducts(list = products) {
             statusClass = "status-good";
         }
 
-        const row =
-            document.createElement("tr");
+        const row = document.createElement("tr");
 
-        const actionsHtml =
-            isStaff
-                ? ""
-                : `
-                    <td>
-                        <div class="action-buttons">
-                            <button
-                                type="button"
-                                class="action-button"
-                                onclick="editProduct(${Number(product.ProductID)})"
-                                title="Edit">
-                                ✏️
-                            </button>
+        // Keep the real database ProductID for actions.
+        const productId = Number(product.ProductID);
 
-                            <button
-                                type="button"
-                                class="action-button"
-                                onclick="deleteProduct(${Number(product.ProductID)})"
-                                title="Delete">
-                                🗑️
-                            </button>
-                        </div>
-                    </td>
-                `;
+        const actionsHtml = isStaff
+            ? ""
+            : `
+                <td>
+                    <div class="action-buttons">
+                        <button
+                            type="button"
+                            class="action-button"
+                            onclick="editProduct(${productId})"
+                            title="Edit"
+                            aria-label="Edit ${product.ProductName || "product"}">
+                            ✏️
+                        </button>
+
+                        <button
+                            type="button"
+                            class="action-button"
+                            onclick="deleteProduct(${productId})"
+                            title="Delete"
+                            aria-label="Delete ${product.ProductName || "product"}">
+                            🗑️
+                        </button>
+                    </div>
+                </td>
+            `;
 
         row.innerHTML = `
-            <td>${product.ProductID}</td>
+            <td>${index + 1}</td>
+
             <td>${product.ProductCode || "-"}</td>
 
             <td>
@@ -1070,10 +1085,16 @@ function renderProducts(list = products) {
             </td>
 
             <td>${product.CategoryName || "-"}</td>
+
             <td>${product.SupplierName || "-"}</td>
 
-            <td>₹${Number(product.PurchasePrice || 0).toFixed(2)}</td>
-            <td>₹${Number(product.SellingPrice || 0).toFixed(2)}</td>
+            <td>
+                ₹${Number(product.PurchasePrice || 0).toFixed(2)}
+            </td>
+
+            <td>
+                ₹${Number(product.SellingPrice || 0).toFixed(2)}
+            </td>
 
             <td>${stock}</td>
 
@@ -1087,10 +1108,9 @@ function renderProducts(list = products) {
         `;
 
         tbody.appendChild(row);
-
     });
-
 }
+
 
 /* =========================================================
    SEARCH

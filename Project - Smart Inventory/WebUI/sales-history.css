@@ -45,40 +45,6 @@ body {
         font-size: 14px;
     }
 
-
-/* =========================================================
-   BUTTONS
-   ========================================================= */
-
-.refresh-btn,
-.clear-filter-btn {
-    border: none;
-    border-radius: 6px;
-    padding: 10px 16px;
-    font-size: 14px;
-    font-weight: 600;
-    cursor: pointer;
-}
-
-.refresh-btn {
-    background: #2563eb;
-    color: white;
-}
-
-    .refresh-btn:hover {
-        background: #1d4ed8;
-    }
-
-.clear-filter-btn {
-    background: #e5e7eb;
-    color: #374151;
-}
-
-    .clear-filter-btn:hover {
-        background: #d1d5db;
-    }
-
-
 /* =========================================================
    SUMMARY CARDS
    ========================================================= */

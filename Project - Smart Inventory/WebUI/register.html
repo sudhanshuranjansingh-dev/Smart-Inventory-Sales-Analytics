@@ -1,171 +1,494 @@
-﻿<!DOCTYPE html>
+﻿
+<!DOCTYPE html>
 <html lang="en">
 
 <head>
-
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <meta name="viewport"
-          content="width=device-width, initial-scale=1.0">
-
+    <meta name="theme-color" content="#edf5ff">
     <title>Create Account - Sales Nova</title>
-    <link rel="stylesheet" href="theme.css">
-    <link rel="stylesheet"
-          href="register.css">
 
+    <link rel="stylesheet" href="theme.css">
+    <link rel="stylesheet" href="register.css">
 </head>
 
 <body>
 
-    <div class="register-container">
+    <main class="register-container">
 
-        <div class="register-card">
+        <!-- LEFT BRANDING PANEL -->
+        <section class="brand-panel">
 
-            <div class="logo-section">
+            <a class="brand-logo" href="#" aria-label="Sales Nova home">
+                <span class="brand-icon" aria-hidden="true">
+                    <svg viewBox="0 0 48 48" fill="none">
+                        <path d="M5 35L17 23L26 29L43 10"
+                              stroke="currentColor"
+                              stroke-width="4"
+                              stroke-linecap="round"
+                              stroke-linejoin="round" />
+                        <path d="M31 10H43V22"
+                              stroke="currentColor"
+                              stroke-width="4"
+                              stroke-linecap="round"
+                              stroke-linejoin="round" />
+                        <rect x="5" y="38" width="9" height="6" rx="1.5"
+                              fill="currentColor" />
+                        <rect x="19" y="34" width="9" height="10" rx="1.5"
+                              fill="currentColor" />
+                        <rect x="33" y="26" width="9" height="18" rx="1.5"
+                              fill="currentColor" />
+                    </svg>
+                </span>
 
-                <h1>Sales Nova</h1>
+                <span class="brand-wordmark">
+                    <strong>Sales <span>Nova</span></strong>
+                    <small>SMARTER INVENTORY. BETTER SALES.</small>
+                </span>
+            </a>
 
-                <p>Create your account</p>
+            <div class="brand-copy">
+                <span class="eyebrow">YOUR BUSINESS, SIMPLIFIED</span>
+
+                <h1>
+                    Join <span>Sales Nova</span>
+                    and take your business to the next level.
+                </h1>
+
+                <p class="brand-description">
+                    Create your account and start managing your inventory,
+                    sales and business operations with ease.
+                </p>
+            </div>
+
+            <!-- BENEFITS -->
+            <div class="benefits">
+
+                <div class="benefit">
+                    <div class="benefit-icon" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" fill="none">
+                            <path d="M4 19V12M10 19V6M16 19V9M22 19V3"
+                                  stroke="currentColor"
+                                  stroke-width="2.5"
+                                  stroke-linecap="round" />
+                        </svg>
+                    </div>
+
+                    <div>
+                        <h3>Track Sales</h3>
+                        <p>Monitor your business performance</p>
+                    </div>
+                </div>
+
+                <div class="benefit">
+                    <div class="benefit-icon" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" fill="none">
+                            <path d="M12 3L21 8L12 13L3 8L12 3Z"
+                                  stroke="currentColor"
+                                  stroke-width="2"
+                                  stroke-linejoin="round" />
+                            <path d="M3 8V17L12 22L21 17V8M12 13V22"
+                                  stroke="currentColor"
+                                  stroke-width="2"
+                                  stroke-linejoin="round" />
+                        </svg>
+                    </div>
+
+                    <div>
+                        <h3>Manage Inventory</h3>
+                        <p>Keep your stock under control</p>
+                    </div>
+                </div>
+
+                <div class="benefit">
+                    <div class="benefit-icon" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" fill="none">
+                            <path d="M12 3L20 6V11C20 16 16.5 19.5 12 22C7.5 19.5 4 16 4 11V6L12 3Z"
+                                  stroke="currentColor"
+                                  stroke-width="2"
+                                  stroke-linejoin="round" />
+                            <path d="M8.5 12L11 14.5L16 9.5"
+                                  stroke="currentColor"
+                                  stroke-width="2"
+                                  stroke-linecap="round"
+                                  stroke-linejoin="round" />
+                        </svg>
+                    </div>
+
+                    <div>
+                        <h3>Grow Faster</h3>
+                        <p>Make smarter business decisions</p>
+                    </div>
+                </div>
 
             </div>
 
+            <!-- DECORATIVE INVENTORY ILLUSTRATION -->
+            <div class="illustration" aria-hidden="true">
 
-            <!-- FULL NAME -->
+                <div class="illustration-glow"></div>
 
-            <div class="form-group">
+                <div class="floating-chart">
+                    <svg viewBox="0 0 64 64" fill="none">
+                        <rect x="7" y="34" width="10" height="20" rx="2"
+                              fill="#60A5FA" />
+                        <rect x="24" y="24" width="10" height="30" rx="2"
+                              fill="#3B82F6" />
+                        <rect x="41" y="10" width="10" height="44" rx="2"
+                              fill="#1677FF" />
+                        <path d="M8 26L22 18L34 21L54 5"
+                              stroke="#0759D8"
+                              stroke-width="3"
+                              stroke-linecap="round"
+                              stroke-linejoin="round" />
+                    </svg>
+                </div>
 
-                <label for="fullName">
-                    Full Name
-                </label>
+                <div class="laptop">
+                    <div class="laptop-screen">
+                        <div class="screen-top">
+                            <span></span><span></span><span></span>
+                        </div>
 
-                <input
-                    type="text"
-                    id="fullName"
-                    placeholder="Enter your full name"
-                    autocomplete="name"
-                >
+                        <div class="screen-heading">Sales Overview</div>
+
+                        <div class="screen-stats">
+                            <div>
+                                <small>Total Sales</small>
+                                <strong>₹ 2.4L</strong>
+                            </div>
+                            <div>
+                                <small>Products</small>
+                                <strong>248</strong>
+                            </div>
+                        </div>
+
+                        <div class="mini-chart">
+                            <span style="height: 30%"></span>
+                            <span style="height: 46%"></span>
+                            <span style="height: 38%"></span>
+                            <span style="height: 65%"></span>
+                            <span style="height: 54%"></span>
+                            <span style="height: 83%"></span>
+                            <span style="height: 72%"></span>
+                        </div>
+                    </div>
+
+                    <div class="laptop-base"></div>
+                </div>
+
+                <div class="package package-one">
+                    <span></span>
+                </div>
+
+                <div class="package package-two">
+                    <span></span>
+                </div>
+
+                <div class="plant">
+                    <span class="leaf leaf-one"></span>
+                    <span class="leaf leaf-two"></span>
+                    <span class="leaf leaf-three"></span>
+                    <span class="leaf leaf-four"></span>
+                    <span class="plant-stem"></span>
+                    <span class="plant-pot"></span>
+                </div>
 
             </div>
 
+            <p class="brand-footer">
+                Smarter operations. Better decisions. Bigger growth.
+            </p>
 
-            <!-- USERNAME -->
+        </section>
 
-            <div class="form-group">
+        <!-- RIGHT REGISTRATION PANEL -->
+        <section class="form-panel">
 
-                <label for="username">
-                    Username
-                </label>
+            <div class="register-card">
 
-                <input
-                    type="text"
-                    id="username"
-                    placeholder="Choose a username"
-                    autocomplete="username"
-                >
+                <header class="form-header">
+
+                    <div class="form-header-icon" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" fill="none">
+                            <circle cx="12" cy="8" r="4"
+                                    stroke="currentColor"
+                                    stroke-width="2" />
+                            <path d="M4 21V19C4 15.7 7.1 13 11 13H13C16.9 13 20 15.7 20 19V21"
+                                  stroke="currentColor"
+                                  stroke-width="2"
+                                  stroke-linecap="round" />
+                        </svg>
+                    </div>
+
+                    <div>
+                        <h2>Create Account</h2>
+                        <p>Fill in your details to get started with Sales Nova.</p>
+                    </div>
+
+                </header>
+
+                <!-- FULL NAME -->
+                <div class="form-group">
+                    <label for="fullName">
+                        Full Name <span class="required">*</span>
+                    </label>
+
+                    <div class="input-wrap">
+                        <span class="field-icon" aria-hidden="true">
+                            <svg viewBox="0 0 24 24" fill="none">
+                                <circle cx="12" cy="8" r="4"
+                                        stroke="currentColor"
+                                        stroke-width="2" />
+                                <path d="M4 21V19C4 15.7 7.1 13 11 13H13C16.9 13 20 15.7 20 19V21"
+                                      stroke="currentColor"
+                                      stroke-width="2"
+                                      stroke-linecap="round" />
+                            </svg>
+                        </span>
+
+                        <input type="text"
+                               id="fullName"
+                               placeholder="Enter your full name"
+                               autocomplete="name"
+                               maxlength="100"
+                               required>
+                    </div>
+                </div>
+
+                <!-- USERNAME -->
+                <div class="form-group">
+                    <label for="username">
+                        Username <span class="required">*</span>
+                    </label>
+
+                    <div class="input-wrap">
+                        <span class="field-icon" aria-hidden="true">
+                            <svg viewBox="0 0 24 24" fill="none">
+                                <circle cx="12" cy="8" r="4"
+                                        stroke="currentColor"
+                                        stroke-width="2" />
+                                <path d="M4 21V19C4 15.7 7.1 13 11 13H13C16.9 13 20 15.7 20 19V21"
+                                      stroke="currentColor"
+                                      stroke-width="2"
+                                      stroke-linecap="round" />
+                            </svg>
+                        </span>
+
+                        <input type="text"
+                               id="username"
+                               placeholder="Choose a username"
+                               autocomplete="username"
+                               maxlength="50"
+                               required>
+                    </div>
+                </div>
+
+                <!-- PASSWORD ROW -->
+                <div class="password-row">
+
+                    <div class="form-group">
+                        <label for="password">
+                            Password <span class="required">*</span>
+                        </label>
+
+                        <div class="input-wrap">
+                            <span class="field-icon" aria-hidden="true">
+                                <svg viewBox="0 0 24 24" fill="none">
+                                    <rect x="4" y="10" width="16" height="11" rx="2"
+                                          stroke="currentColor"
+                                          stroke-width="2" />
+                                    <path d="M8 10V7A4 4 0 0 1 16 7V10"
+                                          stroke="currentColor"
+                                          stroke-width="2"
+                                          stroke-linecap="round" />
+                                </svg>
+                            </span>
+
+                            <input type="password"
+                                   id="password"
+                                   placeholder="Enter your password"
+                                   autocomplete="new-password"
+                                   required>
+
+                            <button type="button"
+                                    class="password-toggle"
+                                    data-target="password"
+                                    aria-label="Show password"
+                                    aria-pressed="false">
+                                <svg viewBox="0 0 24 24" fill="none">
+                                    <path d="M2 12S5.5 5 12 5S22 12 22 12S18.5 19 12 19S2 12 2 12Z"
+                                          stroke="currentColor"
+                                          stroke-width="2" />
+                                    <circle cx="12" cy="12" r="3"
+                                            stroke="currentColor"
+                                            stroke-width="2" />
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- CONFIRM PASSWORD -->
+                    <div class="form-group">
+                        <label for="confirmPassword">
+                            Confirm Password <span class="required">*</span>
+                        </label>
+
+                        <div class="input-wrap">
+                            <span class="field-icon" aria-hidden="true">
+                                <svg viewBox="0 0 24 24" fill="none">
+                                    <rect x="4" y="10" width="16" height="11" rx="2"
+                                          stroke="currentColor"
+                                          stroke-width="2" />
+                                    <path d="M8 10V7A4 4 0 0 1 16 7V10"
+                                          stroke="currentColor"
+                                          stroke-width="2"
+                                          stroke-linecap="round" />
+                                </svg>
+                            </span>
+
+                            <input type="password"
+                                   id="confirmPassword"
+                                   placeholder="Confirm your password"
+                                   autocomplete="new-password"
+                                   required>
+
+                            <button type="button"
+                                    class="password-toggle"
+                                    data-target="confirmPassword"
+                                    aria-label="Show confirm password"
+                                    aria-pressed="false">
+                                <svg viewBox="0 0 24 24" fill="none">
+                                    <path d="M2 12S5.5 5 12 5S22 12 22 12S18.5 19 12 19S2 12 2 12Z"
+                                          stroke="currentColor"
+                                          stroke-width="2" />
+                                    <circle cx="12" cy="12" r="3"
+                                            stroke="currentColor"
+                                            stroke-width="2" />
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- ROLE -->
+                <div class="form-group">
+                    <label for="role">
+                        Role <span class="required">*</span>
+                    </label>
+
+                    <div class="input-wrap">
+                        <span class="field-icon" aria-hidden="true">
+                            <svg viewBox="0 0 24 24" fill="none">
+                                <path d="M12 3L20 6V11C20 16 16.5 19.5 12 22C7.5 19.5 4 16 4 11V6L12 3Z"
+                                      stroke="currentColor"
+                                      stroke-width="2"
+                                      stroke-linejoin="round" />
+                                <path d="M8.5 12L11 14.5L16 9.5"
+                                      stroke="currentColor"
+                                      stroke-width="2"
+                                      stroke-linecap="round"
+                                      stroke-linejoin="round" />
+                            </svg>
+                        </span>
+
+                        <select id="role" required>
+                            <option value="">Select Role</option>
+                            <option value="Staff">Staff</option>
+                            <option value="Manager">Manager</option>
+                            <option value="Admin">Request Admin Access</option>
+                        </select>
+
+                        <span class="select-arrow" aria-hidden="true">
+                            <svg viewBox="0 0 24 24" fill="none">
+                                <path d="M6 9L12 15L18 9"
+                                      stroke="currentColor"
+                                      stroke-width="2"
+                                      stroke-linecap="round"
+                                      stroke-linejoin="round" />
+                            </svg>
+                        </span>
+                    </div>
+                </div>
+
+                <!-- CREATE ACCOUNT -->
+                <button type="button"
+                        id="btnRegister"
+                        class="btn-register">
+                    <span>Create Account</span>
+                    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                        <path d="M5 12H19M12 5L19 12L12 19"
+                              stroke="currentColor"
+                              stroke-width="2"
+                              stroke-linecap="round"
+                              stroke-linejoin="round" />
+                    </svg>
+                </button>
+
+                <!-- BACK TO LOGIN -->
+                <button type="button"
+                        id="btnBackLogin"
+                        class="btn-back">
+                    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                        <path d="M19 12H5M12 5L5 12L12 19"
+                              stroke="currentColor"
+                              stroke-width="2"
+                              stroke-linecap="round"
+                              stroke-linejoin="round" />
+                    </svg>
+                    <span>Back to Login</span>
+                </button>
+
+                <!-- EXISTING REGISTRATION MESSAGE -->
+                <p id="message" role="status" aria-live="polite"></p>
+
+                <div class="form-footer">
+                    <span>Already have an account?</span>
+                    <button type="button"
+                            class="sign-in-link"
+                            id="btnSignIn">
+                        Sign In
+                    </button>
+                </div>
 
             </div>
 
+        </section>
 
-            <!-- PASSWORD -->
-
-            <div class="form-group">
-
-                <label for="password">
-                    Password
-                </label>
-
-                <input
-                    type="password"
-                    id="password"
-                    placeholder="Enter your password"
-                    autocomplete="new-password"
-                >
-
-            </div>
-
-
-            <!-- CONFIRM PASSWORD -->
-
-            <div class="form-group">
-
-                <label for="confirmPassword">
-                    Confirm Password
-                </label>
-
-                <input
-                    type="password"
-                    id="confirmPassword"
-                    placeholder="Confirm your password"
-                    autocomplete="new-password"
-                >
-
-            </div>
-
-
-			<!-- ROLE -->
-
-			<div class="form-group">
-
-				<label for="role">
-					Role
-				</label>
-
-				<select id="role">
-
-					<option value="">
-						Select Role
-					</option>
-
-					<option value="Staff">
-						Staff
-					</option>
-
-					<option value="Manager">
-						Manager
-					</option>
-
-					<option value="Admin">
-						Request Admin Access
-					</option>
-
-				</select>
-
-			</div>
-
-
-            <!-- REGISTER -->
-
-            <button
-                id="btnRegister"
-                class="btn-register">
-
-                Create Account
-
-            </button>
-
-
-            <!-- BACK TO LOGIN -->
-
-            <button
-                id="btnBackLogin"
-                class="btn-back">
-
-                Back to Login
-
-            </button>
-
-
-            <!-- MESSAGE -->
-
-            <p id="message"></p>
-
-        </div>
-
-    </div>
-
+    </main>
 
     <script src="register.js"></script>
 
-</body>
+    <!-- UI enhancements only; account creation stays in register.js -->
+    <script>
+                document.querySelectorAll(".password-toggle").forEach(function (button) {
+                    button.addEventListener("click", function () {
+                        const input = document.getElementById(button.dataset.target);
 
+                        if (!input) return;
+
+                        const showPassword = input.type === "password";
+                        input.type = showPassword ? "text" : "password";
+
+                        button.setAttribute(
+                            "aria-pressed",
+                            String(showPassword)
+                        );
+
+                        button.setAttribute(
+                            "aria-label",
+                            showPassword ? "Hide password" : "Show password"
+                        );
+                    });
+                });
+
+                // The Sign In shortcut uses the existing Back to Login action.
+                document.getElementById("btnSignIn").addEventListener("click", function () {
+                    document.getElementById("btnBackLogin").click();
+                });
+    </script>
+
+</body>
 </html>

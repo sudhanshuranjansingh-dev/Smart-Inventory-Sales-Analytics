@@ -230,7 +230,37 @@ Public Class FrmMain
                 End If
 
                 ' Process actions
+
+
                 Select Case action
+
+                    Case "login"
+                        Dim username As String = ""
+                        Dim password As String = ""
+
+                        Dim usernameElement As JsonElement
+                        Dim passwordElement As JsonElement
+
+                        If Not root.TryGetProperty("username", usernameElement) OrElse
+                           usernameElement.ValueKind <> JsonValueKind.String OrElse
+                           Not root.TryGetProperty("password", passwordElement) OrElse
+                           passwordElement.ValueKind <> JsonValueKind.String Then
+
+                            SendToWeb(New With {
+                                .message = "Please enter your username and password."
+                            })
+
+                            Return
+                        End If
+
+                        username = usernameElement.GetString()
+                        password = passwordElement.GetString()
+
+                        Debug.WriteLine("Login request received for username: " & username)
+
+                        ' Connect this to your existing login-validation method.
+                        ' Do not add new database validation here.
+                        Debug.WriteLine("Login request needs to be passed to the existing login handler.")
 
                     Case "getCurrentUser"
                         Debug.WriteLine("GET CURRENT USER requested")
@@ -321,6 +351,16 @@ Public Class FrmMain
 
                     Case "rejectAdmin"
                         RejectAdmin(root)
+
+                    ' User Management
+                    Case "loadUsers"
+                        LoadUsersToWeb()
+
+                    Case "updateUser"
+                        UpdateUser(root)
+
+                    Case "deleteUser"
+                        DeleteUser(root)
 
                     Case "logout"
                         LogoutFromMain()
@@ -4233,94 +4273,83 @@ Public Class FrmMain
     '=========================================================
     ' LOAD PENDING ACCOUNT REQUESTS
     '=========================================================
+
     Private Sub LoadPendingAdminsToWeb()
 
         Try
-
             '-------------------------------------------------
             ' ADMIN AUTHORIZATION
             '-------------------------------------------------
             If Not Session.IsAdmin Then
 
                 Debug.WriteLine(
-                    "LoadPendingAdmins: Session.IsAdmin = False"
-                )
+                "LoadPendingAdmins: Admin access denied."
+            )
 
                 SendToWeb(New With {
-                    .type = "adminApprovalError",
-                    .message = "Admin access required."
-                })
+                .type = "adminApprovalError",
+                .message = "Admin access required."
+            })
 
                 Return
-
             End If
-
 
             '-------------------------------------------------
             ' DATABASE CONNECTION
             '-------------------------------------------------
-            Using con As MySqlConnection =
-                DBConnection.GetConnection()
+            Using con As MySqlConnection = DBConnection.GetConnection()
 
                 con.Open()
 
                 Debug.WriteLine(
-                    "DB: " & con.Database &
-                    " @ " & con.DataSource
-                )
-
+                "Connected to database: " &
+                con.Database
+            )
 
                 '-------------------------------------------------
-                ' LOAD ALL PENDING ROLES
+                ' LOAD PENDING ACCOUNTS
                 '-------------------------------------------------
                 Dim query As String =
-                    "SELECT UserID, Username, FullName, Role, AccountStatus " &
-                    "FROM users " &
-                    "WHERE TRIM(AccountStatus) = 'Pending' " &
-                    "ORDER BY UserID DESC"
-
+                "SELECT UserID, Username, FullName, Role, AccountStatus " &
+                "FROM users " &
+                "WHERE TRIM(AccountStatus) = @Status " &
+                "ORDER BY UserID DESC"
 
                 Dim pendingAdmins As New List(
-                    Of Dictionary(Of String, Object)
-                )()
-
+                Of Dictionary(Of String, Object)
+            )()
 
                 Using cmd As New MySqlCommand(query, con)
 
-                    Using reader As MySqlDataReader =
-                        cmd.ExecuteReader()
+                    cmd.Parameters.AddWithValue(
+                    "@Status",
+                    "Pending"
+                )
+
+                    Using reader As MySqlDataReader = cmd.ExecuteReader()
 
                         While reader.Read()
 
                             Dim user As New Dictionary(
-                                Of String, Object
-                            )()
+                            Of String, Object
+                        )()
 
                             user("UserID") =
-                                Convert.ToInt32(reader("UserID"))
+                            Convert.ToInt32(reader("UserID"))
 
                             user("Username") =
-                                GetDbString(reader, "Username")
+                            GetDbString(reader, "Username")
 
                             user("FullName") =
-                                GetDbString(reader, "FullName")
+                            GetDbString(reader, "FullName")
 
                             user("Role") =
-                                GetDbString(reader, "Role")
+                            GetDbString(reader, "Role")
 
                             user("AccountStatus") =
-                                GetDbString(reader, "AccountStatus")
+                            GetDbString(reader, "AccountStatus")
 
                             pendingAdmins.Add(user)
-
-                            Debug.WriteLine(
-                                "Pending account: ID=" &
-                                user("UserID").ToString() &
-                                ", Username=" &
-                                user("Username").ToString() &
-                                ", Role=" &
-                                user("Role").ToString()
-                            )
 
                         End While
 
@@ -4328,40 +4357,37 @@ Public Class FrmMain
 
                 End Using
 
-
                 '-------------------------------------------------
                 ' SEND DATA TO WEBVIEW2
-                ' Keep the existing message type for JavaScript.
                 '-------------------------------------------------
                 Debug.WriteLine(
-                    "Total pending accounts found: " &
-                    pendingAdmins.Count
-                )
+                "Pending accounts found: " &
+                pendingAdmins.Count
+            )
 
                 SendToWeb(New With {
-                    .type = "pendingAdmins",
-                    .data = pendingAdmins
-                })
+                .type = "pendingAdmins",
+                .data = pendingAdmins
+            })
 
             End Using
-
 
         Catch ex As Exception
 
             Debug.WriteLine(
-                "LoadPendingAdmins error: " & ex.Message
-            )
+            "LoadPendingAdminsToWeb error: " &
+            ex.ToString()
+        )
 
             SendToWeb(New With {
-                .type = "adminApprovalError",
-                .message =
-                    "Unable to load pending account requests: " &
-                    ex.Message
-            })
+            .type = "adminApprovalError",
+            .message = "Unable to load pending account requests."
+        })
 
         End Try
 
     End Sub
+
 
     '=========================================================
     ' APPROVE ADMIN REQUEST
@@ -4478,6 +4504,315 @@ Public Class FrmMain
         End Try
 
     End Sub
+
+
+
+    Private Sub LoadUsersToWeb()
+
+        Try
+            '--------------------------------------------
+            ' ADMIN AUTHORIZATION
+            '--------------------------------------------
+            If Not Session.IsAdmin Then
+
+                SendToWeb(New With {
+                .type = "usersError",
+                .message = "Admin access required."
+            })
+
+                Return
+            End If
+
+            '--------------------------------------------
+            ' DATABASE CONNECTION
+            '--------------------------------------------
+            Using con As MySqlConnection = DBConnection.GetConnection()
+
+                con.Open()
+
+                '--------------------------------------------
+                ' LOAD ALL REGISTERED USERS
+                '--------------------------------------------
+                Dim query As String =
+                "SELECT UserID, Username, FullName, Role, AccountStatus " &
+                "FROM users " &
+                "ORDER BY UserID DESC"
+
+                Dim users As New List(
+                Of Dictionary(Of String, Object)
+            )()
+
+                Using cmd As New MySqlCommand(query, con)
+
+                    Using reader As MySqlDataReader = cmd.ExecuteReader()
+
+                        While reader.Read()
+
+                            Dim user As New Dictionary(
+                            Of String, Object
+                        )()
+
+                            user("UserID") =
+                            Convert.ToInt32(reader("UserID"))
+
+                            user("Username") =
+                            Convert.ToString(reader("Username"))
+
+                            user("FullName") =
+                            If(reader.IsDBNull(reader.GetOrdinal("FullName")),
+                               "",
+                               Convert.ToString(reader("FullName")))
+
+                            user("Role") =
+                            If(reader.IsDBNull(reader.GetOrdinal("Role")),
+                               "",
+                               Convert.ToString(reader("Role")))
+
+                            user("AccountStatus") =
+                            Convert.ToString(reader("AccountStatus"))
+
+                            users.Add(user)
+
+                        End While
+
+                    End Using
+                End Using
+
+                '--------------------------------------------
+                ' SEND USERS TO USER MANAGEMENT PAGE
+                '--------------------------------------------
+                Debug.WriteLine(
+                "LoadUsersToWeb: Total users = " &
+                users.Count.ToString()
+            )
+
+                SendToWeb(New With {
+                .type = "usersData",
+                .data = users
+            })
+
+            End Using
+
+        Catch ex As Exception
+
+            Debug.WriteLine(
+            "LoadUsersToWeb error: " & ex.ToString()
+        )
+
+            SendToWeb(New With {
+            .type = "usersError",
+            .message = "Unable to load users. Check the application log."
+        })
+
+        End Try
+
+    End Sub
+
+
+
+    Private Sub UpdateUser(root As JsonElement)
+        Try
+            If Not Session.IsAdmin Then
+                SendToWeb(New With {
+                .type = "userManagementError",
+                .message = "Admin access required."
+            })
+                Return
+            End If
+
+            Dim userID As Integer
+            Dim username As String = ""
+            Dim fullName As String = ""
+            Dim role As String = ""
+            Dim accountStatus As String = ""
+
+            If Not root.TryGetProperty("userID", Nothing) Then
+                ' The fields are validated below using TryGetProperty.
+            End If
+
+            Dim element As JsonElement
+
+            If Not root.TryGetProperty("userID", element) OrElse
+            Not element.TryGetInt32(userID) OrElse userID <= 0 Then
+                Throw New ArgumentException("Invalid user ID.")
+            End If
+
+            If Not root.TryGetProperty("username", element) OrElse
+           element.ValueKind <> JsonValueKind.String Then
+                Throw New ArgumentException("Username is required.")
+            End If
+            username = element.GetString().Trim()
+
+            If Not root.TryGetProperty("fullName", element) OrElse
+           element.ValueKind = JsonValueKind.Null Then
+                fullName = ""
+            ElseIf element.ValueKind = JsonValueKind.String Then
+                fullName = element.GetString().Trim()
+            Else
+                Throw New ArgumentException("Invalid full name.")
+            End If
+
+            If Not root.TryGetProperty("role", element) OrElse
+           element.ValueKind <> JsonValueKind.String Then
+                Throw New ArgumentException("Role is required.")
+            End If
+            role = element.GetString().Trim()
+
+            If Not root.TryGetProperty("accountStatus", element) OrElse
+           element.ValueKind <> JsonValueKind.String Then
+                Throw New ArgumentException("Account status is required.")
+            End If
+            accountStatus = element.GetString().Trim()
+
+            If username.Length = 0 OrElse username.Length > 50 Then
+                Throw New ArgumentException("Username must be between 1 and 50 characters.")
+            End If
+
+            If fullName.Length > 100 Then
+                Throw New ArgumentException("Full name cannot exceed 100 characters.")
+            End If
+
+            If role.Length = 0 OrElse role.Length > 30 Then
+                Throw New ArgumentException("Role must be between 1 and 30 characters.")
+            End If
+
+            If Not {"Pending", "Approved", "Rejected"}.Contains(accountStatus) Then
+                Throw New ArgumentException("Invalid account status.")
+            End If
+
+            Using con As MySqlConnection = DBConnection.GetConnection()
+                con.Open()
+
+                Dim query As String =
+                "UPDATE users SET Username = @Username, " &
+                "FullName = @FullName, Role = @Role, " &
+                "AccountStatus = @AccountStatus " &
+                "WHERE UserID = @UserID"
+
+                Using cmd As New MySqlCommand(query, con)
+                    cmd.Parameters.AddWithValue("@Username", username)
+                    cmd.Parameters.AddWithValue("@FullName",
+                    If(String.IsNullOrWhiteSpace(fullName),
+                       CType(DBNull.Value, Object), fullName))
+                    cmd.Parameters.AddWithValue("@Role", role)
+                    cmd.Parameters.AddWithValue("@AccountStatus", accountStatus)
+                    cmd.Parameters.AddWithValue("@UserID", userID)
+
+                    Dim rowsAffected As Integer = cmd.ExecuteNonQuery()
+
+                    If rowsAffected = 0 Then
+                        SendToWeb(New With {
+                        .type = "userManagementError",
+                        .message = "User not found or no changes were made."
+                    })
+                        Return
+                    End If
+                End Using
+            End Using
+
+            SendToWeb(New With {
+            .type = "userManagementMessage",
+            .message = "User updated successfully."
+        })
+
+        Catch ex As MySqlException When ex.Number = 1062
+            SendToWeb(New With {
+            .type = "userManagementError",
+            .message = "That username already exists."
+        })
+
+        Catch ex As ArgumentException
+            SendToWeb(New With {
+            .type = "userManagementError",
+            .message = ex.Message
+        })
+
+        Catch ex As Exception
+            Debug.WriteLine("UpdateUser error: " & ex.ToString())
+            SendToWeb(New With {
+            .type = "userManagementError",
+            .message = "Unable to update user."
+        })
+        End Try
+    End Sub
+
+
+
+    Private Sub DeleteUser(root As JsonElement)
+        Try
+            If Not Session.IsAdmin Then
+                SendToWeb(New With {
+                .type = "userManagementError",
+                .message = "Admin access required."
+            })
+                Return
+            End If
+
+            Dim element As JsonElement
+            Dim userID As Integer
+
+            If Not root.TryGetProperty("userID", element) OrElse
+           Not element.TryGetInt32(userID) OrElse userID <= 0 Then
+                Throw New ArgumentException("Invalid user ID.")
+            End If
+
+            If userID = Session.CurrentUserID Then
+                SendToWeb(New With {
+                .type = "userManagementError",
+                .message = "You cannot delete your own account."
+            })
+                Return
+            End If
+
+            Using con As MySqlConnection = DBConnection.GetConnection()
+                con.Open()
+
+                Dim query As String =
+                "DELETE FROM users WHERE UserID = @UserID"
+
+                Using cmd As New MySqlCommand(query, con)
+                    cmd.Parameters.AddWithValue("@UserID", userID)
+
+                    Dim rowsAffected As Integer = cmd.ExecuteNonQuery()
+
+                    If rowsAffected = 0 Then
+                        SendToWeb(New With {
+                        .type = "userManagementError",
+                        .message = "User not found."
+                    })
+                        Return
+                    End If
+                End Using
+            End Using
+
+            SendToWeb(New With {
+            .type = "userManagementMessage",
+            .message = "User deleted successfully."
+        })
+
+        Catch ex As ArgumentException
+            SendToWeb(New With {
+            .type = "userManagementError",
+            .message = ex.Message
+        })
+
+        Catch ex As MySqlException
+            Debug.WriteLine("DeleteUser database error: " & ex.ToString())
+            SendToWeb(New With {
+            .type = "userManagementError",
+            .message = "Unable to delete user. The account may be referenced by other records."
+        })
+
+        Catch ex As Exception
+            Debug.WriteLine("DeleteUser error: " & ex.ToString())
+            SendToWeb(New With {
+            .type = "userManagementError",
+            .message = "Unable to delete user."
+        })
+        End Try
+    End Sub
+
+
 
     '=========================================================
     ' REJECT PENDING ACCOUNT REQUEST
@@ -5240,33 +5575,28 @@ Public Class FrmMain
 
     End Function
 
+
+
     Private Function IsStaffRestrictedAction(action As String) As Boolean
 
         Select Case action
 
-            Case "addProduct",
-             "updateProduct",
-             "deleteProduct",
-             "loadCategories",
-             "addCategory",
-             "deleteCategory",
+            Case "addProduct", "updateProduct", "deleteProduct",
+             "loadCategories", "addCategory", "deleteCategory",
              "addSupplier",
-             "loadProductAnalysis",
-             "loadSalesAnalytics",
-             "loadReports",
-             "loadPendingAdmins",
-             "approveAdmin",
-             "rejectAdmin"
+             "loadProductAnalysis", "loadSalesAnalytics", "loadReports",
+             "loadPendingAdmins", "approveAdmin", "rejectAdmin",
+             "loadUsers", "updateUser", "deleteUser"
 
                 Return True
 
             Case Else
-
                 Return False
 
         End Select
 
     End Function
+
 
     Private Sub SendCurrentUserToWeb()
 

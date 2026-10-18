@@ -465,3 +465,8 @@ body {
 #page-frame {
     min-height: 0;
 }
+
+/* Hide subtitles beneath page titles throughout the application */
+#page-subtitle {
+    display: none !important;
+}

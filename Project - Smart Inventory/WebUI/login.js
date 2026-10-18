@@ -43,9 +43,24 @@ document.addEventListener("DOMContentLoaded", function () {
     // SHOW MESSAGE
     //=========================================================
     function showMessage(text) {
-        message.textContent = text;
-    }
 
+        const cleanText =
+            typeof text === "string" ? text.trim() : "";
+
+        message.textContent = cleanText;
+
+        if (cleanText.length === 0) {
+            message.style.setProperty(
+                "display",
+                "none",
+                "important"
+            );
+            return;
+        }
+
+        message.style.removeProperty("display");
+        message.style.display = "flex";
+    }
 
     //=========================================================
     // LOGIN
@@ -154,29 +169,51 @@ document.addEventListener("DOMContentLoaded", function () {
     //=========================================================
     // RECEIVE MESSAGE FROM VB.NET
     //=========================================================
-    if (
-        window.chrome &&
-        window.chrome.webview
-    ) {
+
+    if (window.chrome && window.chrome.webview) {
 
         window.chrome.webview.addEventListener(
             "message",
             function (event) {
 
-                if (
-                    event.data &&
-                    typeof event.data.message === "string"
-                ) {
+                console.log("VB.NET response received:", event.data);
 
-                    showMessage(event.data.message);
+                let data = event.data;
 
+                // Handle JSON strings if VB.NET sends one
+                if (typeof data === "string") {
+                    try {
+                        data = JSON.parse(data);
+                    } catch {
+                        showMessage(data);
+                        return;
+                    }
+                }
+
+                if (typeof data === "string") {
+                    showMessage(data);
+                    return;
+                }
+
+                if (!data || typeof data !== "object") {
+                    showMessage("Unable to process the login response.");
+                    return;
+                }
+
+                if (typeof data.message === "string") {
+                    showMessage(data.message);
+                } else if (typeof data.error === "string") {
+                    showMessage(data.error);
+                } else if (data.success === false) {
+                    showMessage(
+                        "Login failed. Please check your credentials."
+                    );
                 }
 
             }
         );
 
     }
-
 
     //=========================================================
     // ENTER KEY LOGIN
