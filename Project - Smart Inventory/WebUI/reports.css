@@ -217,9 +217,13 @@ select {
     text-align: left;
 }
 
-    #reportTable th {
+    /* Report table headings — black */
+    #reportTable th,
+    #reportTable thead th,
+    #reportTableHead th {
+        color: #000000 !important;
+        -webkit-text-fill-color: #000000 !important;
         padding: 15px 17px;
-        color: #536b8f;
         background: #f6f8fc;
         border-bottom: 1px solid var(--report-border);
         font-size: 12px;
@@ -390,4 +394,38 @@ select {
     .report-heading h2 {
         font-size: 20px;
     }
+}
+
+/* Change report list text from blue to black */
+#reportTable tbody td {
+    color: #000000 !important;
+}
+
+    /* Keep status badges' colors unchanged */
+    #reportTable tbody td .status-badge {
+        color: inherit;
+    }
+
+/* Hide the record count message at the bottom of Reports */
+.report-status {
+    display: none !important;
+}
+
+/* Reports filter labels - black */
+.report-filters label,
+.report-filter label,
+.filter-group label,
+label[for="reportType"],
+label[for="fromDate"],
+label[for="toDate"] {
+    color: #000000 !important;
+    -webkit-text-fill-color: #000000 !important;
+}
+
+/* Reports page heading */
+h1,
+h2,
+.page-title {
+    color: #000000 !important;
+    -webkit-text-fill-color: #000000 !important;
 }

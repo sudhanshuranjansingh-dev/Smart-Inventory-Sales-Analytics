@@ -1,17 +1,31 @@
-﻿/* =========================================================
+﻿
+/* =========================================================
    SMART INVENTORY - INVENTORY PAGE
+   CONSISTENT DASHBOARD DESIGN
+   ========================================================= */
+
+/* =========================================================
+   GLOBAL
    ========================================================= */
 
 * {
     box-sizing: border-box;
 }
 
+html {
+    width: 100%;
+    min-height: 100%;
+}
+
 body {
+    width: 100%;
+    min-height: 100%;
     margin: 0;
     padding: 0;
-    font-family: Arial, Helvetica, sans-serif;
-    background: #f5f7fa;
+    font-family: "Segoe UI", Arial, Helvetica, sans-serif;
+    background: #f4f6f9;
     color: #1f2937;
+    font-size: 14px;
 }
 
 /* =========================================================
@@ -20,7 +34,9 @@ body {
 
 .inventory-page {
     width: 100%;
-    padding: 24px;
+    min-height: 100%;
+    padding: 22px 20px;
+    background: #f4f6f9;
 }
 
 /* =========================================================
@@ -31,19 +47,23 @@ body {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 24px;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-bottom: 22px;
 }
 
     .inventory-header h1 {
-        margin: 0 0 6px 0;
-        font-size: 28px;
+        margin: 0 0 6px;
+        color: #111827;
+        font-size: 24px;
         font-weight: 700;
+        line-height: 1.4;
     }
 
     .inventory-header p {
         margin: 0;
         color: #6b7280;
-        font-size: 14px;
+        font-size: 13px;
     }
 
 /* =========================================================
@@ -52,33 +72,80 @@ body {
 
 .summary-grid {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 18px;
-    margin-bottom: 24px;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 16px;
+    width: 100%;
+    margin-bottom: 22px;
 }
 
 .summary-card {
-    background: white;
-    border: 1px solid #e5e7eb;
-    border-radius: 10px;
-    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    min-width: 0;
     min-height: 105px;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+    padding: 18px 20px;
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-top: 3px solid #2563eb;
+    border-radius: 12px;
+    box-shadow: 0 3px 10px rgba(15, 23, 42, 0.04);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
+    .summary-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 7px 18px rgba(15, 23, 42, 0.08);
+    }
+
+/* Total Products */
+.summary-grid > .summary-card:nth-child(1) {
+    background: linear-gradient(135deg, #eff6ff 0%, #ffffff 100%);
+    border-color: #bfdbfe;
+    border-top: 3px solid #2563eb;
+}
+
+/* Total Stock */
+.summary-grid > .summary-card:nth-child(2) {
+    background: linear-gradient(135deg, #f5edff 0%, #ffffff 100%);
+    border-color: #e9d5ff;
+    border-top: 3px solid #9333ea;
+}
+
+/* Low Stock */
+.summary-grid > .summary-card:nth-child(3) {
+    background: linear-gradient(135deg, #fff7ed 0%, #ffffff 100%);
+    border-color: #fed7aa;
+    border-top: 3px solid #ea580c;
+}
+
+/* Out of Stock */
+.summary-grid > .summary-card:nth-child(4) {
+    background: linear-gradient(135deg, #fef2f2 0%, #ffffff 100%);
+    border-color: #fecaca;
+    border-top: 3px solid #dc2626;
+}
+
+/* Summary labels */
 .summary-label {
-    font-size: 13px;
-    color: #6b7280;
-    margin-bottom: 10px;
+    margin-bottom: 8px;
+    color: #536b8f;
+    font-size: 12px;
+    font-weight: 500;
+    line-height: 1.5;
 }
 
+/* Summary values */
 .summary-value {
-    font-size: 28px;
+    color: #111827;
+    font-size: 25px;
     font-weight: 700;
+    line-height: 1.35;
+    overflow-wrap: anywhere;
 }
 
     .summary-value.warning {
-        color: #d97706;
+        color: #c2410c;
     }
 
     .summary-value.danger {
@@ -86,37 +153,62 @@ body {
     }
 
 /* =========================================================
-   TOOLBAR
+   SEARCH AND FILTER TOOLBAR
    ========================================================= */
 
 .inventory-toolbar {
     display: flex;
-    gap: 12px;
-    margin-bottom: 18px;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 14px;
+    width: 100%;
+    margin-bottom: 20px;
+    padding: 18px 20px;
+    background: #ffffff;
+    border: 1px solid #e1e6ee;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(15, 23, 42, 0.025);
 }
 
+    /* Search and select controls */
     .inventory-toolbar input,
     .inventory-toolbar select {
         height: 40px;
-        border: 1px solid #d1d5db;
-        border-radius: 7px;
-        background: white;
         padding: 0 12px;
-        font-size: 14px;
+        border: 1px solid #d1d5db;
+        border-radius: 8px;
         outline: none;
+        background: #ffffff;
+        color: #111827;
+        font-family: inherit;
+        font-size: 13px;
+        transition: border-color 0.2s ease, box-shadow 0.2s ease;
     }
 
+    /* Search field */
     .inventory-toolbar input {
-        width: 300px;
+        flex: 1 1 300px;
+        width: 100%;
+        min-width: 0;
     }
 
+        .inventory-toolbar input::placeholder {
+            color: #9ca3af;
+        }
+
+    /* Stock filter */
     .inventory-toolbar select {
-        width: 170px;
+        flex: 0 1 200px;
+        width: 200px;
+        min-width: 160px;
+        cursor: pointer;
     }
 
+        /* Focus state */
         .inventory-toolbar input:focus,
         .inventory-toolbar select:focus {
             border-color: #2563eb;
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
         }
 
 /* =========================================================
@@ -125,122 +217,177 @@ body {
 
 .table-container {
     width: 100%;
-    background: white;
-    border: 1px solid #e5e7eb;
-    border-radius: 10px;
+    min-width: 0;
     overflow-x: auto;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+    background: #ffffff;
+    border: 1px solid #e1e6ee;
+    border-radius: 12px;
+    box-shadow: 0 3px 10px rgba(15, 23, 42, 0.035);
+    -webkit-overflow-scrolling: touch;
 }
 
-/* =========================================================
+    /* =========================================================
    TABLE
    ========================================================= */
 
-table {
-    width: 100%;
-    border-collapse: collapse;
-    min-width: 950px;
-}
+    .table-container table {
+        width: 100%;
+        min-width: 950px;
+        border-collapse: collapse;
+        background: #ffffff;
+    }
 
-thead {
-    background: #f9fafb;
-}
+    /* Table header */
+    .table-container thead {
+        background: #f8fafc;
+    }
 
-th {
-    text-align: left;
-    padding: 14px 16px;
-    font-size: 13px;
-    font-weight: 600;
-    color: #4b5563;
-    border-bottom: 1px solid #e5e7eb;
-    white-space: nowrap;
-}
+    .table-container th {
+        padding: 15px 14px;
+        color: #111827 !important;
+        background: #f8fafc;
+        border-bottom: 1px solid #e5e7eb;
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 0.25px;
+        text-align: left;
+        white-space: nowrap;
+    }
 
-td {
-    padding: 14px 16px;
-    font-size: 13px;
-    border-bottom: 1px solid #f0f0f0;
-    white-space: nowrap;
-}
+    /* Table cells */
+    .table-container td {
+        padding: 14px;
+        color: #374151;
+        border-bottom: 1px solid #edf0f4;
+        font-size: 13px;
+        white-space: nowrap;
+    }
 
-tbody tr:hover {
-    background: #f9fafb;
-}
+    /* Row hover */
+    .table-container tbody tr {
+        transition: background-color 0.15s ease;
+    }
 
-tbody tr:last-child td {
-    border-bottom: none;
-}
+        .table-container tbody tr:hover {
+            background: #f8fbff;
+        }
+
+        /* Last row */
+        .table-container tbody tr:last-child td {
+            border-bottom: none;
+        }
 
 /* =========================================================
    STOCK STATUS
+   Preserves existing inventory.js class names
    ========================================================= */
 
 .stock-status {
-    display: inline-block;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
     padding: 5px 10px;
     border-radius: 20px;
-    font-size: 12px;
+    font-size: 11px;
     font-weight: 600;
+    white-space: nowrap;
 }
 
+    /* In Stock */
     .stock-status.in-stock {
         background: #dcfce7;
         color: #166534;
     }
 
+    /* Low Stock */
     .stock-status.low-stock {
         background: #fef3c7;
         color: #92400e;
     }
 
+    /* Out of Stock */
     .stock-status.out-of-stock {
         background: #fee2e2;
         color: #991b1b;
     }
 
 /* =========================================================
-   EMPTY MESSAGE
+   EMPTY / LOADING MESSAGE
    ========================================================= */
 
-.empty-message {
-    text-align: center;
+.table-container .empty-message {
+    padding: 38px 20px;
     color: #6b7280;
-    padding: 35px 15px;
+    font-size: 13px;
+    text-align: center;
+    white-space: normal;
 }
 
 /* =========================================================
-   RESPONSIVE
+   RESPONSIVE DESIGN
    ========================================================= */
 
-@media (max-width: 1000px) {
-
+@media (max-width: 1100px) {
     .summary-grid {
-        grid-template-columns: repeat(2, 1fr);
+        grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 }
 
-@media (max-width: 650px) {
-
+@media (max-width: 700px) {
     .inventory-page {
-        padding: 16px;
+        padding: 16px 12px;
     }
 
     .inventory-header {
         align-items: flex-start;
-        gap: 15px;
         flex-direction: column;
-    }
-
-    .summary-grid {
-        grid-template-columns: 1fr;
+        gap: 10px;
+        margin-bottom: 18px;
     }
 
     .inventory-toolbar {
+        align-items: stretch;
         flex-direction: column;
+        padding: 15px;
     }
 
         .inventory-toolbar input,
         .inventory-toolbar select {
+            flex: 1 1 auto;
             width: 100%;
+            min-width: 0;
+        }
+}
+
+@media (max-width: 500px) {
+    .inventory-header h1 {
+        font-size: 21px;
+    }
+
+    .summary-grid {
+        grid-template-columns: minmax(0, 1fr);
+        gap: 12px;
+        margin-bottom: 18px;
+    }
+
+    .summary-card {
+        min-height: 85px;
+        padding: 16px;
+    }
+
+    .summary-value {
+        font-size: 22px;
+    }
+
+    .table-container {
+        border-radius: 9px;
+    }
+
+        .table-container th {
+            padding: 13px 11px;
+        }
+
+        .table-container td {
+            padding: 12px 11px;
         }
 }

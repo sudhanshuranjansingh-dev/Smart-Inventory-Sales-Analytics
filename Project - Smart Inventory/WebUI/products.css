@@ -603,3 +603,248 @@ tbody tr {
         padding: 15px 16px;
     }
 }
+
+
+/* =========================================================
+   PRODUCTS PAGE — MATCH DASHBOARD DESIGN
+   Add this at the bottom of products.css
+   ========================================================= */
+
+/* Page background and spacing */
+.products-page {
+    padding: 20px 16px;
+    background: #f4f6f9;
+    color: #111827;
+}
+
+/* Products heading and Add Product button */
+.page-header {
+    margin-bottom: 22px;
+    align-items: center;
+}
+
+    .page-header h2 {
+        color: #111827;
+        font-size: 23px;
+        font-weight: 700;
+    }
+
+    .page-header .btn-primary {
+        min-height: 40px;
+        padding: 11px 18px;
+        border-radius: 8px;
+        background: #2563eb;
+        box-shadow: 0 3px 8px rgba(37, 99, 235, 0.16);
+    }
+
+        .page-header .btn-primary:hover {
+            background: #1d4ed8;
+        }
+
+/* Summary cards */
+.summary-grid {
+    gap: 16px;
+    margin-bottom: 22px;
+}
+
+.summary-card {
+    min-height: 100px;
+    padding: 18px;
+    border-radius: 12px;
+    background: #ffffff;
+    box-shadow: 0 3px 9px rgba(15, 23, 42, 0.04);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+    .summary-card:hover {
+        transform: translateY(-2px);
+    }
+
+/* Keep four distinct, soft dashboard colors */
+.summary-grid > .summary-card:nth-child(1) {
+    background: linear-gradient(135deg, #eff6ff, #ffffff);
+    border: 1px solid #bfdbfe;
+    border-left: 4px solid #2563eb;
+}
+
+.summary-grid > .summary-card:nth-child(2) {
+    background: linear-gradient(135deg, #faf5ff, #ffffff);
+    border: 1px solid #e9d5ff;
+    border-left: 4px solid #9333ea;
+}
+
+.summary-grid > .summary-card:nth-child(3) {
+    background: linear-gradient(135deg, #fff7ed, #ffffff);
+    border: 1px solid #fed7aa;
+    border-left: 4px solid #ea580c;
+}
+
+.summary-grid > .summary-card:nth-child(4) {
+    background: linear-gradient(135deg, #ecfdf5, #ffffff);
+    border: 1px solid #a7f3d0;
+    border-left: 4px solid #059669;
+}
+
+/* Summary icons */
+.summary-icon {
+    width: 48px;
+    height: 48px;
+    min-width: 48px;
+    border-radius: 12px;
+}
+
+/* Summary labels and values */
+.summary-card span {
+    color: #536b8f;
+    font-size: 12px;
+}
+
+.summary-card strong {
+    color: #111827;
+    font-size: 22px;
+    font-weight: 700;
+}
+
+/* Product list panel */
+.table-card {
+    border: 1px solid #e1e6ee;
+    border-radius: 12px;
+    background: #ffffff;
+    box-shadow: 0 3px 10px rgba(15, 23, 42, 0.035);
+}
+
+/* Product list toolbar */
+.table-toolbar {
+    min-height: 82px;
+    padding: 18px 20px;
+    background: #ffffff;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+    .table-toolbar h3 {
+        color: #111827;
+        font-size: 16px;
+        font-weight: 700;
+    }
+
+    .table-toolbar span {
+        color: #6b7280;
+    }
+
+/* Search box */
+.search-box {
+    width: 280px;
+    height: 40px;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    background: #ffffff;
+}
+
+    .search-box:focus-within {
+        border-color: #2563eb;
+        box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.10);
+    }
+
+    .search-box input {
+        color: #111827;
+    }
+
+/* Product table headings */
+.table-container table {
+    width: 100%;
+    min-width: 1050px;
+    border-collapse: collapse;
+}
+
+.table-container thead {
+    background: #f8fafc;
+}
+
+.table-container th {
+    padding: 15px 13px;
+    color: #111827;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.3px;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+/* Table rows */
+.table-container td {
+    padding: 14px 13px;
+    color: #374151;
+    border-bottom: 1px solid #edf0f4;
+    font-size: 13px;
+}
+
+.table-container tbody tr:hover {
+    background: #f8fbff;
+}
+
+.table-container tbody tr:last-child td {
+    border-bottom: none;
+}
+
+/* Empty table message */
+.table-container .empty-state {
+    padding: 42px 20px;
+    color: #6b7280;
+    text-align: center;
+}
+
+/* Action buttons */
+.action-button {
+    width: 34px;
+    height: 34px;
+    border-radius: 8px;
+    border: 1px solid #e1e6ee;
+    background: #ffffff;
+}
+
+    .action-button:hover {
+        background: #eff6ff;
+        border-color: #bfdbfe;
+        color: #2563eb;
+    }
+
+/* Modal styling stays compatible with existing form */
+.modal {
+    border: 1px solid #e5e7eb;
+    border-radius: 14px;
+}
+
+.modal-header,
+.modal-footer {
+    background: #ffffff;
+}
+
+.form-group input,
+.form-group select {
+    border-radius: 8px;
+}
+
+    .form-group input:focus,
+    .form-group select:focus {
+        border-color: #2563eb;
+    }
+
+/* Responsive summary cards */
+@media (max-width: 1100px) {
+    .summary-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 600px) {
+    .products-page {
+        padding: 12px;
+    }
+
+    .summary-grid {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .search-box {
+        width: 100%;
+    }
+}
