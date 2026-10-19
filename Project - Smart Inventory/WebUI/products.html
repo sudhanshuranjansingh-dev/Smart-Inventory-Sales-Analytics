@@ -1,452 +1,282 @@
-﻿<!DOCTYPE html>
+﻿
+<!DOCTYPE html>
 <html lang="en">
 
 <head>
-
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <meta name="viewport"
-          content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#1769ff">
+    <meta name="description" content="Manage products, stock levels, suppliers, and inventory value.">
 
-    <title>Products</title>
+    <title>Products | Smart Inventory</title>
 
     <link rel="stylesheet" href="theme.css">
     <link rel="stylesheet" href="products.css">
-
 </head>
 
 <body>
 
     <div class="products-page">
 
-        <!-- =================================================
-             PAGE HEADER
-             ================================================= -->
-
-        <div class="page-header">
-
+        <!-- PAGE HEADER -->
+        <header class="page-header">
             <div>
                 <h2>Products</h2>
-
-                <p>
-                    
-                </p>
+                <p>Manage your products and monitor inventory levels.</p>
             </div>
 
-            <button class="btn btn-primary"
+            <button type="button"
+                    class="btn btn-primary"
                     onclick="openAddProduct()">
-
                 + Add Product
-
             </button>
+        </header>
 
-        </div>
 
+        <!-- SUMMARY CARDS -->
+        <section class="summary-grid" aria-label="Product summary">
 
-        <!-- =================================================
-             SUMMARY CARDS
-             ================================================= -->
-
-        <div class="summary-grid">
-
+            <!-- Total Products -->
             <div class="summary-card">
-
-                <div class="summary-icon">
+                <div class="summary-icon" aria-hidden="true">
                     📦
                 </div>
 
                 <div>
                     <span>Total Products</span>
-
-                    <strong id="total-products">
-                        0
-                    </strong>
+                    <strong id="total-products">0</strong>
                 </div>
-
             </div>
 
-
+            <!-- Out-of-stock -->
             <div class="summary-card">
-
-                <div class="summary-icon">
-                    🏷
+                <div class="summary-icon" aria-hidden="true">
+                    🚫
                 </div>
 
                 <div>
-                    <span>Categories</span>
-
-                    <strong id="total-categories">
-                        0
-                    </strong>
+                    <span>Out-of-stock</span>
+                    <strong id="out-of-stock">0</strong>
                 </div>
-
             </div>
 
-
+            <!-- Low Stock -->
             <div class="summary-card">
-
-                <div class="summary-icon">
-                    ⚠
+                <div class="summary-icon" aria-hidden="true">
+                    ⚠️
                 </div>
 
                 <div>
                     <span>Low Stock</span>
-
-                    <strong id="low-stock">
-                        0
-                    </strong>
+                    <strong id="low-stock">0</strong>
                 </div>
-
             </div>
 
-
+            <!-- Inventory Value -->
             <div class="summary-card">
-
-                <div class="summary-icon">
+                <div class="summary-icon" aria-hidden="true">
                     💰
                 </div>
 
                 <div>
                     <span>Inventory Value</span>
-
-                    <strong id="inventory-value">
-                        ₹0.00
-                    </strong>
+                    <strong id="inventory-value">₹0.00</strong>
                 </div>
-
             </div>
 
-        </div>
+        </section>
 
 
-        <!-- =================================================
-             PRODUCT TABLE CARD
-             ================================================= -->
+        <!-- PRODUCT TABLE CARD -->
+        <section class="table-card">
 
-        <div class="table-card">
-
-
-            <!-- Toolbar -->
-
+            <!-- TABLE TOOLBAR -->
             <div class="table-toolbar">
-
                 <div>
-
-                    <h3>
-                        Product List
-                    </h3>
-
-                    <span>
-                        View and manage all products
-                    </span>
-
+                    <h3>Product List</h3>
+                    <span>View and manage all products</span>
                 </div>
-
 
                 <div class="toolbar-actions">
-
                     <div class="search-box">
+                        <span aria-hidden="true">🔍</span>
 
-                        <span>🔍</span>
-
-                        <input
-                            type="text"
-                            id="search-product"
-                            placeholder="Search products..."
-                            oninput="searchProducts()">
-
+                        <input type="search"
+                               id="search-product"
+                               placeholder="Search products..."
+                               aria-label="Search products"
+                               oninput="searchProducts()">
                     </div>
-
                 </div>
-
             </div>
 
 
-            <!-- Table -->
-
+            <!-- PRODUCT TABLE -->
             <div class="table-container">
-
                 <table>
-
                     <thead>
-
                         <tr>
-
-                            <th>S.No</th>
-
-                            <th>Product Code</th>
-
-                            <th>Product Name</th>
-
-                            <th>Category</th>
-
-                            <th>Supplier</th>
-
-                            <th>Purchase Price</th>
-
-                            <th>Selling Price</th>
-
-                            <th>Stock</th>
-
-                            <th>Status</th>
-
-                            <th>Actions</th>
-
+                            <th scope="col">S.No</th>
+                            <th scope="col">Product Code</th>
+                            <th scope="col">Product Name</th>
+                            <th scope="col">Category</th>
+                            <th scope="col">Supplier</th>
+                            <th scope="col">Purchase Price</th>
+                            <th scope="col">Selling Price</th>
+                            <th scope="col">Stock</th>
+                            <th scope="col">Status</th>
+                            <th scope="col">Actions</th>
                         </tr>
-
                     </thead>
 
-
                     <tbody id="product-table-body">
-
-                        <!-- Products will be loaded here -->
-
                         <tr>
-
-                            <td colspan="10"
-                                class="empty-state">
-
-                                No products available
-
+                            <td colspan="10" class="empty-state">
+                                Loading products...
                             </td>
-
                         </tr>
-
                     </tbody>
-
                 </table>
-
             </div>
 
-        </div>
+        </section>
 
 
-        <!-- =================================================
-             ADD / EDIT PRODUCT MODAL
-             ================================================= -->
-
+        <!-- ADD / EDIT PRODUCT MODAL -->
         <div class="modal-overlay"
-             id="product-modal">
+             id="product-modal"
+             role="dialog"
+             aria-modal="true"
+             aria-labelledby="modal-title">
 
             <div class="modal">
 
-
+                <!-- MODAL HEADER -->
                 <div class="modal-header">
-
                     <div>
-
-                        <h3 id="modal-title">
-                            Add Product
-                        </h3>
-
-                        <p>
-                            Enter product information
-                        </p>
-
+                        <h3 id="modal-title">Add Product</h3>
+                        <p>Enter product information</p>
                     </div>
 
-                    <button class="close-button"
-                            onclick="closeProductModal()">
-
+                    <button type="button"
+                            class="close-button"
+                            onclick="closeProductModal()"
+                            aria-label="Close product form">
                         ×
-
                     </button>
-
                 </div>
 
 
-                <!-- Form -->
-
-                <form id="product-form"
-                      onsubmit="saveProduct(event)">
-
+                <!-- PRODUCT FORM -->
+                <form id="product-form" onsubmit="saveProduct(event)">
 
                     <div class="form-grid">
 
-
                         <!-- Product Code -->
-
                         <div class="form-group">
-
-                            <label>
-                                Product Code
-                            </label>
-
-                            <input
-                                type="text"
-                                id="product-code"
-                                placeholder="Enter product code"
-                                required>
-
+                            <label for="product-code">Product Code</label>
+                            <input type="text"
+                                   id="product-code"
+                                   placeholder="Enter product code"
+                                   required>
                         </div>
-
 
                         <!-- Product Name -->
-
                         <div class="form-group">
-
-                            <label>
-                                Product Name
-                            </label>
-
-                            <input
-                                type="text"
-                                id="product-name"
-                                placeholder="Enter product name"
-                                required>
-
+                            <label for="product-name">Product Name</label>
+                            <input type="text"
+                                   id="product-name"
+                                   placeholder="Enter product name"
+                                   required>
                         </div>
-
 
                         <!-- Category -->
-
                         <div class="form-group">
-
-                            <label>
-                                Category
-                            </label>
-
-                            <select
-                                id="product-category"
-                                required>
-
-                                <option value="">
-                                    Select Category
-                                </option>
-
+                            <label for="product-category">Category</label>
+                            <select id="product-category" required>
+                                <option value="">Select Category</option>
                             </select>
-
                         </div>
-
 
                         <!-- Supplier -->
-
                         <div class="form-group">
-
-                            <label>
-                                Supplier
-                            </label>
-
-                            <select
-                                id="product-supplier">
-
-                                <option value="">
-                                    Select Supplier
-                                </option>
-
+                            <label for="product-supplier">Supplier</label>
+                            <select id="product-supplier">
+                                <option value="">Select Supplier</option>
                             </select>
-
                         </div>
-
 
                         <!-- Purchase Price -->
-
                         <div class="form-group">
-
-                            <label>
-                                Purchase Price
-                            </label>
-
-                            <input
-                                type="number"
-                                id="purchase-price"
-                                step="0.01"
-                                min="0"
-                                placeholder="0.00"
-                                required>
-
+                            <label for="purchase-price">Purchase Price (₹)</label>
+                            <input type="number"
+                                   id="purchase-price"
+                                   step="0.01"
+                                   min="0"
+                                   placeholder="0.00"
+                                   required>
                         </div>
-
 
                         <!-- Selling Price -->
-
                         <div class="form-group">
-
-                            <label>
-                                Selling Price
-                            </label>
-
-                            <input
-                                type="number"
-                                id="selling-price"
-                                step="0.01"
-                                min="0"
-                                placeholder="0.00"
-                                required>
-
+                            <label for="selling-price">Selling Price (₹)</label>
+                            <input type="number"
+                                   id="selling-price"
+                                   step="0.01"
+                                   min="0"
+                                   placeholder="0.00"
+                                   required>
                         </div>
 
-
-                        <!-- Stock -->
-
+                        <!-- Stock Quantity -->
                         <div class="form-group">
-
-                            <label>
-                                Stock Quantity
-                            </label>
-
-                            <input
-                                type="number"
-                                id="stock-quantity"
-                                min="0"
-                                placeholder="0">
-
+                            <label for="stock-quantity">Stock Quantity</label>
+                            <input type="number"
+                                   id="stock-quantity"
+                                   min="0"
+                                   step="1"
+                                   value="0"
+                                   placeholder="Enter stock quantity">
                         </div>
-
 
                         <!-- Minimum Stock -->
-
                         <div class="form-group">
-
-                            <label>
-                                Minimum Stock
-                            </label>
-
-                            <input
-                                type="number"
-                                id="minimum-stock"
-                                min="0"
-                                value="10">
-
+                            <label for="minimum-stock">Minimum Stock</label>
+                            <input type="number"
+                                   id="minimum-stock"
+                                   min="0"
+                                   step="1"
+                                   value="10">
                         </div>
 
                     </div>
 
 
-                    <!-- Modal Buttons -->
-
+                    <!-- MODAL FOOTER -->
                     <div class="modal-footer">
-
-                        <button
-                            type="button"
-                            class="btn btn-secondary"
-                            onclick="closeProductModal()">
-
+                        <button type="button"
+                                class="btn btn-secondary"
+                                onclick="closeProductModal()">
                             Cancel
-
                         </button>
 
-                        <button
-                            type="submit"
-                            class="btn btn-primary">
-
+                        <button type="submit"
+                                class="btn btn-primary">
                             Save Product
-
                         </button>
-
                     </div>
 
                 </form>
 
             </div>
-
         </div>
 
     </div>
 
 
+    <!-- PRODUCT PAGE SCRIPT -->
     <script src="products.js"></script>
 
 </body>
-
 </html>

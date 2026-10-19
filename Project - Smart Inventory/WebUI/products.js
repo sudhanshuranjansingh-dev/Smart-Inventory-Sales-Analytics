@@ -1,4 +1,5 @@
-﻿/* =========================================================
+﻿
+/* =========================================================
    SMART INVENTORY
    PRODUCTS JAVASCRIPT
    ========================================================= */
@@ -10,6 +11,7 @@ let suppliers = [];
 let editingProductId = null;
 let currentUserRole = "";
 
+
 /* =========================================================
    PAGE LOAD
    ========================================================= */
@@ -19,7 +21,6 @@ document.addEventListener("DOMContentLoaded", function () {
     console.log("Products page loaded.");
 
     requestCurrentUser();
-
     requestProducts();
     requestCategories();
     requestSuppliers();
@@ -28,47 +29,30 @@ document.addEventListener("DOMContentLoaded", function () {
 
 
 /* =========================================================
-   SEND MESSAGE TO MAIN.JS
+   SEND MESSAGE TO MAIN.JS / VB.NET
    ========================================================= */
 
 function sendToVB(message) {
 
     console.log("Sending message:", message);
 
-    /*
-       Products page is inside page-frame iframe.
-
-       Therefore send the message to the parent page
-       (main.js), which will forward it to VB.NET.
-    */
-
+    // Products page is hosted inside the parent iframe.
     if (window.parent && window.parent !== window) {
 
-        window.parent.postMessage(
-            message,
-            "*"
-        );
-
+        window.parent.postMessage(message, "*");
         return;
     }
 
-
-    /*
-       Fallback for direct WebView2 use.
-    */
-
+    // Fallback for direct WebView2 use.
     if (
         window.chrome &&
         window.chrome.webview
     ) {
-
         window.chrome.webview.postMessage(
             JSON.stringify(message)
         );
-
         return;
     }
-
 
     console.warn(
         "WebView2 communication is not available."
@@ -78,7 +62,7 @@ function sendToVB(message) {
 
 
 /* =========================================================
-   REQUEST PRODUCTS
+   REQUEST DATA
    ========================================================= */
 
 function requestProducts() {
@@ -89,11 +73,6 @@ function requestProducts() {
 
 }
 
-
-/* =========================================================
-   REQUEST CATEGORIES
-   ========================================================= */
-
 function requestCategories() {
 
     sendToVB({
@@ -102,11 +81,6 @@ function requestCategories() {
 
 }
 
-
-/* =========================================================
-   REQUEST SUPPLIERS
-   ========================================================= */
-
 function requestSuppliers() {
 
     sendToVB({
@@ -114,10 +88,6 @@ function requestSuppliers() {
     });
 
 }
-
-/* =========================================================
-   REQUEST CURRENT USER
-   ========================================================= */
 
 function requestCurrentUser() {
 
@@ -132,140 +102,129 @@ function requestCurrentUser() {
    RECEIVE DATA FROM MAIN.JS / VB.NET
    ========================================================= */
 
-window.addEventListener(
-    "message",
-    function (event) {
+window.addEventListener("message", function (event) {
 
-        if (!event.data) {
-            return;
-        }
+    if (!event.data) {
+        return;
+    }
 
+    let data;
 
-        let data;
+    try {
 
+        data = typeof event.data === "string"
+            ? JSON.parse(event.data)
+            : event.data;
 
-        try {
+    } catch (error) {
 
-            data =
-                typeof event.data === "string"
-                    ? JSON.parse(event.data)
-                    : event.data;
-
-        }
-        catch (error) {
-
-            console.error(
-                "Invalid message received:",
-                error
-            );
-
-            return;
-
-        }
-
-
-        console.log(
-            "Products page received:",
-            data
+        console.error(
+            "Invalid message received:",
+            error
         );
 
-        /* =========================================================
-   CURRENT USER ROLE
-   ========================================================= */
+        return;
+    }
 
-        if (data.type === "currentUser") {
-
-            currentUserRole =
-                String(data.role || "")
-                    .trim().toLowerCase();
-
-            console.log(
-                "Products page user role:",
-                currentUserRole
-            );
-
-            // Refresh product table after receiving the role
-            renderProducts(products);
-
-            return;
-
-        }
-
-        /* =================================================
-           PRODUCTS
-           ================================================= */
-
-        if (data.type === "products") {
-
-            products =
-                Array.isArray(data.data)
-                    ? data.data
-                    : [];
-
-            renderProducts(products);
-
-            updateSummary();
-
-        }
+    console.log("Products page received:", data);
 
 
-        /* =================================================
-           CATEGORIES
-           ================================================= */
+    /* =====================================================
+       CURRENT USER
+       ===================================================== */
 
-        if (data.type === "categories") {
+    if (data.type === "currentUser") {
 
-            categories =
-                Array.isArray(data.data)
-                    ? data.data
-                    : [];
+        currentUserRole = String(data.role || "")
+            .trim()
+            .toLowerCase();
 
-            console.log(
-                "Categories received:",
-                categories
-            );
+        console.log(
+            "Products page user role:",
+            currentUserRole
+        );
 
-            loadCategoryDropdown();
-
-        }
-
-
-        /* =================================================
-           SUPPLIERS
-           ================================================= */
-
-        if (data.type === "suppliers") {
-
-            suppliers =
-                Array.isArray(data.data)
-                    ? data.data
-                    : [];
-
-            console.log(
-                "Suppliers received:",
-                suppliers
-            );
-
-            loadSupplierDropdown();
-
-        }
+        renderProducts(products);
+        return;
+    }
 
 
-        /* =================================================
-           PRODUCT ERROR
-           ================================================= */
+    /* =====================================================
+       PRODUCTS
+       ===================================================== */
 
-        if (data.type === "productError") {
+    if (data.type === "products") {
 
-            alert(
-                data.message ||
-                "Product operation failed."
-            );
+        products = Array.isArray(data.data)
+            ? data.data
+            : [];
 
-        }
+        renderProducts(products);
+        updateSummary();
+
+        return;
+    }
+
+
+    /* =====================================================
+       CATEGORIES
+       ===================================================== */
+
+    if (data.type === "categories") {
+
+        categories = Array.isArray(data.data)
+            ? data.data
+            : [];
+
+        console.log(
+            "Categories received:",
+            categories.length
+        );
+
+        loadCategoryDropdown();
+
+        // Update the Categories card as soon as data arrives.
+        updateSummary();
+
+        return;
+    }
+
+
+    /* =====================================================
+       SUPPLIERS
+       ===================================================== */
+
+    if (data.type === "suppliers") {
+
+        suppliers = Array.isArray(data.data)
+            ? data.data
+            : [];
+
+        console.log(
+            "Suppliers received:",
+            suppliers.length
+        );
+
+        loadSupplierDropdown();
+
+        return;
+    }
+
+
+    /* =====================================================
+       PRODUCT ERROR
+       ===================================================== */
+
+    if (data.type === "productError") {
+
+        alert(
+            data.message ||
+            "Product operation failed."
+        );
 
     }
-);
+
+});
 
 
 /* =========================================================
@@ -274,138 +233,74 @@ window.addEventListener(
 
 function loadCategoryDropdown() {
 
-    const select =
-        document.getElementById(
-            "product-category"
-        );
-
+    const select = document.getElementById(
+        "product-category"
+    );
 
     if (!select) {
-
-        console.error(
+        console.warn(
             "Category dropdown #product-category not found."
         );
-
         return;
-
     }
 
-
-    /*
-       Remember currently selected category.
-       This is useful while editing.
-    */
-
-    const previousValue =
-        select.value;
-
+    const previousValue = select.value;
 
     select.innerHTML = "";
 
-
-    const defaultOption =
-        document.createElement("option");
-
+    const defaultOption = document.createElement("option");
 
     defaultOption.value = "";
+    defaultOption.textContent = "Select Category";
 
-    defaultOption.textContent =
-        "Select Category";
-
-
-    select.appendChild(
-        defaultOption
-    );
-
+    select.appendChild(defaultOption);
 
     categories.forEach(function (category) {
 
-        const categoryId =
-            category.CategoryID;
-
-
-        const categoryName =
-            category.CategoryName;
-
+        const categoryId = category.CategoryID;
+        const categoryName = category.CategoryName;
 
         if (
             categoryId === undefined ||
             categoryId === null
         ) {
-
             return;
-
         }
 
+        const option = document.createElement("option");
 
-        const option =
-            document.createElement("option");
-
-
-        option.value =
-            String(categoryId);
-
-
+        option.value = String(categoryId);
         option.textContent =
             categoryName || "Unnamed Category";
 
-
-        select.appendChild(
-            option
-        );
+        select.appendChild(option);
 
     });
 
-
-    /*
-       Restore previous value if possible.
-    */
-
+    // Restore the previous selection when possible.
     if (previousValue !== "") {
-
-        select.value =
-            previousValue;
-
+        select.value = previousValue;
     }
 
+    // Restore the category for the product being edited.
+    if (editingProductId !== null) {
 
-    /*
-       If editing a product,
-       restore its category.
-    */
+        const product = products.find(
+            p =>
+                Number(p.ProductID) ===
+                Number(editingProductId)
+        );
 
-    if (
-        editingProductId !== null
-    ) {
-
-        const product =
-            products.find(
-                p =>
-                    Number(p.ProductID) ===
-                    Number(editingProductId)
-            );
-
-
-        if (product) {
-
-            if (
-                product.CategoryID !== undefined &&
-                product.CategoryID !== null
-            ) {
-
-                select.value =
-                    String(product.CategoryID);
-
-            }
-
+        if (
+            product &&
+            product.CategoryID !== undefined &&
+            product.CategoryID !== null
+        ) {
+            select.value = String(product.CategoryID);
         }
-
     }
 
-
-    console.log(
-        "Category dropdown populated."
-    );
+    console.log("Category dropdown populated.");
 
 }
 
@@ -416,132 +311,72 @@ function loadCategoryDropdown() {
 
 function loadSupplierDropdown() {
 
-    const select =
-        document.getElementById(
-            "product-supplier"
-        );
-
+    const select = document.getElementById(
+        "product-supplier"
+    );
 
     if (!select) {
-
-        console.error(
+        console.warn(
             "Supplier dropdown #product-supplier not found."
         );
-
         return;
-
     }
 
-
-    const previousValue =
-        select.value;
-
+    const previousValue = select.value;
 
     select.innerHTML = "";
 
-
-    const defaultOption =
-        document.createElement("option");
-
+    const defaultOption = document.createElement("option");
 
     defaultOption.value = "";
+    defaultOption.textContent = "Select Supplier";
 
-    defaultOption.textContent =
-        "Select Supplier";
-
-
-    select.appendChild(
-        defaultOption
-    );
-
+    select.appendChild(defaultOption);
 
     suppliers.forEach(function (supplier) {
 
-        const supplierId =
-            supplier.SupplierID;
-
-
-        const supplierName =
-            supplier.SupplierName;
-
+        const supplierId = supplier.SupplierID;
+        const supplierName = supplier.SupplierName;
 
         if (
             supplierId === undefined ||
             supplierId === null
         ) {
-
             return;
-
         }
 
+        const option = document.createElement("option");
 
-        const option =
-            document.createElement("option");
-
-
-        option.value =
-            String(supplierId);
-
-
+        option.value = String(supplierId);
         option.textContent =
             supplierName || "Unnamed Supplier";
 
-
-        select.appendChild(
-            option
-        );
+        select.appendChild(option);
 
     });
 
-
-    /*
-       Restore previous value.
-    */
-
     if (previousValue !== "") {
-
-        select.value =
-            previousValue;
-
+        select.value = previousValue;
     }
 
+    if (editingProductId !== null) {
 
-    /*
-       Restore supplier while editing.
-    */
+        const product = products.find(
+            p =>
+                Number(p.ProductID) ===
+                Number(editingProductId)
+        );
 
-    if (
-        editingProductId !== null
-    ) {
-
-        const product =
-            products.find(
-                p =>
-                    Number(p.ProductID) ===
-                    Number(editingProductId)
-            );
-
-
-        if (product) {
-
-            if (
-                product.SupplierID !== undefined &&
-                product.SupplierID !== null
-            ) {
-
-                select.value =
-                    String(product.SupplierID);
-
-            }
-
+        if (
+            product &&
+            product.SupplierID !== undefined &&
+            product.SupplierID !== null
+        ) {
+            select.value = String(product.SupplierID);
         }
-
     }
 
-
-    console.log(
-        "Supplier dropdown populated."
-    );
+    console.log("Supplier dropdown populated.");
 
 }
 
@@ -554,35 +389,18 @@ function openAddProduct() {
 
     editingProductId = null;
 
-
-    document.getElementById(
-        "modal-title"
-    ).textContent =
+    document.getElementById("modal-title").textContent =
         "Add Product";
 
-
-    document.getElementById(
-        "product-form"
-    ).reset();
-
-
-    /*
-       Make sure dropdowns are populated.
-    */
+    document.getElementById("product-form").reset();
 
     loadCategoryDropdown();
-
     loadSupplierDropdown();
 
+    document.getElementById("minimum-stock").value = 10;
 
-    document.getElementById(
-        "minimum-stock"
-    ).value = 10;
-
-
-    document.getElementById(
-        "product-modal"
-    ).classList.add("show");
+    document.getElementById("product-modal")
+        .classList.add("show");
 
 }
 
@@ -593,10 +411,8 @@ function openAddProduct() {
 
 function closeProductModal() {
 
-    document.getElementById(
-        "product-modal"
-    ).classList.remove("show");
-
+    document.getElementById("product-modal")
+        .classList.remove("show");
 
     editingProductId = null;
 
@@ -611,120 +427,63 @@ function saveProduct(event) {
 
     event.preventDefault();
 
+    const categoryID = document.getElementById(
+        "product-category"
+    ).value;
 
-    const categoryID =
-        document.getElementById(
-            "product-category"
-        ).value;
-
-
-    const supplierID =
-        document.getElementById(
-            "product-supplier"
-        ).value;
-
-
-    /*
-       Validate Category
-    */
+    const supplierID = document.getElementById(
+        "product-supplier"
+    ).value;
 
     if (!categoryID) {
-
-        alert(
-            "Please select a Category."
-        );
-
+        alert("Please select a Category.");
         return;
-
     }
-
-
-    /*
-       Validate Supplier
-    */
 
     if (!supplierID) {
-
-        alert(
-            "Please select a Supplier."
-        );
-
+        alert("Please select a Supplier.");
         return;
-
     }
-
 
     const product = {
 
-        action:
-            editingProductId === null
-                ? "addProduct"
-                : "updateProduct",
+        action: editingProductId === null
+            ? "addProduct"
+            : "updateProduct",
 
+        ProductID: editingProductId,
 
-        ProductID:
-            editingProductId,
+        ProductCode: document.getElementById(
+            "product-code"
+        ).value.trim(),
 
+        ProductName: document.getElementById(
+            "product-name"
+        ).value.trim(),
 
-        ProductCode:
-            document.getElementById(
-                "product-code"
-            ).value.trim(),
+        CategoryID: Number(categoryID),
 
+        SupplierID: Number(supplierID),
 
-        ProductName:
-            document.getElementById(
-                "product-name"
-            ).value.trim(),
+        PurchasePrice: Number(
+            document.getElementById("purchase-price").value || 0
+        ),
 
+        SellingPrice: Number(
+            document.getElementById("selling-price").value || 0
+        ),
 
-        CategoryID:
-            Number(categoryID),
+        StockQuantity: Number(
+            document.getElementById("stock-quantity").value || 0
+        ),
 
-
-        SupplierID:
-            Number(supplierID),
-
-
-        PurchasePrice:
-            Number(
-                document.getElementById(
-                    "purchase-price"
-                ).value || 0
-            ),
-
-
-        SellingPrice:
-            Number(
-                document.getElementById(
-                    "selling-price"
-                ).value || 0
-            ),
-
-
-        StockQuantity:
-            Number(
-                document.getElementById(
-                    "stock-quantity"
-                ).value || 0
-            ),
-
-
-        MinimumStock:
-            Number(
-                document.getElementById(
-                    "minimum-stock"
-                ).value || 10
-            )
+        MinimumStock: Number(
+            document.getElementById("minimum-stock").value || 10
+        )
 
     };
 
-
-    console.log(
-        "Saving product:",
-        product
-    );
-
+    console.log("Saving product:", product);
 
     sendToVB(product);
 
@@ -735,109 +494,68 @@ function saveProduct(event) {
    EDIT PRODUCT
    ========================================================= */
 
-/* =========================================================
-   EDIT PRODUCT
-   ========================================================= */
-
 function editProduct(id) {
 
-    if (
-        String(currentUserRole || "")
-            .trim()
-            .toLowerCase() === "staff"
-    ) {
+    if (currentUserRole === "staff") {
 
         alert(
             "Staff accounts are not allowed to modify products."
         );
 
         return;
-
     }
 
-
-    const product =
-        products.find(
-            p =>
-                Number(p.ProductID) ===
-                Number(id)
-        );
-
+    const product = products.find(
+        p => Number(p.ProductID) === Number(id)
+    );
 
     if (!product) {
-
-        alert(
-            "Product not found."
-        );
-
+        alert("Product not found.");
         return;
-
     }
 
+    editingProductId = Number(product.ProductID);
 
-    editingProductId =
-        Number(product.ProductID);
-
-
-    document.getElementById(
-        "modal-title"
-    ).textContent =
+    document.getElementById("modal-title").textContent =
         "Edit Product";
 
-
-    document.getElementById(
-        "product-code"
-    ).value =
+    document.getElementById("product-code").value =
         product.ProductCode || "";
 
-
-    document.getElementById(
-        "product-name"
-    ).value =
+    document.getElementById("product-name").value =
         product.ProductName || "";
 
+    // Ensure current dropdown data is available.
+    loadCategoryDropdown();
+    loadSupplierDropdown();
 
-    document.getElementById(
-        "product-category"
-    ).value =
-        product.CategoryID || "";
+    document.getElementById("product-category").value =
+        product.CategoryID != null
+            ? String(product.CategoryID)
+            : "";
 
+    document.getElementById("product-supplier").value =
+        product.SupplierID != null
+            ? String(product.SupplierID)
+            : "";
 
-    document.getElementById(
-        "product-supplier"
-    ).value =
-        product.SupplierID || "";
-
-
-    document.getElementById(
-        "purchase-price"
-    ).value =
+    document.getElementById("purchase-price").value =
         product.PurchasePrice || 0;
 
-
-    document.getElementById(
-        "selling-price"
-    ).value =
+    document.getElementById("selling-price").value =
         product.SellingPrice || 0;
 
-
-    document.getElementById(
-        "stock-quantity"
-    ).value =
+    document.getElementById("stock-quantity").value =
         product.StockQuantity || 0;
 
-
-    document.getElementById(
-        "minimum-stock"
-    ).value =
+    document.getElementById("minimum-stock").value =
         product.MinimumStock || 10;
 
-
-    document.getElementById(
-        "product-modal"
-    ).classList.add("show");
+    document.getElementById("product-modal")
+        .classList.add("show");
 
 }
+
 
 /* =========================================================
    DELETE PRODUCT
@@ -845,120 +563,35 @@ function editProduct(id) {
 
 function deleteProduct(id) {
 
-    if (
-        String(currentUserRole || "")
-            .trim()
-            .toLowerCase() === "staff"
-    ) {
+    if (currentUserRole === "staff") {
 
         alert(
             "Staff accounts are not allowed to delete products."
         );
 
         return;
-
     }
 
-
-    const product =
-        products.find(
-            p =>
-                Number(p.ProductID) ===
-                Number(id)
-        );
-
+    const product = products.find(
+        p => Number(p.ProductID) === Number(id)
+    );
 
     if (!product) {
-
+        alert("Product not found.");
         return;
-
     }
 
-
-    const result =
-        confirm(
-            `Delete "${product.ProductName}"?`
-        );
-
-
-    if (!result) {
-
+    if (!confirm(`Delete "${product.ProductName}"?`)) {
         return;
-
     }
-
 
     sendToVB({
-
-        action:
-            "deleteProduct",
-
-        ProductID:
-            Number(id)
-
+        action: "deleteProduct",
+        ProductID: Number(id)
     });
 
 }
-/* =========================================================
-   DELETE PRODUCT
-   ========================================================= */
 
-function deleteProduct(id) {
-
-    if (
-        String(currentUserRole || "")
-            .trim()
-            .toLowerCase() === "staff"
-    ) {
-
-        alert(
-            "Staff accounts are not allowed to delete products."
-        );
-
-        return;
-
-    }
-
-
-    const product =
-        products.find(
-            p =>
-                Number(p.ProductID) ===
-                Number(id)
-        );
-
-
-    if (!product) {
-
-        return;
-
-    }
-
-
-    const result =
-        confirm(
-            `Delete "${product.ProductName}"?`
-        );
-
-
-    if (!result) {
-
-        return;
-
-    }
-
-
-    sendToVB({
-
-        action:
-            "deleteProduct",
-
-        ProductID:
-            Number(id)
-
-    });
-
-}
 
 /* =========================================================
    RENDER PRODUCTS
@@ -966,23 +599,22 @@ function deleteProduct(id) {
 
 function renderProducts(list = products) {
 
-    const tbody = document.getElementById("product-table-body");
+    const tbody = document.getElementById(
+        "product-table-body"
+    );
 
     if (!tbody) {
         console.error("Product table body not found.");
         return;
     }
 
-    const role = String(currentUserRole || "")
-        .trim()
-        .toLowerCase();
-
-    const isStaff = role === "staff";
+    const isStaff = currentUserRole === "staff";
 
     // Hide the Actions heading for staff users.
     const table = tbody.closest("table");
 
     if (table) {
+
         const headers = table.querySelectorAll("thead th");
 
         if (headers.length > 0) {
@@ -991,8 +623,8 @@ function renderProducts(list = products) {
         }
     }
 
-    // Handle an empty product list.
     if (!list || list.length === 0) {
+
         tbody.innerHTML = `
             <tr>
                 <td colspan="${isStaff ? 9 : 10}"
@@ -1001,11 +633,11 @@ function renderProducts(list = products) {
                 </td>
             </tr>
         `;
+
         return;
     }
 
-    // Sort a copy alphabetically by Product Name (A-Z).
-    // The original products array remains unchanged.
+    // Sort a copy alphabetically by product name.
     const sortedProducts = [...list].sort(function (a, b) {
 
         const nameA = String(a.ProductName || "").trim();
@@ -1019,6 +651,7 @@ function renderProducts(list = products) {
                 numeric: true
             }
         );
+
     });
 
     tbody.innerHTML = "";
@@ -1032,21 +665,24 @@ function renderProducts(list = products) {
         let statusClass = "";
 
         if (stock === 0) {
+
             status = "Out of Stock";
             statusClass = "status-out";
-        }
-        else if (stock <= minimum) {
+
+        } else if (stock <= minimum) {
+
             status = "Low Stock";
             statusClass = "status-low";
-        }
-        else {
+
+        } else {
+
             status = "In Stock";
             statusClass = "status-good";
+
         }
 
         const row = document.createElement("tr");
 
-        // Keep the real database ProductID for actions.
         const productId = Number(product.ProductID);
 
         const actionsHtml = isStaff
@@ -1059,7 +695,7 @@ function renderProducts(list = products) {
                             class="action-button"
                             onclick="editProduct(${productId})"
                             title="Edit"
-                            aria-label="Edit ${product.ProductName || "product"}">
+                            aria-label="Edit product">
                             ✏️
                         </button>
 
@@ -1068,7 +704,7 @@ function renderProducts(list = products) {
                             class="action-button"
                             onclick="deleteProduct(${productId})"
                             title="Delete"
-                            aria-label="Delete ${product.ProductName || "product"}">
+                            aria-label="Delete product">
                             🗑️
                         </button>
                     </div>
@@ -1077,94 +713,63 @@ function renderProducts(list = products) {
 
         row.innerHTML = `
             <td>${index + 1}</td>
-
             <td>${product.ProductCode || "-"}</td>
-
-            <td>
-                <strong>${product.ProductName || "-"}</strong>
-            </td>
-
+            <td><strong>${product.ProductName || "-"}</strong></td>
             <td>${product.CategoryName || "-"}</td>
-
             <td>${product.SupplierName || "-"}</td>
-
-            <td>
-                ₹${Number(product.PurchasePrice || 0).toFixed(2)}
-            </td>
-
-            <td>
-                ₹${Number(product.SellingPrice || 0).toFixed(2)}
-            </td>
-
+            <td>₹${Number(product.PurchasePrice || 0).toFixed(2)}</td>
+            <td>₹${Number(product.SellingPrice || 0).toFixed(2)}</td>
             <td>${stock}</td>
-
             <td>
                 <span class="status ${statusClass}">
                     ${status}
                 </span>
             </td>
-
             ${actionsHtml}
         `;
 
         tbody.appendChild(row);
+
     });
+
 }
 
 
 /* =========================================================
-   SEARCH
+   SEARCH PRODUCTS
    ========================================================= */
 
 function searchProducts() {
 
-    const search =
-        document.getElementById(
-            "search-product"
-        ).value
+    const searchInput = document.getElementById(
+        "search-product"
+    );
+
+    if (!searchInput) {
+        return;
+    }
+
+    const search = searchInput.value
         .toLowerCase()
         .trim();
 
+    const filtered = products.filter(function (product) {
 
-    const filtered =
-        products.filter(function (product) {
+        return (
+            String(product.ProductName || "")
+                .toLowerCase().includes(search) ||
 
-            return (
+            String(product.ProductCode || "")
+                .toLowerCase().includes(search) ||
 
-                String(
-                    product.ProductName || ""
-                )
-                .toLowerCase()
-                .includes(search)
+            String(product.CategoryName || "")
+                .toLowerCase().includes(search) ||
 
-                ||
+            String(product.SupplierName || "")
+                .toLowerCase().includes(search)
+        );
 
-                String(
-                    product.ProductCode || ""
-                )
-                .toLowerCase()
-                .includes(search)
-
-                ||
-
-                String(
-                    product.CategoryName || ""
-                )
-                .toLowerCase()
-                .includes(search)
-
-                ||
-
-                String(
-                    product.SupplierName || ""
-                )
-                .toLowerCase()
-                .includes(search)
-
-            );
-
-        });
-
+    });
 
     renderProducts(filtered);
 
@@ -1175,105 +780,61 @@ function searchProducts() {
    UPDATE SUMMARY
    ========================================================= */
 
+
 function updateSummary() {
+    const totalProductsElement = document.getElementById("total-products");
+    const outOfStockElement = document.getElementById("out-of-stock");
+    const lowStockElement = document.getElementById("low-stock");
+    const inventoryValueElement = document.getElementById("inventory-value");
 
-    const totalProducts =
-        document.getElementById(
-            "total-products"
-        );
-
-
-    if (totalProducts) {
-
-        totalProducts.textContent =
-            products.length;
-
-    }
-
-
-    const lowStock =
-        products.filter(function (product) {
-
-            const stock =
-                Number(
-                    product.StockQuantity || 0
-                );
-
-
-            const minimum =
-                Number(
-                    product.MinimumStock || 10
-                );
-
-
-            return (
-                stock > 0 &&
-                stock <= minimum
-            );
-
-        }).length;
-
-
-    const lowStockElement =
-        document.getElementById(
-            "low-stock"
-        );
-
-
-    if (lowStockElement) {
-
-        lowStockElement.textContent =
-            lowStock;
-
-    }
-
-
-    const inventoryValue =
-        products.reduce(
-            function (total, product) {
-
-                return total +
-                    (
-                        Number(
-                            product.PurchasePrice || 0
-                        )
-                        *
-                        Number(
-                            product.StockQuantity || 0
-                        )
-                    );
-
-            },
+    const getStock = product =>
+        Number(
+            product.StockQuantity ??
+            product.stockQuantity ??
+            product.stock_quantity ??
             0
         );
 
+    if (totalProductsElement) {
+        totalProductsElement.textContent = products.length;
+    }
 
-    const inventoryValueElement =
-        document.getElementById(
-            "inventory-value"
-        );
+    if (outOfStockElement) {
+        outOfStockElement.textContent = products.filter(
+            product => getStock(product) === 0
+        ).length;
+    }
 
+    if (lowStockElement) {
+        lowStockElement.textContent = products.filter(product => {
+            const stock = getStock(product);
+            const minimum = Number(
+                product.MinimumStock ??
+                product.minimumStock ??
+                product.minimum_stock ??
+                0
+            );
+
+            return stock > 0 && stock <= minimum;
+        }).length;
+    }
 
     if (inventoryValueElement) {
+        const totalValue = products.reduce((total, product) => {
+            const stock = getStock(product);
+            const purchasePrice = Number(
+                product.PurchasePrice ??
+                product.purchasePrice ??
+                product.purchase_price ??
+                0
+            );
 
-        inventoryValueElement.textContent =
-            "₹" +
-            inventoryValue.toFixed(2);
+            return total + stock * purchasePrice;
+        }, 0);
 
+        inventoryValueElement.textContent = totalValue.toLocaleString("en-IN", {
+            style: "currency",
+            currency: "INR"
+        });
     }
-
-
-    const totalCategories =
-        document.getElementById(
-            "total-categories"
-        );
-
-
-    if (totalCategories) {
-
-        totalCategories.textContent =
-            categories.length;
-
-    }
-
 }

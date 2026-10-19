@@ -21,7 +21,7 @@ Public Class DBConnection
             .UserID = "avnadmin",
             .Password = dbPassword,
             .SslMode = MySqlSslMode.VerifyCA,
-            .SslCa = "C:\Users\wasif\Downloads\ca.pem"
+            .SslCa = "C:\Users\75478\Downloads\ca.pem"
         }
 
         Return New MySqlConnection(builder.ConnectionString)
